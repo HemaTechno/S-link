@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/:id",
+      "destination": "/api/link?id=:id"
+    }
+  ]
+}
