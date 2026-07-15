@@ -16,13 +16,25 @@ export default async function handler(req, res) {
 
         try {
 
-            const id = nanoid(6);
+            const customSlug = req.body.slug?.trim();
 
+const id = customSlug || nanoid(6);
             await db.collection("links").doc(id).set({
                 url,
                 clicks: 0
             });
+const exists = await db.collection("links").doc(id).get();
 
+if (exists.exists) {
+    return res.status(400).json({
+        success: false,
+        message: "اسم الرابط مستخدم بالفعل"
+    });
+}
+            await db.collection("links").doc(id).set({
+    url,
+    clicks: 0
+});
             return res.json({
                 success: true,
                 short: `${req.headers.origin}/${id}`
