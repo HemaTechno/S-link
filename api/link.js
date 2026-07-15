@@ -1,7 +1,7 @@
 import db from "./firebase.js";
 import { nanoid } from "nanoid";
 
-// ضع رقم الـ User ID الخاص بك في Linkvertise هنا لكي يتم تحويل الأرباح لحسابك
+// معرف الناشر الخاص بك في Linkvertise
 const LINKVERTISE_USER_ID = 1322389; 
 
 export default async function handler(req, res) {
@@ -60,9 +60,10 @@ export default async function handler(req, res) {
         }
     }
 
-    // 2. التحويل التلقائي والدمج مع Linkvertise عند الدخول (GET)
+    // 2. التحويل التلقائي والدمج الآمن مع Linkvertise (GET)
     if (req.method === "GET") {
         try {
+            // جلب الـ id سواء جاء كـ query parameter أو تم تمريره عبر مسار التوجيه
             const id = req.query.id;
 
             if (!id) return res.status(404).send("Not Found");
@@ -77,14 +78,20 @@ export default async function handler(req, res) {
                 clicks: (data.clicks || 0) + 1
             });
 
-            // --- [ عبقرية الدمج مع Linkvertise هنا ] ---
-            // تحويل الرابط الأصلي بصيغة Base64 وبشكل آمن تماماً من السيرفر لكي يفهمه نظام Linkvertise
-            const base64Url = Buffer.from(data.url).toString("base64");
+            // تحويل الرابط إلى صيغة Standard Base64
+            let base64Url = Buffer.from(data.url).toString("base64");
             
-            // تكوين رابط الربح الديناميكي الخاص بك
+            // جعل النص المتولد متوافقًا تمامًا مع معايير الروابط (URL-Safe Base64)
+            // وهي معالجة الرموز (+، /، =) التي تسبب خللاً في بعض المتصفحات وسيرفرات التحويل
+            base64Url = base64Url
+                .replace(/\+/g, "-")
+                .replace(/\//g, "_")
+                .replace(/=+$/, "");
+
+            // بناء الرابط الديناميكي النهائي الصالح للاستخدام الفوري لـ Linkvertise
             const linkvertiseRedirectUrl = `https://linkvertise.com/${LINKVERTISE_USER_ID}/dynamic?r=${base64Url}`;
 
-            // تحويل الزائر تلقائياً إلى صفحة إعلانات Linkvertise الخاصة برابطه
+            // توجيه الزائر مباشرة (HTTP 302 Redirect) إلى صفحة الأرباح
             return res.redirect(302, linkvertiseRedirectUrl);
 
         } catch (err) {
