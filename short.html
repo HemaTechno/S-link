@@ -4,25 +4,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>اختصار الروابط</title>
+
+    <title>Link Shortener</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <div class="box">
+    <div class="container">
 
         <h1>🔗 اختصار الروابط</h1>
 
+        <p class="desc">
+            الصق الرابط ثم اضغط اختصار
+        </p>
+
         <input
             id="url"
-            type="text"
+            type="url"
             placeholder="https://example.com">
 
-        <button onclick="shorten()">
-            اختصار
+        <input
+            id="slug"
+            type="text"
+            maxlength="30"
+            placeholder="اسم الرابط (اختياري) مثال: youtube">
+
+        <button id="shortBtn" onclick="shorten()">
+            اختصار الرابط
         </button>
+
+        <div id="loading" style="display:none;">
+            جاري إنشاء الرابط...
+        </div>
 
         <div id="result"></div>
 
