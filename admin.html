@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة التحكم | صانع الروابط</title>
+    <style>
+        body { font-family: sans-serif; background: #1e293b; color: #fff; padding: 40px; }
+        .form-container { background: #0f172a; max-width: 500px; margin: 0 auto; padding: 25px; border-radius: 8px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; border-radius: 4px; border: 1px solid #475569; background: #1e293b; color: #fff; }
+        button { background: #10b981; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        button:hover { background: #059669; }
+        .result { margin-top: 20px; background: #334155; padding: 15px; border-radius: 4px; word-break: break-all; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>إنشاء رابط قفل جديد 🚀</h2>
+    
+    <label>رابط التحميل النهائي (الرابط الأصلي أو Linkvertise):</label>
+    <input type="url" id="originalLink" placeholder="https://..." required>
+
+    <label>رابط قناتك على اليوتيوب (المهمة):</label>
+    <input type="url" id="ytChannel" placeholder="https://youtube.com/..." required>
+
+    <button id="createBtn">توليد الرابط المقفل</button>
+
+    <div class="result" id="resultBox">
+        <p>الرابط الخاص بمتابعيك جاهز:</p>
+        <strong id="generatedUrl"></strong>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<!-- استدعاء ملف الإعدادات الموحد -->
+<script src="/api/config.js"></script>
+
+<script>
+    document.getElementById('createBtn').addEventListener('click', () => {
+        const originalLink = document.getElementById('originalLink').value;
+        const ytChannel = document.getElementById('ytChannel').value;
+
+        if(!originalLink || !ytChannel) {
+            alert("رجاءً املأ كل الخانات!");
+            return;
+        }
+
+        // توليد كود معرف عشوائي مكون من 6 أحرف وأرقام للرابط
+        const uniqueId = Math.random().toString(36).substring(2, 8);
+
+        db.collection("links").doc(uniqueId).set({
+            linkId: uniqueId,
+            originalLink: originalLink,
+            youtubeChannel: ytChannel,
+            clicks: 0,
+            createdAt: new Date().toISOString().split('T')[0]
+        }).then(() => {
+            const resultBox = document.getElementById('resultBox');
+            const generatedUrl = document.getElementById('generatedUrl');
+            
+            // توليد الرابط النظيف المباشر متوافق مع Vercel
+            const finalLink = window.location.origin + "/" + uniqueId;
+            
+            generatedUrl.innerText = finalLink;
+            resultBox.style.display = "block";
+        }).catch(err => alert("حدث خطأ: " + err));
+    });
+</script>
+</body>
+</html>
