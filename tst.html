@@ -3,23 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تجربة LootLabs</title>
+    <title>LootLabs Test</title>
 
-    <!-- سكريبت LootLabs -->
-    <script data-cfasync="false"
-        src="//dcbbwymp1bhlf.cloudfront.net/?wbbcd=1163410">
-    </script>
+    <!-- LootLabs -->
+    <script data-cfasync="false" src="//dcbbwymp1bhlf.cloudfront.net/?wbbcd=1444225"></script>
 
     <style>
         *{
             margin:0;
             padding:0;
             box-sizing:border-box;
-            font-family:Cairo,sans-serif;
+            font-family:Arial,sans-serif;
         }
 
         body{
-            background:#0f172a;
+            background:#111827;
             color:#fff;
             display:flex;
             justify-content:center;
@@ -27,14 +25,13 @@
             height:100vh;
         }
 
-        .box{
+        .card{
             width:90%;
-            max-width:450px;
-            background:#1e293b;
-            padding:30px;
+            max-width:420px;
+            background:#1f2937;
             border-radius:15px;
+            padding:30px;
             text-align:center;
-            box-shadow:0 0 20px rgba(0,0,0,.4);
         }
 
         h1{
@@ -52,7 +49,7 @@
             border:none;
             border-radius:10px;
             background:#2563eb;
-            color:#fff;
+            color:white;
             font-size:18px;
             cursor:pointer;
         }
@@ -69,29 +66,25 @@
 </head>
 <body>
 
-<div class="box">
-    <h1>🧪 صفحة تجربة LootLabs</h1>
+<div class="card">
+    <h1>LootLabs Test</h1>
 
     <p>
-        اضغط الزر بالأسفل لتجربة تشغيل السكريبت.
+        اضغط في أي مكان أو على الزر بالأسفل.
     </p>
 
     <button id="btn">
-        تشغيل التجربة
+        اضغط هنا
     </button>
 
     <div id="status"></div>
 </div>
 
 <script>
-
-document.getElementById("btn").onclick = function(){
-
+document.getElementById("btn").onclick = function () {
     document.getElementById("status").innerHTML =
-        "✅ تم الضغط على الزر.<br>إذا كان السكريبت يعمل فستظهر نافذة أو عرض LootLabs حسب إعدادات حسابك.";
-
+        "تم الضغط على الزر. إذا كان LootLabs مربوط بشكل صحيح فسيظهر العرض حسب إعدادات حسابك.";
 };
-
 </script>
 
 </body>
