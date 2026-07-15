@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بوابة فتح الرابط</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #fff; text-align: center; padding: 50px 20px; }
+        .box { background: #1e293b; max-width: 450px; margin: 0 auto; padding: 30px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        h2 { color: #38bdf8; }
+        .btn { display: block; background: #2563eb; color: white; padding: 12px; margin: 15px 0; border-radius: 8px; text-decoration: none; font-weight: bold; transition: 0.3s; }
+        .btn:hover { background: #1d4ed8; }
+        .btn.youtube { background: #dc2626; }
+        .btn.youtube:hover { background: #b91c1c; }
+        .btn.disabled { background: #475569; pointer-events: none; opacity: 0.6; }
+        .btn.unlock { background: #10b981; }
+        .btn.unlock:hover { background: #059669; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>نفذ المهام لفتح الرابط</h2>
+    <p>اشترك في القناة لتفعيل رابط التحميل المباشر</p>
+
+    <a href="#" id="ytBtn" target="_blank" class="btn youtube">1. اشترك في القناة 🔴</a>
+    <a href="#" id="unlockBtn" class="btn unlock disabled">2. الحصول على الرابط 🔓</a>
+</div>
+
+<!-- مكتبات الفايربيس الأساسية -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+<!-- استدعاء ملف الإعدادات الموحد -->
+<script src="/api/config.js"></script>
+
+<script>
+    // استخراج الـ ID الذكي المتوافق مع مسارات Vercel
+    const path = window.location.pathname;
+    const linkId = path.split('/').filter(Boolean).pop(); 
+
+    let originalLink = "";
+    let ytClicked = false;
+
+    // استثناء الصفحات والملفات الأساسية
+    if (linkId && linkId !== 'index.html' && linkId !== 'admin' && linkId !== 'dashboard' && linkId !== 'api') {
+        db.collection("links").doc(linkId).get().then((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById('ytBtn').href = data.youtubeChannel;
+                originalLink = data.originalLink;
+                
+                // زيادة عداد النقرات
+                db.collection("links").doc(linkId).update({
+                    clicks: firebase.firestore.FieldValue.increment(1)
+                });
+            } else {
+                alert("الرابط غير موجود!");
+            }
+        });
+    }
+
+    document.getElementById('ytBtn').addEventListener('click', () => {
+        ytClicked = true;
+        setTimeout(() => {
+            if(ytClicked) {
+                const unlockBtn = document.getElementById('unlockBtn');
+                unlockBtn.classList.remove('disabled');
+                unlockBtn.href = originalLink;
+                unlockBtn.innerText = "تحميل الآن 🚀";
+            }
+        }, 4000); 
+    });
+</script>
+</body>
+</html>
