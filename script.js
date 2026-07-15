@@ -1,61 +1,120 @@
-async function shorten(){
+const urlInput = document.getElementById("url");
+const slugInput = document.getElementById("slug");
+const result = document.getElementById("result");
+const loading = document.getElementById("loading");
+const button = document.getElementById("shortBtn");
 
-    const url=document.getElementById("url").value.trim();
+async function shorten() {
 
-    if(url==""){
+    const url = urlInput.value.trim();
+    const slug = slugInput.value.trim();
 
-        alert("اكتب الرابط");
+    result.innerHTML = "";
 
+    if (!url) {
+        showError("من فضلك أدخل الرابط");
+        return;
+    }
+
+    try {
+
+        new URL(url);
+
+    } catch {
+
+        showError("الرابط غير صحيح");
         return;
 
     }
 
-    const req=await fetch("/api/link",{
+    button.disabled = true;
+    button.innerText = "جاري الاختصار...";
+    loading.style.display = "block";
 
-        method:"POST",
+    try {
 
-        headers:{
+        const response = await fetch("/api/link", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                url,
+                slug
+            })
+        });
 
-            "Content-Type":"application/json"
+        const data = await response.json();
 
-        },
+        loading.style.display = "none";
+        button.disabled = false;
+        button.innerText = "اختصار الرابط";
 
-        body:JSON.stringify({
+        if (!data.success) {
+            showError(data.message);
+            return;
+        }
 
-            url
+        result.innerHTML = `
+            <div class="success-box">
+                <p>✅ تم إنشاء الرابط</p>
 
-        })
+                <input
+                    id="shortLink"
+                    value="${data.short}"
+                    readonly>
 
-    });
+                <button onclick="copyLink()">
+                    📋 نسخ الرابط
+                </button>
+            </div>
+        `;
 
-    const data=await req.json();
+    } catch (e) {
 
-    if(!data.success){
+        loading.style.display = "none";
+        button.disabled = false;
+        button.innerText = "اختصار الرابط";
 
-        alert(data.message);
-
-        return;
+        showError("حدث خطأ أثناء الاتصال بالسيرفر");
 
     }
 
-    document.getElementById("result").innerHTML=`
+}
 
-        <p>${data.short}</p>
+function copyLink() {
 
-        <button class="copy" onclick="copyLink('${data.short}')">
+    const input = document.getElementById("shortLink");
 
-        نسخ الرابط
+    input.select();
+    input.setSelectionRange(0, 99999);
 
-        </button>
+    navigator.clipboard.writeText(input.value);
 
+    alert("تم نسخ الرابط ✅");
+
+}
+
+function showError(message) {
+
+    result.innerHTML = `
+        <div class="error-box">
+            ❌ ${message}
+        </div>
     `;
 
 }
 
-function copyLink(link){
+urlInput.addEventListener("keydown", function (e) {
 
-    navigator.clipboard.writeText(link);
+    if (e.key === "Enter")
+        shorten();
 
-    alert("تم النسخ");
+});
 
-}
+slugInput.addEventListener("keydown", function (e) {
+
+    if (e.key === "Enter")
+        shorten();
+
+});
