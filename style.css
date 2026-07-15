@@ -1,0 +1,104 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial;
+}
+
+body{
+
+    background:#111827;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    height:100vh;
+
+}
+
+.box{
+
+    width:420px;
+
+    max-width:95%;
+
+    background:#1f2937;
+
+    padding:25px;
+
+    border-radius:15px;
+
+}
+
+h1{
+
+    color:#fff;
+
+    text-align:center;
+
+    margin-bottom:20px;
+
+}
+
+input{
+
+    width:100%;
+
+    padding:14px;
+
+    border:none;
+
+    border-radius:10px;
+
+    outline:none;
+
+    margin-bottom:15px;
+
+}
+
+button{
+
+    width:100%;
+
+    padding:14px;
+
+    background:#2563eb;
+
+    color:white;
+
+    border:none;
+
+    border-radius:10px;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+}
+
+button:hover{
+
+    background:#1d4ed8;
+
+}
+
+#result{
+
+    margin-top:20px;
+
+    color:white;
+
+    text-align:center;
+
+    word-break:break-all;
+
+}
+
+.copy{
+
+    margin-top:10px;
+
+}
