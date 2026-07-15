@@ -3,102 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مرحباً بك في موقعنا</title>
-    
-    <!-- السكريبت الخاص بك تم وضعه هنا ليعمل فور تحميل الصفحة -->
-    <script data-cfasync="false" src="//dcbbwymp1bhlf.cloudfront.net/?wbbcd=1444225"></script>
-
+    <title>صفحة تجربة سكربت Linkvertise</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
         body {
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            color: #f8fafc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            background-color: rgba(30, 41, 59, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            padding: 40px 30px;
-            border-radius: 16px;
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f4f4f9;
+            color: #333;
             text-align: center;
-            max-width: 500px;
-            width: 100%;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
         }
-
-        h1 {
-            font-size: 24px;
-            margin-bottom: 15px;
-            color: #38bdf8;
-        }
-
-        p {
-            font-size: 16px;
-            line-height: 1.6;
-            color: #cbd5e1;
-            margin-bottom: 25px;
-        }
-
-        .btn {
-            display: inline-block;
-            background-color: #38bdf8;
-            color: #0f172a;
-            padding: 12px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            text-decoration: none;
+        .container {
+            background-color: #fff;
+            padding: 30px;
             border-radius: 8px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-            width: 100%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
         }
-
-        .btn:hover {
-            background-color: #0ea5e9;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(56, 189, 248, 0.4);
+        h1 { color: #007bff; }
+        .link-section {
+            margin: 25px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
         }
-
-        .footer {
-            margin-top: 30px;
-            font-size: 12px;
-            color: #64748b;
+        a {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
         }
+        a:hover { background-color: #0056b3; }
+        .blacklist-link { background-color: #6c757d; }
+        .blacklist-link:hover { background-color: #5a6268; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>محتواك جاهز الآن!</h1>
-        <p>شكراً لزيارتك. اضغط على الزر أدناه للانتقال إلى الرابط المطلوب أو تحميل ملفك مباشرة.</p>
-        
-        <!-- هذا الزر يحفز الزائر على الضغط، مما يساهم في تشغيل إعلانات الـ Pop-under للسكريبت -->
-        <button class="btn" onclick="startAction()">اضغط هنا للاستمرار</button>
-        
-        <div class="footer">
-            جميع الحقوق محفوظة © 2026
-        </div>
+<div class="container">
+    <h1>صفحة اختبار Linkvertise API</h1>
+    <p>استخدم الروابط بالأسفل لتجربة السكربت والتأكد من أنه يعمل بشكل صحيح.</p>
+
+    <!-- روابط للتجربة -->
+    <div class="link-section">
+        <h3>1. روابط خارجية (يجب أن تتحول إلى Linkvertise):</h3>
+        <a href="https://www.wikipedia.org" target="_blank">انتقل إلى ويكيبيديا</a>
+        <a href="https://www.github.com" target="_blank">انتقل إلى جيت هاب</a>
     </div>
 
-    <script>
-        function startAction() {
-            // يمكنك تغيير الرابط بالأسفل للتحويل لأي مكان تريده بعد الضغط
-            alert("جاري تحضير الرابط الخاص بك...");
-        }
-    </script>
+    <div class="link-section">
+        <h3>2. روابط مستثناة (لن تتحول بسبب الـ Blacklist):</h3>
+        <!-- الرابط ده مش هيتحول لأن google.com موجود في القائمة السوداء في السكربت بالأسفل -->
+        <a href="https://www.google.com" target="_blank" class="blacklist-link">انتقل إلى جوجل (مستثنى)</a>
+    </div>
+</div>
+
+<!-- ========================================== -->
+<!-- كود Linkvertise Script الخاص بك مضاف هنا -->
+<!-- ========================================== -->
+<script src="https://publisher.linkvertise.com/cdn/linkvertise.js"></script>
+<script>
+    linkvertise(1322389, {
+        whitelist: [], 
+        // تم إضافة google.com كمثال لكي تلاحظ الفرق بنفسك أثناء التجربة
+        blacklist: ["localhost", "127.0.0.1", "google.com"] 
+    });
+</script>
 
 </body>
 </html>
