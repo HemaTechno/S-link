@@ -6,7 +6,7 @@ const LINKVERTISE_USER_ID = 1322389;
 
 export default async function handler(req, res) {
 
-    // 1. إنشاء الرابط (POST) - لوحة التحكم بتكلم الجزء ده
+    // 1. إنشاء الرابط (POST) - لوحة التحكم تتواصل مع هذا الجزء
     if (req.method === "POST") {
         try {
             const { url, slug } = req.body;
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
         }
     }
 
-    // 2. التحويل الفوري والمباشر لـ Linkvertise (GET) - المتابع بيدخل هنا علطول
+    // 2. التحويل الفوري والمباشر لـ Linkvertise (GET) - المتابع يدخل هنا مباشرة
     if (req.method === "GET") {
         try {
             const id = req.query.id;
@@ -59,16 +59,16 @@ export default async function handler(req, res) {
                 clicks: (data.clicks || 0) + 1
             });
 
-            // تحويل الرابط لصيغة Base64 آمنة للمتصفحات (URL-Safe Base64) عشان Linkvertise يقبله
-            let base64Url = Buffer.from(data.url).toString("base64")
-                .replace(/\+/g, "-")
-                .replace(/\//g, "_")
-                .replace(/=+$/, "");
+            // الخطوة أ: تشفير الرابط الأصلي بصيغة Standard Base64
+            const standardBase64 = Buffer.from(data.url).toString("base64");
 
-            // بناء رابط الأرباح الديناميكي الخاص بك
-            const linkvertiseRedirectUrl = `https://linkvertise.com/${LINKVERTISE_USER_ID}/dynamic?r=${base64Url}`;
+            // الخطوة ب: تحويل الرموز لـ URL Safe لكي يقرأها سيرفر Linkvertise كاملة بدون نقص
+            const encodedBase64 = encodeURIComponent(standardBase64);
 
-            // تحويل الزائر فوراً (302 Redirect) إلى Linkvertise ليتخطى الإعلانات ثم يفتح معاه الرابط الأصلي
+            // الخطوة ج: بناء رابط الأرباح الديناميكي الخاص بك
+            const linkvertiseRedirectUrl = `https://linkvertise.com/${LINKVERTISE_USER_ID}/dynamic?r=${encodedBase64}`;
+
+            // تحويل الزائر فوراً (302 Redirect) إلى Linkvertise ليتخطى الإعلانات
             return res.redirect(302, linkvertiseRedirectUrl);
 
         } catch (err) {
@@ -77,4 +77,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).send("Method Not Allowed");
-}
+} 
