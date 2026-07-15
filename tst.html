@@ -1,10 +1,104 @@
 <!DOCTYPE html>
-<html>
+<html lang="ar" dir="rtl">
 <head>
-<title>Test</title>
-<script data-cfasync="false" src="//dcbbwymp1bhlf.cloudfront.net/?wbbcd=1444225"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مرحباً بك في موقعنا</title>
+    
+    <!-- السكريبت الخاص بك تم وضعه هنا ليعمل فور تحميل الصفحة -->
+    <script data-cfasync="false" src="//dcbbwymp1bhlf.cloudfront.net/?wbbcd=1444225"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 40px 30px;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #38bdf8;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #cbd5e1;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #38bdf8;
+            color: #0f172a;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #0ea5e9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(56, 189, 248, 0.4);
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #64748b;
+        }
+    </style>
 </head>
 <body>
-<h1>Hello LootLabs</h1>
+
+    <div class="container">
+        <h1>محتواك جاهز الآن!</h1>
+        <p>شكراً لزيارتك. اضغط على الزر أدناه للانتقال إلى الرابط المطلوب أو تحميل ملفك مباشرة.</p>
+        
+        <!-- هذا الزر يحفز الزائر على الضغط، مما يساهم في تشغيل إعلانات الـ Pop-under للسكريبت -->
+        <button class="btn" onclick="startAction()">اضغط هنا للاستمرار</button>
+        
+        <div class="footer">
+            جميع الحقوق محفوظة © 2026
+        </div>
+    </div>
+
+    <script>
+        function startAction() {
+            // يمكنك تغيير الرابط بالأسفل للتحويل لأي مكان تريده بعد الضغط
+            alert("جاري تحضير الرابط الخاص بك...");
+        }
+    </script>
+
 </body>
 </html>
