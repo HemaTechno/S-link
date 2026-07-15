@@ -6,36 +6,54 @@ export default async function handler(req, res) {
     // إنشاء رابط مختصر
     if (req.method === "POST") {
 
-        const { url } = req.body;
-
-        if (!url)
-            return res.status(400).json({
-                success: false,
-                message: "URL مطلوب"
-            });
-
         try {
 
-            const customSlug = req.body.slug?.trim();
+            const { url, slug } = req.body;
 
-const id = customSlug || nanoid(6);
+            if (!url) {
+                return res.status(400).json({
+                    success: false,
+                    message: "URL مطلوب"
+                });
+            }
+
+            let id;
+
+            if (slug && slug.trim() !== "") {
+
+                id = slug.trim().toLowerCase();
+
+                if (!/^[a-zA-Z0-9_-]{3,30}$/.test(id)) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "اسم الرابط غير صالح"
+                    });
+                }
+
+            } else {
+
+                id = nanoid(6);
+
+            }
+
+            // التأكد إن الاسم غير مستخدم
+            const exists = await db.collection("links").doc(id).get();
+
+            if (exists.exists) {
+                return res.status(400).json({
+                    success: false,
+                    message: "اسم الرابط مستخدم بالفعل"
+                });
+            }
+
+            // حفظ الرابط
             await db.collection("links").doc(id).set({
                 url,
-                clicks: 0
+                clicks: 0,
+                createdAt: Date.now()
             });
-const exists = await db.collection("links").doc(id).get();
 
-if (exists.exists) {
-    return res.status(400).json({
-        success: false,
-        message: "اسم الرابط مستخدم بالفعل"
-    });
-}
-            await db.collection("links").doc(id).set({
-    url,
-    clicks: 0
-});
-            return res.json({
+            return res.status(200).json({
                 success: true,
                 short: `${req.headers.origin}/${id}`
             });
@@ -54,26 +72,34 @@ if (exists.exists) {
     // التحويل للرابط
     if (req.method === "GET") {
 
-        const id = req.query.id;
+        try {
 
-        if (!id)
-            return res.status(404).send("Not Found");
+            const id = req.query.id;
 
-        const doc = await db.collection("links").doc(id).get();
+            if (!id)
+                return res.status(404).send("Not Found");
 
-        if (!doc.exists)
-            return res.status(404).send("الرابط غير موجود");
+            const doc = await db.collection("links").doc(id).get();
 
-        const data = doc.data();
+            if (!doc.exists)
+                return res.status(404).send("الرابط غير موجود");
 
-        await doc.ref.update({
-            clicks: data.clicks + 1
-        });
+            const data = doc.data();
 
-        return res.redirect(data.url);
+            await doc.ref.update({
+                clicks: (data.clicks || 0) + 1
+            });
+
+            return res.redirect(302, data.url);
+
+        } catch (err) {
+
+            return res.status(500).send("Internal Server Error");
+
+        }
 
     }
 
-    res.status(405).send("Method Not Allowed");
+    return res.status(405).send("Method Not Allowed");
 
 }
