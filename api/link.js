@@ -159,7 +159,7 @@ export default async function handler(req, res) {
                     url: completionUrl,                  // يذهب للرابط الوسيط أولاً ثم الرابط الأصلي
                     tier_id: data.tier || 1,             
                     number_of_tasks: data.tasks || 3,    
-                    theme: 2
+                    theme: 1
                 },
                 {
                     headers: {
