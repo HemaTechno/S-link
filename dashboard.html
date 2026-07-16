@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة التحكم والإحصائيات 📊</title>
-    <!-- استدعاء خط "تجول" العربي الأنيق ومكتبة الأيقونات FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -211,6 +210,18 @@
             gap: 6px;
         }
 
+        .success-badge {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .toggle-icon {
             font-size: 14px;
             color: var(--text-muted);
@@ -364,6 +375,10 @@
                 <h3><i class="fa-solid fa-arrow-pointer"></i> إجمالي الزيارات (كليكات)</h3>
                 <div class="value" id="totalClicks">0</div>
             </div>
+            <div class="stat-card">
+                <h3><i class="fa-solid fa-square-check"></i> إجمالي المهام المكتملة</h3>
+                <div class="value" id="totalCompleted" style="color: var(--success)">0</div>
+            </div>
         </div>
 
         <!-- قائمة الروابط -->
@@ -373,16 +388,15 @@
     </div>
 
     <script>
-        let mockData = []; // نبدأ بمصفوفة فارغة لتخزين البيانات القادمة من الـ API
+        let mockData = []; 
 
-        // جلب الإحصائيات الفعلية من الـ API بمجرد فتح الصفحة
         async function fetchAnalytics() {
             try {
                 const response = await fetch('/api/analytics'); 
                 const data = await response.json();
                 if(data.success) {
-                    mockData = data.links; // تغذية البيانات القادمة من السيرفر
-                    renderDashboard();     // بناء لوحة التحكم
+                    mockData = data.links; 
+                    renderDashboard();     
                 }
             } catch (err) {
                 console.error("فشل جلب الإحصائيات الحقيقية:", err);
@@ -392,7 +406,9 @@
         function calculateOverview(links) {
             document.getElementById('totalLinks').innerText = links.length;
             const totalClicks = links.reduce((sum, link) => sum + (link.clicks || 0), 0);
+            const totalCompleted = links.reduce((sum, link) => sum + (link.completedTasksCount || 0), 0);
             document.getElementById('totalClicks').innerText = totalClicks;
+            document.getElementById('totalCompleted').innerText = totalCompleted;
         }
 
         function toggleLinkDetails(element) {
@@ -400,7 +416,6 @@
             item.classList.toggle('open');
         }
 
-        // معالجة وتجميع بيانات الدول والأجهزة للزيارات
         function processAnalytics(summaryArray) {
             let countries = {};
             let devices = {};
@@ -421,7 +436,6 @@
             return { countries, devices };
         }
 
-        // دالة لإظهار أيقونة الجهاز المناسبة
         getDeviceIcon = (device) => {
             const dev = device.toLowerCase();
             if (dev.includes('mobile')) return '<i class="fa-solid fa-mobile-button device-icon"></i>';
@@ -436,13 +450,11 @@
             
             container.innerHTML = "";
 
-            // 1. تصفية (فلترة) البيانات بناءً على البحث
             let filteredLinks = mockData.filter(link => {
                 return (link.id && link.id.toLowerCase().includes(searchInput)) || 
                        (link.url && link.url.toLowerCase().includes(searchInput));
             });
 
-            // 2. ترتيب البيانات بناءً على خيار الترتيب
             if (sortMethod === 'clicks-desc') {
                 filteredLinks.sort((a, b) => (b.clicks || 0) - (a.clicks || 0));
             } else if (sortMethod === 'clicks-asc') {
@@ -451,7 +463,6 @@
                 filteredLinks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             }
 
-            // تحديث البطاقات العلوية
             calculateOverview(filteredLinks);
 
             if (filteredLinks.length === 0) {
@@ -459,19 +470,16 @@
                 return;
             }
 
-            // 3. بناء القوائم المنسدلة للروابط
             filteredLinks.forEach(link => {
                 const { countries, devices } = processAnalytics(link.analyticsSummary);
 
-                // تحويل كائنات البيانات إلى أسطر HTML جاهزة للعرض داخل الصندوق (مع الأعلام الحقيقية)
                 let countryRows = Object.keys(countries).length > 0 ? 
                     Object.entries(countries).map(([code, count]) => {
-                        // تحويل كود الدولة إلى أحرف صغيرة لجلب العلم بنجاح
                         const cleanCode = code.trim().toLowerCase();
                         const isUnknown = cleanCode === 'unknown';
                         const flagImg = isUnknown 
                             ? '<i class="fa-solid fa-earth-americas" style="font-size: 18px; color: var(--text-muted)"></i>'
-                            : `<img src="https://flagcdn.com/w40/${cleanCode}.png" class="flag-icon" alt="${code}" onerror="this.style.display='none'">`;
+                            : `<img src="https://flagcdn.com/w40/${cleanCode}.png" class="flag-icon" alt="${code}">`;
 
                         return `
                             <div class="analytics-row">
@@ -505,6 +513,7 @@
                         </div>
                         <div class="link-meta">
                             <span class="clicks-badge"><i class="fa-regular fa-chart-bar"></i> ${link.clicks || 0} زيارة</span>
+                            <span class="success-badge"><i class="fa-solid fa-circle-check"></i> ${link.completedTasksCount || 0} مكتمل</span>
                             <span class="toggle-icon"><i class="fa-solid fa-chevron-down"></i></span>
                         </div>
                     </div>
@@ -525,7 +534,6 @@
             });
         }
 
-        // تشغيل جلب البيانات فور تحميل الصفحة
         window.onload = fetchAnalytics;
     </script>
 </body>
