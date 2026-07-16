@@ -149,7 +149,7 @@ export default async function handler(req, res) {
             }
 
             // الرابط الوسيط التابع لموقعك الذي سيمر عليه الزائر لتسجيل إتمام المهمة
-            const completionUrl = `${req.headers.origin}/api/complete?id=${id}`;
+            const completionUrl = `https://subx.click/api/complete?id=${id}`;
 
             // إنشاء LootLabs Link باستخدام الخصائص الديناميكية والرابط الوسيط كوجهة نهائية
             const response = await axios.post(
@@ -159,7 +159,7 @@ export default async function handler(req, res) {
                     url: completionUrl,                  // يذهب للرابط الوسيط أولاً ثم الرابط الأصلي
                     tier_id: data.tier || 1,             
                     number_of_tasks: data.tasks || 3,    
-                    theme: 1
+                    theme: 2
                 },
                 {
                     headers: {
