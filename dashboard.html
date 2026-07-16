@@ -290,48 +290,24 @@
     <script>
         // عينة من البيانات لمحاكاة ما يتم جلبه من قاعدة بيانات Firebase الفايربيز
         // عند ربطها بالخلفية الفعليه، ستقوم بعمل fetch لهذه البيانات من الـ API
-        let mockData = [
-            {
-                id: "premium-movie",
-                url: "https://example.com/mymovie.mp4",
-                clicks: 1420,
-                createdAt: Date.now() - 86400000 * 2,
-                tier: 2,
-                tasks: 4,
-                analyticsSummary: [
-                    { country: "EG", device: "Mobile", referrer: "Direct" },
-                    { country: "EG", device: "Mobile", referrer: "Direct" },
-                    { country: "SA", device: "Desktop", referrer: "https://youtube.com/" },
-                    { country: "US", device: "Mobile", referrer: "Direct" },
-                    { country: "EG", device: "Tablet", referrer: "https://facebook.com/" },
-                ]
-            },
-            {
-                id: "youtube-script",
-                url: "https://h-scripts.site/view.html?id=kONqLNUIwhh7sr7MJkky",
-                clicks: 850,
-                createdAt: Date.now() - 86400000 * 5,
-                tier: 1,
-                tasks: 3,
-                analyticsSummary: [
-                    { country: "SA", device: "Mobile", referrer: "Direct" },
-                    { country: "AE", device: "Desktop", referrer: "Direct" },
-                    { country: "EG", device: "Mobile", referrer: "https://t.me/" }
-                ]
-            },
-            {
-                id: "free-game",
-                url: "https://example.com/game-download",
-                clicks: 95,
-                createdAt: Date.now(),
-                tier: 1,
-                tasks: 1,
-                analyticsSummary: [
-                    { country: "MA", device: "Desktop", referrer: "Direct" },
-                    { country: "DZ", device: "Mobile", referrer: "Direct" }
-                ]
-            }
-        ];
+        let mockData = []; // نبدأ بمصفوفة فارغة
+
+async function fetchAnalytics() {
+    try {
+        // استدعاء ملف الـ API الجديد الذي أنشأناه فوق
+        const response = await fetch('/api/analytics'); 
+        const data = await response.json();
+        if(data.success) {
+            mockData = data.links; // نضع البيانات الحقيقية مكانه
+            renderDashboard();     // إعادة بناء الجدول بناءً عليها
+        }
+    } catch (err) {
+        console.error("فشل جلب الإحصائيات الحقيقية:", err);
+    }
+}
+
+// تشغيل جلب البيانات الحقيقية فور فتح الصفحة تلقائياً
+window.onload = fetchAnalytics;
 
         // في مشروعك الحقيقي، ستقوم بتبديل دالة جلب البيانات بطلب حقيقي كالتالي:
         /*
