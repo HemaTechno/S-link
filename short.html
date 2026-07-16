@@ -21,6 +21,7 @@
             الصق الرابط ثم اضغط اختصار
         </p>
 
+        <!-- المدخلات الأساسية -->
         <input
             id="url"
             type="url"
@@ -31,6 +32,28 @@
             type="text"
             maxlength="30"
             placeholder="اسم الرابط (اختياري) مثال: youtube">
+
+        <!-- الإعدادات المتقدمة للـ Dynamic Tiers -->
+        <div class="advanced-settings" style="margin: 15px 0; display: flex; gap: 10px; justify-content: space-between;">
+            <div style="flex: 1; text-align: right;">
+                <label for="tier" style="display: block; margin-bottom: 5px; font-size: 14px; color: #555;">مستوى الربح (Tier):</label>
+                <select id="tier" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; background: #fff;">
+                    <option value="1" selected>المستوى 1 (عادي)</option>
+                    <option value="2">المستوى 2 (متوسط)</option>
+                    <option value="3">المستوى 3 (عالي الأرباح)</option>
+                </select>
+            </div>
+
+            <div style="flex: 1; text-align: right;">
+                <label for="tasks" style="display: block; margin-bottom: 5px; font-size: 14px; color: #555;">عدد المهام المطلوبة:</label>
+                <select id="tasks" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; background: #fff;">
+                    <option value="1">مهمة واحدة</option>
+                    <option value="2">مهمتان</option>
+                    <option value="3" selected>3 مهام (موصى به)</option>
+                    <option value="4">4 مهام</option>
+                </select>
+            </div>
+        </div>
 
         <button id="shortBtn" onclick="shorten()">
             اختصار الرابط
