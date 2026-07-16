@@ -2,7 +2,7 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import axios from "axios";
 
-// ضع مفتاح LootLabs هنا
+// وضع مفتاح LootLabs هنا
 const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
 
 // الكاش لحفظ الروابط + محاربة السبام (Rate Limiting)
@@ -125,13 +125,14 @@ export default async function handler(req, res) {
             if (/mobile/i.test(userAgent)) device = "Mobile";
             else if (/tablet/i.test(userAgent)) device = "Tablet";
 
+            // إصلاح الإيرور: الوصول لـ arrayUnion بشكل مضمون عبر الـ constructor الخاص بالفايربيز المستدعى
+            const FieldValue = doc.ref.firestore.constructor.FieldValue;
+
             // تحديث عدد الكليكات الإجمالي + مصفوفة ببيانات آخر الزوار لتجنب تضخم حجم الدوكيومنت
             await doc.ref.update({
                 clicks: (data.clicks || 0) + 1,
                 lastVisit: Date.now(),
-                // يمكنك استخدام collection منفصلة للزيارات لو كنت تفضل تقارير ضخمة،
-                // ولكن هنا سنقوم بحفظ تفاصيل سريعة لآخر الزيارات كأقرب فكرة مبسطة ومباشرة
-                analyticsSummary: db.FieldValue.arrayUnion({
+                analyticsSummary: FieldValue.arrayUnion({
                     time: Date.now(),
                     country,
                     device,
@@ -191,4 +192,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).send("Method Not Allowed");
-                    } 
+            }
