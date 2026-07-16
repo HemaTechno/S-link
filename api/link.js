@@ -1,9 +1,15 @@
- import db from "./firebase.js";
+import db from "./firebase.js";
 import { nanoid } from "nanoid";
+import axios from "axios";
+
+// Cache لمدة دقيقة لتقليل استدعاءات LootLabs
+const cache = new Map();
 
 export default async function handler(req, res) {
 
+    // ===========================
     // إنشاء رابط مختصر
+    // ===========================
     if (req.method === "POST") {
 
         try {
@@ -36,7 +42,6 @@ export default async function handler(req, res) {
 
             }
 
-            // التأكد إن الاسم غير مستخدم
             const exists = await db.collection("links").doc(id).get();
 
             if (exists.exists) {
@@ -46,11 +51,11 @@ export default async function handler(req, res) {
                 });
             }
 
-            // حفظ الرابط
             await db.collection("links").doc(id).set({
                 url,
                 clicks: 0,
-                createdAt: Date.now()
+                createdAt: Date.now(),
+                lastVisit: null
             });
 
             return res.status(200).json({
@@ -59,6 +64,8 @@ export default async function handler(req, res) {
             });
 
         } catch (err) {
+
+            console.error(err);
 
             return res.status(500).json({
                 success: false,
@@ -69,7 +76,9 @@ export default async function handler(req, res) {
 
     }
 
-    // التحويل للرابط
+    // ===========================
+    // فتح الرابط
+    // ===========================
     if (req.method === "GET") {
 
         try {
@@ -86,15 +95,62 @@ export default async function handler(req, res) {
 
             const data = doc.data();
 
+            // تحديث الإحصائيات
             await doc.ref.update({
-                clicks: (data.clicks || 0) + 1
+                clicks: (data.clicks || 0) + 1,
+                lastVisit: Date.now()
             });
 
-            return res.redirect(302, data.url);
+            // ===========================
+            // استخدام الكاش
+            // ===========================
+            const cached = cache.get(id);
+
+            if (cached && cached.expires > Date.now()) {
+
+                return res.redirect(302, cached.url);
+
+            }
+
+            // ===========================
+            // إنشاء LootLabs Link جديد
+            // ===========================
+            const response = await axios.post(
+                "https://creators.lootlabs.gg/api/public/content_locker",
+                {
+                    title: id,
+                    url: data.url,
+                    tier_id: 1,
+                    number_of_tasks: 3,
+                    theme: 1
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${process.env.LOOTLABS_API}`,
+                        "Content-Type": "application/json"
+                    }
+                }
+            );
+
+            const lootUrl = response.data.message.loot_url;
+
+            // حفظه في الكاش لمدة دقيقة
+            cache.set(id, {
+                url: lootUrl,
+                expires: Date.now() + 60 * 1000
+            });
+
+            return res.redirect(302, lootUrl);
 
         } catch (err) {
 
-            return res.status(500).send("Inter nal Server Error");
+            console.error(err.response?.data || err);
+
+            return res.status(500).json({
+                success: false,
+                message: "LootLabs API Error",
+                error: err.response?.data || err.message
+            });
 
         }
 
@@ -102,4 +158,4 @@ export default async function handler(req, res) {
 
     return res.status(405).send("Method Not Allowed");
 
-} 
+}
