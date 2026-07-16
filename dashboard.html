@@ -288,43 +288,21 @@
     </div>
 
     <script>
-        // عينة من البيانات لمحاكاة ما يتم جلبه من قاعدة بيانات Firebase الفايربيز
-        // عند ربطها بالخلفية الفعليه، ستقوم بعمل fetch لهذه البيانات من الـ API
-        let mockData = []; // نبدأ بمصفوفة فارغة
+        let mockData = []; // نبدأ بمصفوفة فارغة لتخزين البيانات القادمة من الـ API
 
-async function fetchAnalytics() {
-    try {
-        // استدعاء ملف الـ API الجديد الذي أنشأناه فوق
-        const response = await fetch('/api/analytics'); 
-        const data = await response.json();
-        if(data.success) {
-            mockData = data.links; // نضع البيانات الحقيقية مكانه
-            renderDashboard();     // إعادة بناء الجدول بناءً عليها
-        }
-    } catch (err) {
-        console.error("فشل جلب الإحصائيات الحقيقية:", err);
-    }
-}
-
-// تشغيل جلب البيانات الحقيقية فور فتح الصفحة تلقائياً
-window.onload = fetchAnalytics;
-
-        // في مشروعك الحقيقي، ستقوم بتبديل دالة جلب البيانات بطلب حقيقي كالتالي:
-        /*
+        // جلب الإحصائيات الفعلية من الـ API بمجرد فتح الصفحة
         async function fetchAnalytics() {
             try {
-                const response = await fetch('/api/analytics'); // تأكد من إنشاء هذا الـ Route في السيرفر
+                const response = await fetch('/api/analytics'); 
                 const data = await response.json();
                 if(data.success) {
-                    mockData = data.links;
-                    renderDashboard();
+                    mockData = data.links; // تغذية البيانات القادمة من السيرفر
+                    renderDashboard();     // بناء لوحة التحكم
                 }
             } catch (err) {
-                console.error("فشل جلب الإحصائيات:", err);
+                console.error("فشل جلب الإحصائيات الحقيقية:", err);
             }
         }
-        window.onload = fetchAnalytics;
-        */
 
         function calculateOverview(links) {
             document.getElementById('totalLinks').innerText = links.length;
@@ -337,7 +315,7 @@ window.onload = fetchAnalytics;
             item.classList.toggle('open');
         }
 
-        // دالة لمعالجة وتجميع بيانات الدول والمنصات (الـ Devices)
+        // معالجة وتجميع بيانات الدول والأجهزة للزيارات
         function processAnalytics(summaryArray) {
             let countries = {};
             let devices = {};
@@ -347,8 +325,12 @@ window.onload = fetchAnalytics;
             }
 
             summaryArray.forEach(item => {
-                countries[item.country] = (countries[item.country] || 0) + 1;
-                devices[item.device] = (devices[item.device] || 0) + 1;
+                if (item.country) {
+                    countries[item.country] = (countries[item.country] || 0) + 1;
+                }
+                if (item.device) {
+                    devices[item.device] = (devices[item.device] || 0) + 1;
+                }
             });
 
             return { countries, devices };
@@ -363,19 +345,20 @@ window.onload = fetchAnalytics;
 
             // 1. تصفية (فلترة) البيانات بناءً على البحث
             let filteredLinks = mockData.filter(link => {
-                return link.id.toLowerCase().includes(searchInput) || link.url.toLowerCase().includes(searchInput);
+                return (link.id && link.id.toLowerCase().includes(searchInput)) || 
+                       (link.url && link.url.toLowerCase().includes(searchInput));
             });
 
-            // 2. ترتيب البيانات بناءً على الاختيار
+            // 2. ترتيب البيانات بناءً على خيار الترتيب
             if (sortMethod === 'clicks-desc') {
-                filteredLinks.sort((a, b) => b.clicks - a.clicks);
+                filteredLinks.sort((a, b) => (b.clicks || 0) - (a.clicks || 0));
             } else if (sortMethod === 'clicks-asc') {
-                filteredLinks.sort((a, b) => a.clicks - b.clicks);
+                filteredLinks.sort((a, b) => (a.clicks || 0) - (b.clicks || 0));
             } else if (sortMethod === 'date-desc') {
-                filteredLinks.sort((a, b) => b.createdAt - a.createdAt);
+                filteredLinks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             }
 
-            // تحديث كروت النظرة العامة
+            // تحديث البطاقات العلوية
             calculateOverview(filteredLinks);
 
             if (filteredLinks.length === 0) {
@@ -383,11 +366,11 @@ window.onload = fetchAnalytics;
                 return;
             }
 
-            // 3. بناء واجهة الروابط
+            // 3. بناء القوائم المنسدلة للروابط
             filteredLinks.forEach(link => {
                 const { countries, devices } = processAnalytics(link.analyticsSummary);
 
-                // تحويل كائنات البيانات إلى أسطر HTML للعرض
+                // تحويل كائنات البيانات إلى أسطر HTML جاهزة للعرض داخل الصندوق
                 let countryRows = Object.keys(countries).length > 0 ? 
                     Object.entries(countries).map(([code, count]) => `
                         <div class="analytics-row">
@@ -413,7 +396,7 @@ window.onload = fetchAnalytics;
                             <div class="link-url">${link.url}</div>
                         </div>
                         <div class="link-meta">
-                            <span class="clicks-badge">${link.clicks} زيارة</span>
+                            <span class="clicks-badge">${link.clicks || 0} زيارة</span>
                             <span class="toggle-icon">▼</span>
                         </div>
                     </div>
@@ -423,6 +406,7 @@ window.onload = fetchAnalytics;
                                 <h4>📊 توزيع الدول (أعلى الدول دخولا)</h4>
                                 ${countryRows}
                             </div>
+                            <!-- تم إصلاح المسافة الزائدة هنا في الكلاس ليصبح "analytics-box" -->
                             <div class="analytics-box">
                                 <h4>📱 توزيع المنصات والأجهزة</h4>
                                 ${deviceRows}
@@ -434,8 +418,8 @@ window.onload = fetchAnalytics;
             });
         }
 
-        // تشغيل العرض الأولي عند تحميل الصفحة
-        window.onload = renderDashboard;
+        // تشغيل جلب البيانات فور تحميل الصفحة
+        window.onload = fetchAnalytics;
     </script>
 </body>
 </html>
