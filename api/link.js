@@ -123,8 +123,9 @@ export default async function handler(req, res) {
                 }
             );
 
-            // فحص وتأمين جلب الرابط من رد الـ API
-            const lootUrl = response.data?.message?.loot_url || response.data?.loot_url;
+            // فحص وتأمين جلب الرابط سواء كانت message مصفوفة (Array) أو كائن (Object)
+            const messageData = Array.isArray(response.data?.message) ? response.data.message[0] : response.data?.message;
+            const lootUrl = messageData?.loot_url || response.data?.loot_url;
 
             if (lootUrl) {
                 // حفظ الرابط في الكاش لمدة دقيقة
@@ -157,4 +158,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).send("Method Not Allowed");
-}
+} 
