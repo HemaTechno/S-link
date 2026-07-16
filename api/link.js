@@ -2,7 +2,7 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import axios from "axios";
 
-// وضع مفتاح LootLabs هنا
+// ضع مفتاح LootLabs هنا
 const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
 
 // الكاش لحفظ الروابط + محاربة السبام (Rate Limiting)
@@ -79,6 +79,7 @@ export default async function handler(req, res) {
             await db.collection("links").doc(id).set({
                 url,
                 clicks: 0,
+                completedTasksCount: 0, // عداد المهام المكتملة
                 createdAt: Date.now(),
                 lastVisit: null,
                 tier: tier ? parseInt(tier) : 1,       // افتراضي Tier 1
@@ -147,14 +148,17 @@ export default async function handler(req, res) {
                 return res.redirect(302, cached.url);
             }
 
-            // إنشاء LootLabs Link باستخدام الخصائص الديناميكية المخزنة للرابط
+            // الرابط الوسيط التابع لموقعك الذي سيمر عليه الزائر لتسجيل إتمام المهمة
+            const completionUrl = `${req.headers.origin}/api/complete?id=${id}`;
+
+            // إنشاء LootLabs Link باستخدام الخصائص الديناميكية والرابط الوسيط كوجهة نهائية
             const response = await axios.post(
                 "https://creators.lootlabs.gg/api/public/content_locker",
                 {
                     title: id,
-                    url: originalUrl,
-                    tier_id: data.tier || 1,             // ديناميكي من الـ Database
-                    number_of_tasks: data.tasks || 3,    // ديناميكي من الـ Database
+                    url: completionUrl,                  // يذهب للرابط الوسيط أولاً ثم الرابط الأصلي
+                    tier_id: data.tier || 1,             
+                    number_of_tasks: data.tasks || 3,    
                     theme: 1
                 },
                 {
@@ -192,4 +196,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).send("Method Not Allowed");
-            }
+}
