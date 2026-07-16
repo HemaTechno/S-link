@@ -1,20 +1,24 @@
+/* استدعاء خط "تجول" ليتطابق مع لوحة الإحصائيات */
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Tajawal', sans-serif;
 }
 
 body {
-    /* خلفية متدرجة فاتحة ومتحركة لإبراز تأثير الزجاج السائل */
+    /* خلفية متدرجة حديثة ومتحركة بانسيابية عالية */
     background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
     background-size: 400% 400%;
-    animation: gradientBG 12s ease infinite;
+    animation: gradientBG 15s ease infinite;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    color: #333;
+    min-height: 100vh;
+    color: #0f172a;
+    padding: 20px;
 }
 
 /* حركة الخلفية */
@@ -25,98 +29,173 @@ body {
 }
 
 .container {
-    width: 420px;
-    max-width: 95%;
-    padding: 35px 25px;
-    border-radius: 20px;
+    width: 440px;
+    max-width: 100%;
+    padding: 40px 30px;
+    border-radius: 24px;
 
-    /* تأثير الزجاج السائل (Liquid Glassmorphism) */
+    /* تأثير الزجاج السائل المطور */
     background: rgba(255, 255, 255, 0.45);
-    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 10px 40px 0 rgba(31, 38, 135, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: transform 0.3s ease;
 }
 
 h1 {
-    color: #1f2937;
+    color: #1e1b4b;
     text-align: center;
-    margin-bottom: 10px;
-    font-size: 1.8rem;
-    text-shadow: 0px 1px 2px rgba(255, 255, 255, 0.6);
+    margin-bottom: 8px;
+    font-size: 1.9rem;
+    font-weight: 800;
+    text-shadow: 0px 1px 2px rgba(255, 255, 255, 0.8);
 }
 
 .desc {
     text-align: center;
-    color: #4b5563;
-    margin-bottom: 25px;
+    color: #475569;
+    margin-bottom: 30px;
     font-size: 0.95rem;
+    font-weight: 500;
 }
 
-input {
+/* تنسيق المدخلات (الروابط والأسماء المخصصة) */
+input, select {
     width: 100%;
-    padding: 14px;
-    /* حقول إدخال زجاجية */
-    background: rgba(255, 255, 255, 0.55);
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.6);
     border: 1px solid rgba(255, 255, 255, 0.7);
-    border-radius: 12px;
+    border-radius: 14px;
     outline: none;
-    margin-bottom: 15px;
-    color: #111827;
+    margin-bottom: 18px;
+    color: #0f172a;
     font-size: 15px;
-    transition: all 0.3s ease;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.01);
 }
 
 input::placeholder {
-    color: #6b7280;
+    color: #64748b;
 }
 
-input:focus {
-    background: rgba(255, 255, 255, 0.85);
-    border-color: #3b82f6;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+input:focus, select:focus {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: #4f46e5; /* متوافق مع لوحة الإحصائيات */
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15);
 }
 
+/* التنسيق الجديد لقسم الخيارات المتقدمة (الـ Tier والـ Tasks) */
+.advanced-settings {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 16px;
+    padding: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    margin-bottom: 20px;
+}
+
+.advanced-settings label {
+    font-weight: 700 !important;
+    color: #1e1b4b !important;
+    font-size: 13px !important;
+}
+
+/* تنسيق زر الاختصار */
 button {
     width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    padding: 15px;
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
     color: white;
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     cursor: pointer;
     font-size: 16px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    font-weight: 700;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
 }
 
 button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
-    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    box-shadow: 0 8px 25px rgba(79, 70, 229, 0.4);
+    background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%);
 }
 
+button:disabled {
+    background: rgba(255, 255, 255, 0.4);
+    color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* تنسيق حالة التحميل الدائري */
 #loading {
     margin-top: 15px;
     text-align: center;
-    color: #374151;
-    font-weight: bold;
+    color: #4f46e5;
+    font-weight: 700;
+    font-size: 14px;
+    animation: pulse 1.5s infinite;
 }
 
-#result {
-    margin-top: 20px;
-    color: #111827;
+@keyframes pulse {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+/* تنسيق صناديق النتائج والأخطاء */
+.success-box, .error-box {
+    margin-top: 25px;
+    padding: 20px;
+    border-radius: 16px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
     text-align: center;
-    word-break: break-all;
-    font-weight: 600;
-    padding: 10px;
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
-.copy {
-    margin-top: 10px;
+/* صندوق النجاح */
+.success-box {
+    background: rgba(240, 253, 244, 0.4);
+    border-color: rgba(74, 222, 128, 0.4);
+}
+
+.success-box p {
+    color: #166534;
+    font-weight: 700;
+    margin-bottom: 15px;
+    font-size: 15px;
+}
+
+.success-box input {
+    background: rgba(255, 255, 255, 0.85);
+    text-align: center;
+    font-weight: 700;
+    color: #4f46e5;
+    margin-bottom: 12px;
+}
+
+.success-box button {
+    background: #10b981;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    padding: 12px;
+    font-size: 14px;
+}
+
+.success-box button:hover {
+    background: #059669;
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.3);
+}
+
+/* صندوق الخطأ */
+.error-box {
+    background: rgba(254, 242, 242, 0.45);
+    border-color: rgba(248, 113, 113, 0.4);
+    color: #991b1b;
+    font-weight: 700;
+    font-size: 14px;
 }
