@@ -2,14 +2,17 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import axios from "axios";
 
-// Cache لمدة دقيقة لتقليل استدعاءات LootLabs
+// ضع مفتاح LootLabs هنا
+const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
+
+// Cache لمدة دقيقة
 const cache = new Map();
 
 export default async function handler(req, res) {
 
-    // ===========================
-    // إنشاء رابط مختصر
-    // ===========================
+    // ==========================
+    // إنشاء رابط
+    // ==========================
     if (req.method === "POST") {
 
         try {
@@ -76,9 +79,9 @@ export default async function handler(req, res) {
 
     }
 
-    // ===========================
+    // ==========================
     // فتح الرابط
-    // ===========================
+    // ==========================
     if (req.method === "GET") {
 
         try {
@@ -95,26 +98,24 @@ export default async function handler(req, res) {
 
             const data = doc.data();
 
-            // تحديث الإحصائيات
+            // زيادة عدد الزيارات
             await doc.ref.update({
                 clicks: (data.clicks || 0) + 1,
                 lastVisit: Date.now()
             });
 
-            // ===========================
+            // ==========================
             // استخدام الكاش
-            // ===========================
+            // ==========================
             const cached = cache.get(id);
 
-            if (cached && cached.expires > Date.now()) {
-
+            if (cached && cached.expire > Date.now()) {
                 return res.redirect(302, cached.url);
-
             }
 
-            // ===========================
-            // إنشاء LootLabs Link جديد
-            // ===========================
+            // ==========================
+            // إنشاء LootLabs Link
+            // ==========================
             const response = await axios.post(
                 "https://creators.lootlabs.gg/api/public/content_locker",
                 {
@@ -126,7 +127,7 @@ export default async function handler(req, res) {
                 },
                 {
                     headers: {
-                        Authorization: `Bearer ${process.env.LOOTLABS_API}`,
+                        Authorization: `Bearer ${LOOTLABS_API}`,
                         "Content-Type": "application/json"
                     }
                 }
@@ -134,10 +135,10 @@ export default async function handler(req, res) {
 
             const lootUrl = response.data.message.loot_url;
 
-            // حفظه في الكاش لمدة دقيقة
+            // حفظ الرابط في الكاش لمدة دقيقة
             cache.set(id, {
                 url: lootUrl,
-                expires: Date.now() + 60 * 1000
+                expire: Date.now() + 60000
             });
 
             return res.redirect(302, lootUrl);
@@ -145,6 +146,17 @@ export default async function handler(req, res) {
         } catch (err) {
 
             console.error(err.response?.data || err);
+
+            // في حالة فشل LootLabs يحول للرابط الأصلي
+            try {
+
+                const doc = await db.collection("links").doc(req.query.id).get();
+
+                if (doc.exists) {
+                    return res.redirect(302, doc.data().url);
+                }
+
+            } catch {}
 
             return res.status(500).json({
                 success: false,
