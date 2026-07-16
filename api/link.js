@@ -14,9 +14,7 @@ export default async function handler(req, res) {
     // إنشاء رابط
     // ==========================
     if (req.method === "POST") {
-
         try {
-
             const { url, slug } = req.body;
 
             if (!url) {
@@ -29,7 +27,6 @@ export default async function handler(req, res) {
             let id;
 
             if (slug && slug.trim() !== "") {
-
                 id = slug.trim().toLowerCase();
 
                 if (!/^[a-zA-Z0-9_-]{3,30}$/.test(id)) {
@@ -38,11 +35,8 @@ export default async function handler(req, res) {
                         message: "اسم الرابط غير صالح"
                     });
                 }
-
             } else {
-
                 id = nanoid(6);
-
             }
 
             const exists = await db.collection("links").doc(id).get();
@@ -67,27 +61,22 @@ export default async function handler(req, res) {
             });
 
         } catch (err) {
-
             console.error(err);
-
             return res.status(500).json({
                 success: false,
                 message: err.message
             });
-
         }
-
     }
 
     // ==========================
     // فتح الرابط
     // ==========================
     if (req.method === "GET") {
+        const id = req.query.id;
+        let originalUrl = "";
 
         try {
-
-            const id = req.query.id;
-
             if (!id)
                 return res.status(404).send("Not Found");
 
@@ -97,6 +86,7 @@ export default async function handler(req, res) {
                 return res.status(404).send("الرابط غير موجود");
 
             const data = doc.data();
+            originalUrl = data.url; // حفظ الرابط الأصلي لاستخدامه كـ fallback آمن
 
             // زيادة عدد الزيارات
             await doc.ref.update({
@@ -109,7 +99,7 @@ export default async function handler(req, res) {
             // ==========================
             const cached = cache.get(id);
 
-            if (cached && cached.expire > Date.now()) {
+            if (cached && cached.expire > Date.now() && cached.url) {
                 return res.redirect(302, cached.url);
             }
 
@@ -120,7 +110,7 @@ export default async function handler(req, res) {
                 "https://creators.lootlabs.gg/api/public/content_locker",
                 {
                     title: id,
-                    url: data.url,
+                    url: originalUrl,
                     tier_id: 1,
                     number_of_tasks: 3,
                     theme: 1
@@ -133,41 +123,38 @@ export default async function handler(req, res) {
                 }
             );
 
-            const lootUrl = response.data.message.loot_url;
+            // فحص وتأمين جلب الرابط من رد الـ API
+            const lootUrl = response.data?.message?.loot_url || response.data?.loot_url;
 
-            // حفظ الرابط في الكاش لمدة دقيقة
-            cache.set(id, {
-                url: lootUrl,
-                expire: Date.now() + 60000
-            });
+            if (lootUrl) {
+                // حفظ الرابط في الكاش لمدة دقيقة
+                cache.set(id, {
+                    url: lootUrl,
+                    expire: Date.now() + 60000
+                });
 
-            return res.redirect(302, lootUrl);
+                return res.redirect(302, lootUrl);
+            } else {
+                // إذا لم يرجع الـ API رابط، نقوم بالتحويل للرابط الأصلي مباشرة منعاً للإيرور
+                console.error("LootLabs custom error: URL structure is missing in response", response.data);
+                return res.redirect(302, originalUrl);
+            }
 
         } catch (err) {
+            console.error("LootLabs API Error Details:", err.response?.data || err.message);
 
-            console.error(err.response?.data || err);
-
-            // في حالة فشل LootLabs يحول للرابط الأصلي
-            try {
-
-                const doc = await db.collection("links").doc(req.query.id).get();
-
-                if (doc.exists) {
-                    return res.redirect(302, doc.data().url);
-                }
-
-            } catch {}
+            // في حالة فشل LootLabs تماماً يحول للرابط الأصلي فوراً
+            if (originalUrl) {
+                return res.redirect(302, originalUrl);
+            }
 
             return res.status(500).json({
                 success: false,
                 message: "LootLabs API Error",
                 error: err.response?.data || err.message
             });
-
         }
-
     }
 
     return res.status(405).send("Method Not Allowed");
-
 }
