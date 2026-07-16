@@ -1,5 +1,7 @@
 const urlInput = document.getElementById("url");
 const slugInput = document.getElementById("slug");
+const tierInput = document.getElementById("tier");   // العنصر الجديد للـ Tier
+const tasksInput = document.getElementById("tasks"); // العنصر الجديد للمهام
 const result = document.getElementById("result");
 const loading = document.getElementById("loading");
 const button = document.getElementById("shortBtn");
@@ -8,6 +10,9 @@ async function shorten() {
 
     const url = urlInput.value.trim();
     const slug = slugInput.value.trim();
+    // جلب القيم وتحويلها لأرقام صحيحة لتتوافق مع السيرفر
+    const tier = parseInt(tierInput.value);
+    const tasks = parseInt(tasksInput.value);
 
     result.innerHTML = "";
 
@@ -40,7 +45,9 @@ async function shorten() {
             },
             body: JSON.stringify({
                 url,
-                slug
+                slug,
+                tier,  // إرسال الـ Tier الجديد
+                tasks  // إرسال عدد المهام الجديد
             })
         });
 
@@ -108,7 +115,7 @@ function showError(message) {
 urlInput.addEventListener("keydown", function (e) {
 
     if (e.key === "Enter")
-        shorten();
+        shorten(); 
 
 });
 
@@ -117,4 +124,4 @@ slugInput.addEventListener("keydown", function (e) {
     if (e.key === "Enter")
         shorten();
 
-});
+}); 
