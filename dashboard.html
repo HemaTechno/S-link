@@ -138,10 +138,10 @@
             background-size: 12px;
         }
 
-        /* كروت الإحصائيات (Glass Cards) */
+        /* كروت الإحصائيات (Glass Cards) - كارتين متناسقين تماماً */
         .stats-overview {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 20px;
             margin-bottom: 24px;
         }
@@ -179,7 +179,7 @@
             font-size: 14px;
         }
 
-        .stat-card:nth-child(3) h3 i {
+        .stat-card:nth-child(2) h3 i {
             color: #10b981;
         }
 
@@ -290,8 +290,8 @@
             gap: 14px;
         }
 
-        /* شارات دائرية ناعمة شبيهة بستايل LootLabs */
-        .clicks-badge, .success-badge {
+        /* الشارات المتبقية بعد تصفية عداد الزيارات */
+        .success-badge {
             padding: 8px 14px;
             border-radius: 12px;
             font-weight: 700;
@@ -300,14 +300,6 @@
             align-items: center;
             gap: 6px;
             border: 1px solid rgba(255, 255, 255, 0.6);
-        }
-
-        .clicks-badge {
-            background: rgba(224, 231, 255, 0.5);
-            color: #4f46e5;
-        }
-
-        .success-badge {
             background: rgba(209, 250, 229, 0.5);
             color: #065f46;
         }
@@ -509,22 +501,18 @@
                     <input type="text" id="searchInput" placeholder="بحث عن رابط..." oninput="renderDashboard()">
                 </div>
                 <select id="sortSelect" onchange="renderDashboard()">
-                    <option value="clicks-desc">الأكثر دخولاً 🔥</option>
-                    <option value="clicks-asc">الأقل دخولاً ❄️</option>
+                    <option value="tasks-desc">الأعلى اكتمالاً للمهام 🔥</option>
+                    <option value="tasks-asc">الأقل اكتمالاً للمهام ❄️</option>
                     <option value="date-desc">الأحدث إنشاءً 🕒</option>
                 </select>
             </div>
         </header>
 
-        <!-- كروت الإحصائيات الزجاجية -->
+        <!-- كروت الإحصائيات الزجاجية المحدثة -->
         <div class="stats-overview">
             <div class="stat-card">
                 <h3><i class="fa-solid fa-link"></i> إجمالي الروابط المختصرة</h3>
                 <div class="value" id="totalLinks">0</div>
-            </div>
-            <div class="stat-card">
-                <h3><i class="fa-solid fa-arrow-pointer"></i> إجمالي الزيارات (كليكات)</h3>
-                <div class="value" id="totalClicks">0</div>
             </div>
             <div class="stat-card">
                 <h3><i class="fa-solid fa-square-check"></i> إجمالي المهام المكتملة</h3>
@@ -561,9 +549,7 @@
 
         function calculateOverview(links) {
             document.getElementById('totalLinks').innerText = links.length;
-            const totalClicks = links.reduce((sum, link) => sum + (link.clicks || 0), 0);
             const totalCompleted = links.reduce((sum, link) => sum + (link.completedTasksCount || 0), 0);
-            document.getElementById('totalClicks').innerText = totalClicks;
             document.getElementById('totalCompleted').innerText = totalCompleted;
         }
 
@@ -572,6 +558,7 @@
             item.classList.toggle('open');
         }
 
+        // معالجة تحليلات الدول والأجهزة بناءً على عدد إكمال المهام
         function processAnalytics(summaryArray) {
             let countries = {};
             let devices = {};
@@ -611,10 +598,11 @@
                        (link.url && link.url.toLowerCase().includes(searchInput));
             });
 
-            if (sortMethod === 'clicks-desc') {
-                filteredLinks.sort((a, b) => (b.clicks || 0) - (a.clicks || 0));
-            } else if (sortMethod === 'clicks-asc') {
-                filteredLinks.sort((a, b) => (a.clicks || 0) - (b.clicks || 0));
+            // تعديل نظام الفرز ليكون بناءً على إتمام المهام والأحدث برمجياً
+            if (sortMethod === 'tasks-desc') {
+                filteredLinks.sort((a, b) => (b.completedTasksCount || 0) - (a.completedTasksCount || 0));
+            } else if (sortMethod === 'tasks-asc') {
+                filteredLinks.sort((a, b) => (a.completedTasksCount || 0) - (b.completedTasksCount || 0));
             } else if (sortMethod === 'date-desc') {
                 filteredLinks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
             }
@@ -643,10 +631,10 @@
                                     ${flagImg}
                                     ${code}
                                 </span>
-                                <span class="analytics-value">${count} زيارة</span>
+                                <span class="analytics-value">${count} مهمة مكتملة</span>
                             </div>
                         `;
-                    }).join('') : '<div class="no-data"><i class="fa-solid fa-triangle-exclamation"></i> لا توجد بيانات متاحة للدول بعد.</div>';
+                    }).join('') : '<div class="no-data"><i class="fa-solid fa-triangle-exclamation"></i> لا توجد مهام مكتملة للدول بعد.</div>';
 
                 let deviceRows = Object.keys(devices).length > 0 ? 
                     Object.entries(devices).map(([name, count]) => `
@@ -655,9 +643,9 @@
                                 ${getDeviceIcon(name)}
                                 ${name}
                             </span>
-                            <span class="analytics-value">${count} زيارة</span>
+                            <span class="analytics-value">${count} مهمة مكتملة</span>
                         </div>
-                    `).join('') : '<div class="no-data"><i class="fa-solid fa-triangle-exclamation"></i> لا توجد بيانات متاحة للمنصات بعد.</div>';
+                    `).join('') : '<div class="no-data"><i class="fa-solid fa-triangle-exclamation"></i> لا توجد مهام مكتملة للمنصات بعد.</div>';
 
                 const linkItem = document.createElement('div');
                 linkItem.className = 'link-item';
@@ -668,7 +656,6 @@
                             <div class="link-url">${link.url}</div>
                         </div>
                         <div class="link-meta">
-                            <span class="clicks-badge"><i class="fa-regular fa-chart-bar"></i> ${link.clicks || 0} زيارة</span>
                             <span class="success-badge"><i class="fa-solid fa-circle-check"></i> ${link.completedTasksCount || 0} مكتمل</span>
                             <span class="toggle-icon"><i class="fa-solid fa-chevron-down"></i></span>
                         </div>
@@ -677,11 +664,11 @@
                         <div class="details-wrapper">
                             <div class="details-content">
                                 <div class="analytics-box">
-                                    <h4><i class="fa-solid fa-globe"></i> توزيع الدول (أعلى الدول دخولا)</h4>
+                                    <h4><i class="fa-solid fa-globe"></i> إكمال المهام حسب الدول</h4>
                                     ${countryRows}
                                 </div>
                                 <div class="analytics-box">
-                                    <h4><i class="fa-solid fa-mobile-screen"></i> توزيع المنصات والأجهزة</h4>
+                                    <h4><i class="fa-solid fa-mobile-screen"></i> إكمال المهام حسب الأجهزة</h4>
                                     ${deviceRows}
                                 </div>
                             </div>
