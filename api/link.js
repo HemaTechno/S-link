@@ -2,7 +2,7 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import axios from "axios";
 
-// ضع مفتاح LootLabs هنا
+// مفتاح LootLabs الخاص بك
 const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
 
 // الكاش لحفظ الروابط + محاربة السبام (Rate Limiting)
@@ -18,9 +18,9 @@ export default async function handler(req, res) {
     // جلب الـ IP الخاص بالمستخدم لمحاربة السبام وتحديد الدولة
     const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "unknown";
 
-    // ==========================
+    // =======================================================
     // 1. إنشاء رابط (POST) + حماية ضد السبام + تفعيل الـ Dynamic Tiers
-    // ==========================
+    // =======================================================
     if (req.method === "POST") {
         try {
             // ---- نظام محاربة السبام (Rate Limiting) ----
@@ -28,7 +28,6 @@ export default async function handler(req, res) {
             const userSpamData = spamCache.get(ip) || { count: 0, startTime: currentTime };
 
             if (currentTime - userSpamData.startTime > RATE_LIMIT_WINDOW) {
-                // إعادة تصفير العداد بعد مرور دقيقة
                 userSpamData.count = 1;
                 userSpamData.startTime = currentTime;
             } else {
@@ -42,9 +41,7 @@ export default async function handler(req, res) {
                     message: "طلبات كثيرة جداً! يرجى الانتظار دقيقة قبل إنشاء روابط جديدة."
                 });
             }
-            // ----------------------------------------
 
-            // استقبال البيانات مع خيارات الـ Dynamic Tiers الاختيارية
             const { url, slug, tier, tasks } = req.body;
 
             if (!url) {
@@ -75,15 +72,14 @@ export default async function handler(req, res) {
                 });
             }
 
-            // حفظ بيانات الرابط شاملة إعدادات لوت لابس الديناميكية (مع قيم افتراضية إذا لم تُرسل)
             await db.collection("links").doc(id).set({
                 url,
                 clicks: 0,
-                completedTasksCount: 0, // عداد المهام المكتملة
+                completedTasksCount: 0, 
                 createdAt: Date.now(),
                 lastVisit: null,
-                tier: tier ? parseInt(tier) : 1,       // افتراضي Tier 1
-                tasks: tasks ? parseInt(tasks) : 3      // افتراضي 3 مهام
+                tier: tier ? parseInt(tier) : 1,       
+                tasks: tasks ? parseInt(tasks) : 3      
             });
 
             return res.status(200).json({
@@ -100,9 +96,9 @@ export default async function handler(req, res) {
         }
     }
 
-    // ==========================
-    // 2. فتح الرابط (GET) + تتبع الزيارات التفصيلي
-    // ==========================
+    // =======================================================
+    // 2. فتح الرابط (GET) وتحويل المستخدم إلى LootLabs
+    // =======================================================
     if (req.method === "GET") {
         const id = req.query.id;
         let originalUrl = "";
@@ -116,47 +112,22 @@ export default async function handler(req, res) {
             const data = doc.data();
             originalUrl = data.url;
 
-            // ---- نظام تتبع الزيارات المتقدم (Analytics) ----
-            const country = req.headers["x-vercel-ip-country"] || "Unknown"; // يعمل تلقائياً لو مستضيف على Vercel
-            const userAgent = req.headers["user-agent"] || "Unknown";
-            const referrer = req.headers["referer"] || "Direct";
-
-            // تحديد نوع الجهاز بشكل مبسط
-            let device = "Desktop";
-            if (/mobile/i.test(userAgent)) device = "Mobile";
-            else if (/tablet/i.test(userAgent)) device = "Tablet";
-
-            // إصلاح الإيرور: الوصول لـ arrayUnion بشكل مضمون عبر الـ constructor الخاص بالفايربيز المستدعى
-            const FieldValue = doc.ref.firestore.constructor.FieldValue;
-
-            // تحديث عدد الكليكات الإجمالي + مصفوفة ببيانات آخر الزوار لتجنب تضخم حجم الدوكيومنت
-            await doc.ref.update({
-                clicks: (data.clicks || 0) + 1,
-                lastVisit: Date.now(),
-                analyticsSummary: FieldValue.arrayUnion({
-                    time: Date.now(),
-                    country,
-                    device,
-                    referrer: referrer.substring(0, 100) // لعدم حفظ روابط ضخمة جداً
-                })
-            });
-            // ---------------------------------------------
-
-            // استخدام الكاش للرابط المولد
+            // استخدام الكاش للرابط المولد لتجنب استدعاء الـ API بكثرة
             const cached = cache.get(id);
             if (cached && cached.expire > Date.now() && cached.url) {
                 return res.redirect(302, cached.url);
             }
 
-            // الرابط الوسيط التابع لموقعك الذي سيمر عليه الزائر لتسجيل إتمام المهمة
-            const completionUrl = `https://subx.click/api/complete?id=${id}`;
+            // [تعديل الـ Anti-Bypass الأساسي]
+            // نمرر المتغير [tc] في الرابط لتقوم LootLabs بتبديله تلقائياً بـ Token فريد للعملية عند التحويل
+            const completionUrl = `https://subx.click/api/complete?id=${id}&tc=[tc]`;
 
-            // إنشاء LootLabs Link باستخدام الخصائص الديناميكية والرابط الوسيط كوجهة نهائية
+            // إنشاء الرابط عبر LootLabs
             const response = await axios.post(
                 "https://creators.lootlabs.gg/api/public/content_locker",
                 {
                     title: id,
-                    url: completionUrl,                  // يذهب للرابط الوسيط أولاً ثم الرابط الأصلي
+                    url: completionUrl,                  
                     tier_id: data.tier || 1,             
                     number_of_tasks: data.tasks || 3,    
                     theme: 1
@@ -179,7 +150,7 @@ export default async function handler(req, res) {
                 });
                 return res.redirect(302, lootUrl);
             } else {
-                console.error("LootLabs custom error: URL structure is missing in response", response.data);
+                console.error("LootLabs error: URL missing in response", response.data);
                 return res.redirect(302, originalUrl);
             }
 
