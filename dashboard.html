@@ -9,23 +9,22 @@
     
     <style>
         :root {
-            /* باليت ألوان Cyberpunk Hologram الفاخرة */
-            --bg-pure: #030305;
-            --card-glass: rgba(10, 10, 16, 0.75);
-            --card-glow: rgba(139, 92, 246, 0.15);
-            --border-laser: rgba(255, 255, 255, 0.04);
+            /* باليت ألوان الفخامة الفاتحة الناعمة */
+            --bg-pure: #f8fafc;
+            --card-glass: rgba(255, 255, 255, 0.75);
+            --border-laser: rgba(226, 232, 240, 0.8);
             
-            --neon-pink: #ff007f;
-            --neon-pink-glow: rgba(255, 0, 127, 0.35);
+            --neon-pink: #ec4899;
+            --neon-pink-glow: rgba(236, 72, 153, 0.15);
             --neon-violet: #8b5cf6;
-            --neon-violet-glow: rgba(139, 92, 246, 0.4);
-            --neon-cyan: #00f0ff;
-            --neon-cyan-glow: rgba(0, 240, 255, 0.35);
-            --neon-green: #05ffc4;
-            --neon-green-glow: rgba(5, 255, 196, 0.3);
+            --neon-violet-glow: rgba(139, 92, 246, 0.15);
+            --neon-cyan: #06b6d4;
+            --neon-cyan-glow: rgba(6, 182, 212, 0.15);
+            --neon-green: #10b981;
+            --neon-green-glow: rgba(16, 185, 129, 0.12);
 
-            --text-cyber: #e2e8f0;
-            --text-dim: #64748b;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
             
             --transition-cyber: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             --transition-fluid: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
@@ -38,7 +37,7 @@
             font-family: 'Tajawal', sans-serif;
         }
 
-        /* سكرول بار أسطوري متوهج */
+        /* سكرول بار ناعم متناسق مع التصميم الفاتح */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -46,47 +45,47 @@
             background: var(--bg-pure);
         }
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, var(--neon-violet), var(--neon-pink));
+            background: linear-gradient(180deg, var(--neon-violet), var(--neon-cyan));
             border-radius: 10px;
-            box-shadow: 0 0 10px var(--neon-pink-glow);
         }
 
         body {
             background-color: var(--bg-pure);
-            color: var(--text-cyber);
+            color: var(--text-main);
             padding: 60px 24px;
             overflow-x: hidden;
             position: relative;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* جزيئات نيون عائمة في الخلفية لشكل سينمائي */
+        /* تموجات ضوئية باستيل هادئة ومتحركة ببطء في الخلفية */
         body::before, body::after {
             content: '';
             position: fixed;
-            width: 400px;
-            height: 400px;
+            width: 500px;
+            height: 500px;
             border-radius: 50%;
             pointer-events: none;
             z-index: -1;
-            filter: blur(120px);
-            opacity: 0.15;
-            animation: pulseGlow 10s infinite alternate;
+            filter: blur(150px);
+            opacity: 0.4;
+            animation: pulseGlow 12s infinite alternate;
         }
         body::before {
-            background: var(--neon-violet);
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.2), rgba(139, 92, 246, 0.2));
             top: -10%;
             right: 10%;
         }
         body::after {
-            background: var(--neon-cyan);
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(16, 185, 129, 0.15));
             bottom: -10%;
             left: 5%;
-            animation-delay: 5s;
+            animation-delay: 6s;
         }
 
         @keyframes pulseGlow {
-            0% { transform: scale(1) translate(0, 0); opacity: 0.12; }
-            100% { transform: scale(1.3) translate(30px, 50px); opacity: 0.22; }
+            0% { transform: scale(1) translate(0, 0); opacity: 0.35; }
+            100% { transform: scale(1.2) translate(40px, 40px); opacity: 0.5; }
         }
 
         .dashboard-container {
@@ -94,24 +93,24 @@
             margin: 0 auto;
         }
 
-        /* هيدر تفاعلي مذهل */
+        /* هيدر تفاعلي راقي جداً */
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 50px;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+            border-bottom: 1px dashed rgba(15, 23, 42, 0.08);
             padding-bottom: 30px;
         }
 
         header h1 {
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 800;
-            background: linear-gradient(90deg, #ffffff, var(--neon-cyan), var(--neon-violet));
+            background: linear-gradient(90deg, var(--text-main), var(--neon-violet), var(--neon-cyan));
             background-size: 200% auto;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            animation: shineText 5s linear infinite;
+            animation: shineText 6s linear infinite;
             display: flex;
             align-items: center;
             gap: 16px;
@@ -124,22 +123,21 @@
         header h1 i {
             -webkit-background-clip: initial;
             -webkit-text-fill-color: initial;
-            color: #030305;
+            color: #ffffff;
             background: linear-gradient(135deg, var(--neon-pink), var(--neon-violet));
             padding: 14px;
-            border-radius: 14px;
-            font-size: 24px;
-            box-shadow: 0 0 25px var(--neon-pink-glow);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            font-size: 22px;
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
             animation: floatIcon 4s ease-in-out infinite;
         }
 
         @keyframes floatIcon {
             0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-8px) rotate(5deg); }
+            50% { transform: translateY(-6px) rotate(3deg); }
         }
 
-        /* أزرار وحقول بتأثير نيون ممتد */
+        /* أدوات تصفية وبحث بحواف زجاجية متميزة */
         .controls {
             display: flex;
             gap: 16px;
@@ -155,23 +153,22 @@
         .search-wrapper i {
             position: absolute;
             right: 18px;
-            color: var(--neon-cyan);
-            text-shadow: 0 0 8px var(--neon-cyan-glow);
+            color: var(--neon-violet);
             pointer-events: none;
         }
 
         select, input {
             padding: 14px 22px;
             border: 1px solid var(--border-laser);
-            border-radius: 12px;
+            border-radius: 14px;
             background: var(--card-glass);
             backdrop-filter: blur(15px);
             font-size: 14px;
-            font-weight: 600;
-            color: #ffffff;
+            font-weight: 700;
+            color: var(--text-main);
             outline: none;
             transition: var(--transition-cyber);
-            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.03);
         }
 
         input {
@@ -181,26 +178,30 @@
 
         input:focus {
             width: 320px;
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 20px var(--neon-cyan-glow), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+            border-color: var(--neon-violet);
+            box-shadow: 0 0 20px var(--neon-violet-glow), 0 4px 12px rgba(139, 92, 246, 0.1);
+        }
+
+        input:focus + i {
+            transform: scale(1.1);
         }
 
         select {
             cursor: pointer;
             padding-left: 36px;
             appearance: none;
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2300f0ff' stroke-width='2.5'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%238b5cf6' stroke-width='2.5'><polyline points='6 9 12 15 18 9'></polyline></svg>");
             background-repeat: no-repeat;
             background-position: left 16px center;
             background-size: 14px;
         }
 
         select:focus {
-            border-color: var(--neon-violet);
-            box-shadow: 0 0 20px var(--neon-violet-glow);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 20px var(--neon-cyan-glow);
         }
 
-        /* كروت الإحصائيات (Holographic Cyber Cards) */
+        /* كروت إحصائيات متوهجة بلطف (Pastel Cards) */
         .stats-overview {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -212,14 +213,14 @@
             background: var(--card-glass);
             backdrop-filter: blur(15px);
             padding: 30px;
-            border-radius: 16px;
+            border-radius: 20px;
             border: 1px solid var(--border-laser);
             position: relative;
             overflow: hidden;
             transition: var(--transition-cyber);
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.04);
         }
 
-        /* شريط مائي متحرك خفي (Shimmer scan line) */
         .stat-card::after {
             content: '';
             position: absolute;
@@ -227,7 +228,7 @@
             left: -50%;
             width: 200%;
             height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.4), transparent);
             transform: rotate(45deg);
             transition: 0.8s;
             pointer-events: none;
@@ -239,48 +240,45 @@
         }
 
         .stat-card:hover {
-            transform: translateY(-10px) scale(1.03);
+            transform: translateY(-8px) scale(1.02);
             border-color: var(--neon-violet);
-            box-shadow: 0 15px 35px var(--neon-violet-glow);
+            box-shadow: 0 15px 30px var(--neon-violet-glow), 0 10px 20px rgba(15, 23, 42, 0.05);
         }
 
         .stat-card:nth-child(3):hover {
             border-color: var(--neon-green);
-            box-shadow: 0 15px 35px var(--neon-green-glow);
+            box-shadow: 0 15px 30px var(--neon-green-glow), 0 10px 20px rgba(16, 185, 129, 0.05);
         }
 
         .stat-card h3 {
-            font-size: 13.5px;
+            font-size: 14px;
             font-weight: 700;
-            color: var(--text-dim);
+            color: var(--text-muted);
             margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 12px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
         .stat-card h3 i {
             font-size: 18px;
-            color: var(--neon-cyan);
-            text-shadow: 0 0 10px var(--neon-cyan-glow);
+            color: var(--neon-violet);
         }
 
         .stat-card:nth-child(3) h3 i {
             color: var(--neon-green);
-            text-shadow: 0 0 10px var(--neon-green-glow);
         }
 
         .stat-card .value {
-            font-size: 44px;
+            font-size: 42px;
             font-weight: 800;
-            color: #ffffff;
+            color: var(--text-main);
             letter-spacing: -1px;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
         }
 
-        /* ثورة تصميم قائمة الروابط: تحولت لشبكة كروت خرافية تفاعلية! */
+        /* شبكة الكروت التفاعلية لقائمة الروابط */
         .links-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -291,32 +289,31 @@
         .link-item {
             background: var(--card-glass);
             backdrop-filter: blur(15px);
-            border-radius: 18px;
+            border-radius: 20px;
             border: 1px solid var(--border-laser);
             overflow: hidden;
             transition: var(--transition-cyber);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.03);
         }
 
-        /* عند مرور الماوس: نيون خلفي مبهر */
         .link-item:hover {
-            border-color: rgba(139, 92, 246, 0.4);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 92, 246, 0.15);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 15px 30px rgba(139, 92, 246, 0.08), 0 8px 20px rgba(15, 23, 42, 0.04);
             transform: translateY(-6px);
         }
 
-        /* الحتة السحرية: تمدد الكارت المفتوح في الشبكة ليأخذ مساحته بالكامل بحركة خرافية! */
+        /* تمدد رائع للكارت النشط داخل الشبكة */
         @media (min-width: 900px) {
             .link-item.open {
-                grid-column: span 2; /* الكارت المفتوح يتسع أوتوماتيكياً لعرض عمودين */
-                border-color: var(--neon-pink);
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 25px var(--neon-pink-glow);
+                grid-column: span 2;
+                border-color: var(--neon-violet);
+                box-shadow: 0 20px 40px var(--neon-violet-glow), 0 10px 25px rgba(15, 23, 42, 0.05);
             }
         }
 
-        /* هيكلة الكارت الداخلية مكدسة عمودياً كأنها بلوك برمجي */
         .link-header {
             padding: 26px 28px;
             display: flex;
@@ -328,7 +325,7 @@
         }
 
         .link-header:hover {
-            background-color: rgba(255, 255, 255, 0.01);
+            background-color: rgba(15, 23, 42, 0.01);
         }
 
         .link-info {
@@ -338,38 +335,37 @@
         }
 
         .link-slug {
-            font-size: 20px;
+            font-size: 19px;
             font-weight: 800;
-            color: var(--neon-cyan);
+            color: var(--neon-violet);
             display: flex;
             align-items: center;
             gap: 10px;
-            text-shadow: 0 0 10px var(--neon-cyan-glow);
             transition: var(--transition-cyber);
         }
 
         .link-item:hover .link-slug {
             transform: translateX(-4px);
+            color: var(--neon-pink);
         }
 
         .link-url {
             font-size: 13.5px;
-            color: var(--text-dim);
+            color: var(--text-muted);
             word-break: break-all;
             font-weight: 500;
         }
 
-        /* ميتا بيانات الكارت أسفل العنوان */
         .link-meta {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-top: 1px dashed rgba(255, 255, 255, 0.05);
+            border-top: 1px dashed rgba(15, 23, 42, 0.08);
             padding-top: 16px;
             width: 100%;
         }
 
-        /* شارات تحليلات مدمجة (Glass Capsules) */
+        /* شارات زجاجية غاية في الأناقة */
         .clicks-badge, .success-badge {
             padding: 8px 14px;
             border-radius: 10px;
@@ -378,49 +374,47 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(15, 23, 42, 0.03);
         }
 
         .clicks-badge {
-            background: rgba(139, 92, 246, 0.1);
-            color: #d8b4fe;
-            box-shadow: 0 0 10px rgba(139, 92, 246, 0.1);
+            background: rgba(139, 92, 246, 0.06);
+            color: var(--neon-violet);
         }
 
         .success-badge {
-            background: rgba(5, 255, 196, 0.08);
-            color: var(--neon-green);
-            box-shadow: 0 0 10px var(--neon-green-glow);
+            background: rgba(16, 185, 129, 0.06);
+            color: #059669;
         }
 
         .toggle-icon {
             font-size: 12px;
-            color: var(--text-dim);
+            color: var(--text-muted);
             transition: var(--transition-cyber);
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(15, 23, 42, 0.03);
             width: 34px;
             height: 34px;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(15, 23, 42, 0.03);
         }
 
         .link-item.open .toggle-icon {
             transform: rotate(180deg);
             color: #ffffff;
-            background: var(--neon-pink);
-            border-color: var(--neon-pink);
-            box-shadow: 0 0 15px var(--neon-pink-glow);
+            background: var(--neon-violet);
+            border-color: var(--neon-violet);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
         }
 
-        /* تمدد تفاصيل الرابط بحركة Grid Liquid انسيابية لا تتأخر */
+        /* تفاصيل الرابط المنحوتة بسلاسة */
         .link-details {
             display: grid;
             grid-template-rows: 0fr;
             transition: grid-template-rows 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(15, 23, 42, 0.02);
             border-top: 1px solid var(--border-laser);
         }
 
@@ -437,33 +431,37 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
+            animation: contentSlideIn 0.5s ease;
         }
 
-        /* حاويات الإحصائيات الفخمة */
+        @keyframes contentSlideIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* صناديق البيانات الداخلية */
         .analytics-box {
-            background: rgba(5, 5, 8, 0.8);
+            background: #ffffff;
             border: 1px solid var(--border-laser);
             border-radius: 14px;
             padding: 20px;
-            box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
         }
 
         .analytics-box h4 {
             font-size: 14px;
             font-weight: 800;
-            color: #ffffff;
+            color: var(--text-main);
             margin-bottom: 18px;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+            border-bottom: 1px dashed rgba(15, 23, 42, 0.08);
             padding-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 10px;
-            letter-spacing: 0.5px;
         }
 
         .analytics-box h4 i {
-            color: var(--neon-cyan);
-            text-shadow: 0 0 8px var(--neon-cyan-glow);
+            color: var(--neon-violet);
         }
 
         .analytics-row {
@@ -472,12 +470,12 @@
             align-items: center;
             padding: 12px 6px;
             font-size: 13.5px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.02);
             transition: var(--transition-fluid);
         }
 
         .analytics-row:hover {
-            background-color: rgba(255, 255, 255, 0.02);
+            background-color: rgba(15, 23, 42, 0.02);
             padding-right: 12px;
             padding-left: 12px;
             border-radius: 8px;
@@ -488,7 +486,7 @@
         }
 
         .analytics-label {
-            color: var(--text-cyber);
+            color: var(--text-main);
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -500,11 +498,11 @@
             height: 16px;
             object-fit: cover;
             border-radius: 3px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1);
         }
 
         .device-icon {
-            color: var(--text-dim);
+            color: var(--text-muted);
             font-size: 16px;
             width: 20px;
             text-align: center;
@@ -512,18 +510,17 @@
 
         .analytics-value {
             font-weight: 700;
-            color: var(--neon-cyan);
-            background: rgba(0, 240, 255, 0.08);
-            border: 1px solid rgba(0, 240, 255, 0.15);
+            color: var(--neon-violet);
+            background: rgba(139, 92, 246, 0.06);
+            border: 1px solid rgba(139, 92, 246, 0.1);
             padding: 4px 10px;
             border-radius: 8px;
             font-size: 11.5px;
-            box-shadow: 0 0 8px rgba(0, 240, 255, 0.1);
         }
 
         .no-data {
             text-align: center;
-            color: var(--text-dim);
+            color: var(--text-muted);
             padding: 30px;
             font-size: 13px;
             font-weight: 600;
@@ -535,10 +532,10 @@
 
         .no-data i {
             font-size: 26px;
-            color: #1e293b;
+            color: #cbd5e1;
         }
 
-        /* استجابة تامة لشاشات المحمول */
+        /* استجابة التصميم التامة على الهواتف */
         @media (max-width: 768px) {
             body {
                 padding: 40px 16px;
@@ -604,7 +601,7 @@
             </div>
         </div>
 
-        <!-- قائمة الروابط على شكل كروت شبكية متداخلة -->
+        <!-- قائمة الروابط على شكل كروت شبكية متداخلة فاتحة -->
         <div class="links-list" id="linksList">
             <!-- سيتم توليد الروابط هنا عبر الـ JavaScript -->
         </div>
