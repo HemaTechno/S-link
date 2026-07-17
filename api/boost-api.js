@@ -65,7 +65,7 @@ export default async function handler(req, res) {
         });
 
         // هنا نقوم بتوجيه المستخدم إلى رابط صفحة العرض المستقلة (boost-view)
-        const redirectUrl = `${req.headers.origin}/boost-view?id=${id}`;
+        const redirectUrl = `${req.headers.origin}/api/boost-view?id=${id}`;
 
         return res.status(200).json({
             success: true,
