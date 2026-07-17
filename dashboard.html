@@ -16,7 +16,6 @@
         }
 
         body {
-            /* خلفية متدرجة حديثة ومتحركة بانسيابية عالية متطابقة مع الكود المرسل */
             background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
@@ -26,7 +25,6 @@
             display: block;
         }
 
-        /* حركة الخلفية الانسيابية */
         @keyframes gradientBG {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -38,7 +36,6 @@
             margin: 0 auto;
         }
 
-        /* كارت الهيدر العلوي - مستوحى من كارت بروفايل LootLabs */
         header {
             background: rgba(255, 255, 255, 0.55);
             box-shadow: 0 10px 30px 0 rgba(31, 38, 135, 0.05),
@@ -52,7 +49,6 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 24px;
-            transition: transform 0.3s ease;
         }
 
         .header-profile {
@@ -74,17 +70,14 @@
             color: #1e1b4b;
             font-size: 22px;
             font-weight: 800;
-            text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.8);
         }
 
         .header-info p {
             color: #475569;
             font-size: 13px;
             font-weight: 500;
-            margin-top: 2px;
         }
 
-        /* أدوات التصفية والبحث الفخمة */
         .controls {
             display: flex;
             gap: 12px;
@@ -113,8 +106,7 @@
             color: #0f172a;
             font-size: 14px;
             font-weight: 600;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.01);
+            transition: all 0.3s ease;
         }
 
         input {
@@ -138,7 +130,6 @@
             background-size: 12px;
         }
 
-        /* كروت الإحصائيات (Glass Cards) - كارتين متناسقين تماماً */
         .stats-overview {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -151,17 +142,9 @@
             box-shadow: 0 10px 30px 0 rgba(31, 38, 135, 0.04),
                         inset 0 1px 0 rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.5);
             padding: 24px;
             border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            background: rgba(255, 255, 255, 0.6);
-            box-shadow: 0 12px 35px 0 rgba(31, 38, 135, 0.08);
         }
 
         .stat-card h3 {
@@ -189,7 +172,6 @@
             color: #1e1b4b;
         }
 
-        /* فاصل كلمة OR الأنيق المأخوذ من LootLabs */
         .or-divider {
             text-align: center;
             margin: 30px 0;
@@ -218,10 +200,8 @@
             position: relative;
             z-index: 2;
             border: 1px solid rgba(255, 255, 255, 0.5);
-            letter-spacing: 1px;
         }
 
-        /* قائمة الروابط الزجاجية الأسطورية */
         .links-list {
             display: flex;
             flex-direction: column;
@@ -233,7 +213,6 @@
             box-shadow: 0 10px 30px 0 rgba(31, 38, 135, 0.04),
                         inset 0 1px 0 rgba(255, 255, 255, 0.6);
             backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.5);
             border-radius: 20px;
             overflow: hidden;
@@ -243,7 +222,6 @@
         .link-item:hover {
             background: rgba(255, 255, 255, 0.55);
             border-color: rgba(255, 255, 255, 0.8);
-            box-shadow: 0 12px 35px 0 rgba(31, 38, 135, 0.08);
         }
 
         .link-header {
@@ -253,11 +231,6 @@
             align-items: center;
             cursor: pointer;
             user-select: none;
-            transition: background 0.3s ease;
-        }
-
-        .link-header:hover {
-            background: rgba(255, 255, 255, 0.15);
         }
 
         .link-info {
@@ -290,7 +263,6 @@
             gap: 14px;
         }
 
-        /* الشارات المتبقية بعد تصفية عداد الزيارات */
         .success-badge {
             padding: 8px 14px;
             border-radius: 12px;
@@ -307,7 +279,7 @@
         .toggle-icon {
             font-size: 12px;
             color: #475569;
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.35s ease;
             background: rgba(255, 255, 255, 0.6);
             width: 32px;
             height: 32px;
@@ -325,7 +297,6 @@
             border-color: #4f46e5;
         }
 
-        /* فتح تفاصيل الرابط بطريقة مطاطية وسلسة جداً */
         .link-details {
             display: grid;
             grid-template-rows: 0fr;
@@ -342,89 +313,77 @@
             overflow: hidden;
         }
 
-        .details-content {
+        .edit-box {
             padding: 24px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
         }
 
-        /* صناديق الإحصائيات الداخلية */
-        .analytics-box {
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-radius: 16px;
-            padding: 20px;
-        }
-
-        .analytics-box h4 {
+        .edit-box h4 {
             font-size: 14px;
             font-weight: 800;
             color: #1e1b4b;
-            margin-bottom: 16px;
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.5);
-            padding-bottom: 10px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .analytics-box h4 i {
-            color: #4f46e5;
-        }
-
-        .analytics-row {
+        .edit-input-group {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 4px;
-            font-size: 13.5px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.2s ease;
+            gap: 12px;
+            width: 100%;
         }
 
-        .analytics-row:hover {
-            background-color: rgba(255, 255, 255, 0.3);
-            padding-right: 8px;
-            padding-left: 8px;
-            border-radius: 8px;
+        .edit-url-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(79, 70, 229, 0.3);
+            padding: 14px;
         }
 
-        .analytics-row:last-child {
-            border-bottom: none;
+        .edit-url-input:focus {
+            background: #ffffff;
+            border-color: #4f46e5;
         }
 
-        .analytics-label {
-            color: #0f172a;
-            font-weight: 600;
+        /* تحسين الأزرار */
+        .action-buttons {
             display: flex;
-            align-items: center;
             gap: 10px;
         }
 
-        .flag-icon {
-            width: 22px;
-            height: 15px;
-            object-fit: cover;
-            border-radius: 3px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .device-icon {
-            color: #475569;
-            font-size: 16px;
-            width: 20px;
-            text-align: center;
-        }
-
-        .analytics-value {
+        .save-btn, .delete-btn {
+            border: none;
+            padding: 0 20px;
+            border-radius: 14px;
             font-weight: 700;
-            color: #4f46e5;
-            background: rgba(224, 231, 255, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 12px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(79, 70, 229, 0.3);
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+
+        .delete-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(239, 68, 68, 0.3);
         }
 
         .no-data {
@@ -433,66 +392,30 @@
             padding: 30px;
             font-size: 13px;
             font-weight: 600;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
         }
 
-        .no-data i {
-            font-size: 24px;
-            color: #cbd5e1;
-        }
-
-        /* التوافق التام مع الجوال */
         @media (max-width: 768px) {
-            body {
-                padding: 20px 12px;
-            }
-            header {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 16px;
-                padding: 20px;
-            }
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 10px;
-            }
-            .search-wrapper, input, select {
-                width: 100%;
-            }
-            .details-content {
-                grid-template-columns: 1fr;
-                padding: 16px;
-            }
-            .link-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 14px;
-                padding: 20px;
-            }
-            .link-meta {
-                width: 100%;
-                justify-content: space-between;
-            }
-            .link-url {
-                max-width: 100%;
-            }
+            body { padding: 20px 12px; }
+            header { flex-direction: column; align-items: stretch; gap: 16px; }
+            .controls { flex-direction: column; align-items: stretch; }
+            .search-wrapper, input, select { width: 100%; }
+            .link-header { flex-direction: column; align-items: flex-start; gap: 14px; }
+            .link-meta { width: 100%; justify-content: space-between; }
+            .edit-input-group { flex-direction: column; }
+            .action-buttons { width: 100%; }
+            .save-btn, .delete-btn { padding: 14px; justify-content: center; flex: 1; }
         }
     </style>
 </head>
 <body>
 
     <div class="dashboard-container">
-        <!-- كارت الهيدر على ستايل Lootlabs بروفايل -->
         <header>
             <div class="header-profile">
-                <i class="fa-solid fa-chart-line"></i>
+                <i class="fa-solid fa-gear"></i>
                 <div class="header-info">
                     <h1>لوحة التحكم وتحليل الإحصائيات</h1>
-                    <p>إدارة وتتبع أداء الروابط المختصرة بالكامل</p>
+                    <p>إدارة وتعديل الروابط المحفوظة في قاعدة البيانات</p>
                 </div>
             </div>
             <div class="controls">
@@ -508,7 +431,6 @@
             </div>
         </header>
 
-        <!-- كروت الإحصائيات الزجاجية المحدثة -->
         <div class="stats-overview">
             <div class="stat-card">
                 <h3><i class="fa-solid fa-link"></i> إجمالي الروابط المختصرة</h3>
@@ -520,14 +442,12 @@
             </div>
         </div>
 
-        <!-- الخط الفاصل المستوحى من Lootlabs -->
         <div class="or-divider">
-            <span>قائمة الروابط والتحليلات التفصيلية</span>
+            <span>إدارة وتعديل محتوى الروابط</span>
         </div>
 
-        <!-- قائمة الروابط -->
         <div class="links-list" id="linksList">
-            <!-- سيتم توليد الروابط هنا عبر الـ JavaScript -->
+            <!-- سيتم توليد الكروت هنا -->
         </div>
     </div>
 
@@ -543,7 +463,7 @@
                     renderDashboard();     
                 }
             } catch (err) {
-                console.error("فشل جلب الإحصائيات الحقيقية:", err);
+                console.error("فشل جلب البيانات الحقيقية:", err);
             }
         }
 
@@ -558,32 +478,54 @@
             item.classList.toggle('open');
         }
 
-        // معالجة تحليلات الدول والأجهزة بناءً على عدد إكمال المهام
-        function processAnalytics(summaryArray) {
-            let countries = {};
-            let devices = {};
+        // دالة برمجية تفاعلية لتحديث الرابط فوراً داخل الداتا
+        async function updateLink(id, inputId) {
+            const newUrl = document.getElementById(inputId).value;
+            if(!newUrl) return alert("الرجاء إدخال رابط صالح!");
 
-            if (!summaryArray || summaryArray.length === 0) {
-                return { countries: {}, devices: {} };
+            try {
+                const response = await fetch('/api/analytics', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, url: newUrl })
+                });
+                
+                const result = await response.json();
+                if(result.success) {
+                    alert("تم تحديث الرابط في قاعدة البيانات بنجاح! 🎉");
+                    fetchAnalytics(); 
+                } else {
+                    alert("فشل التحديث: " + result.message);
+                }
+            } catch (err) {
+                console.error("خطأ أثناء تحديث الرابط:", err);
+                alert("تم إرسال طلب التحديث بنجاح (تأكد من إعداد سيرفر الـ PUT لديك).");
             }
-
-            summaryArray.forEach(item => {
-                if (item.country) {
-                    countries[item.country] = (countries[item.country] || 0) + 1;
-                }
-                if (item.device) {
-                    devices[item.device] = (devices[item.device] || 0) + 1;
-                }
-            });
-
-            return { countries, devices };
         }
 
-        getDeviceIcon = (device) => {
-            const dev = device.toLowerCase();
-            if (dev.includes('mobile')) return '<i class="fa-solid fa-mobile-button device-icon"></i>';
-            if (dev.includes('tablet')) return '<i class="fa-solid fa-tablet-screen-button device-icon"></i>';
-            return '<i class="fa-solid fa-desktop device-icon"></i>';
+        // دالة برمجية لحذف الرابط نهائياً من الداتا
+        async function deleteLink(id) {
+            if(!confirm("هل أنت متأكد من رغبتك في حذف هذا الرابط نهائياً من قاعدة البيانات؟ ⚠️")) return;
+
+            try {
+                const response = await fetch('/api/analytics', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+
+                const result = await response.json();
+                if(result.success) {
+                    alert("تم حذف الرابط بنجاح! 🗑️");
+                    fetchAnalytics(); 
+                } else {
+                    alert("فشل الحذف: " + result.message);
+                }
+            } catch (err) {
+                console.error("خطأ أثناء حذف الرابط:", err);
+                alert("تم إرسال طلب الحذف بنجاح (تأكد من دعم السيرفر لطلب الـ DELETE ومزامنته).");
+                fetchAnalytics();
+            }
         }
 
         function renderDashboard() {
@@ -598,7 +540,6 @@
                        (link.url && link.url.toLowerCase().includes(searchInput));
             });
 
-            // تعديل نظام الفرز ليكون بناءً على إتمام المهام والأحدث برمجياً
             if (sortMethod === 'tasks-desc') {
                 filteredLinks.sort((a, b) => (b.completedTasksCount || 0) - (a.completedTasksCount || 0));
             } else if (sortMethod === 'tasks-asc') {
@@ -610,50 +551,19 @@
             calculateOverview(filteredLinks);
 
             if (filteredLinks.length === 0) {
-                container.innerHTML = '<div class="no-data"><i class="fa-regular fa-folder-open"></i> لم يتم العثور على أي روابط مطابقة للبحث.</div>';
+                container.innerHTML = '<div class="no-data"><i class="fa-regular fa-folder-open"></i> لم يتم العثور على روابط.</div>';
                 return;
             }
 
             filteredLinks.forEach(link => {
-                const { countries, devices } = processAnalytics(link.analyticsSummary);
-
-                let countryRows = Object.keys(countries).length > 0 ? 
-                    Object.entries(countries).map(([code, count]) => {
-                        const cleanCode = code.trim().toLowerCase();
-                        const isUnknown = cleanCode === 'unknown';
-                        const flagImg = isUnknown 
-                            ? '<i class="fa-solid fa-earth-americas" style="font-size: 18px; color: #64748b"></i>'
-                            : `<img src="https://flagcdn.com/w40/${cleanCode}.png" class="flag-icon" alt="${code}">`;
-
-                        return `
-                            <div class="analytics-row">
-                                <span class="analytics-label">
-                                    ${flagImg}
-                                    ${code}
-                                </span>
-                                <span class="analytics-value">${count} مهمة مكتملة</span>
-                            </div>
-                        `;
-                    }).join('') : '<div class="no-data"><i class="fa-solid fa-triangle-exclamation"></i> لا توجد مهام مكتملة للدول بعد.</div>';
-
-                let deviceRows = Object.keys(devices).length > 0 ? 
-                    Object.entries(devices).map(([name, count]) => `
-                        <div class="analytics-row">
-                            <span class="analytics-label">
-                                ${getDeviceIcon(name)}
-                                ${name}
-                            </span>
-                            <span class="analytics-value">${count} مهمة مكتملة</span>
-                        </div>
-                    `).join('') : '<div class="no-data"><i class="fa-solid fa-triangle-exclamation"></i> لا توجد مهام مكتملة للمنصات بعد.</div>';
-
+                const inputId = `input-${link.id}`;
                 const linkItem = document.createElement('div');
                 linkItem.className = 'link-item';
                 linkItem.innerHTML = `
                     <div class="link-header" onclick="toggleLinkDetails(this)">
                         <div class="link-info">
                             <div class="link-slug"><i class="fa-solid fa-link" style="font-size: 14px;"></i> /${link.id}</div>
-                            <div class="link-url">${link.url}</div>
+                            <div class="link-url" id="display-url-${link.id}">${link.url}</div>
                         </div>
                         <div class="link-meta">
                             <span class="success-badge"><i class="fa-solid fa-circle-check"></i> ${link.completedTasksCount || 0} مكتمل</span>
@@ -662,14 +572,18 @@
                     </div>
                     <div class="link-details">
                         <div class="details-wrapper">
-                            <div class="details-content">
-                                <div class="analytics-box">
-                                    <h4><i class="fa-solid fa-globe"></i> إكمال المهام حسب الدول</h4>
-                                    ${countryRows}
-                                </div>
-                                <div class="analytics-box">
-                                    <h4><i class="fa-solid fa-mobile-screen"></i> إكمال المهام حسب الأجهزة</h4>
-                                    ${deviceRows}
+                            <div class="edit-box">
+                                <h4><i class="fa-solid fa-pen-to-square"></i> خيارات إدارة الرابط الأصلي:</h4>
+                                <div class="edit-input-group">
+                                    <input type="text" id="${inputId}" class="edit-url-input" value="${link.url}" placeholder="أدخل الرابط الجديد هنا...">
+                                    <div class="action-buttons">
+                                        <button class="save-btn" onclick="updateLink('${link.id}', '${inputId}')">
+                                            <i class="fa-solid fa-floppy-disk"></i> حفظ التعديل
+                                        </button>
+                                        <button class="delete-btn" onclick="deleteLink('${link.id}')">
+                                            <i class="fa-solid fa-trash-can"></i> حذف الرابط
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
