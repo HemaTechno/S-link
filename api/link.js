@@ -1,7 +1,6 @@
 import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import axios from "axios";
-import admin from "firebase-admin"; // استيراد الفايربيس لزيادة العداد تلقائياً
 
 // مفتاح LootLabs الخاص بك
 const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
@@ -112,12 +111,6 @@ export default async function handler(req, res) {
 
             const data = doc.data();
             originalUrl = data.url;
-
-            // تحديث العداد ووقت آخر زيارة في قاعدة البيانات فوراً عند الدخول بالـ GET
-            await db.collection("links").doc(id).update({
-                clicks: admin.firestore.FieldValue.increment(1),
-                lastVisit: Date.now()
-            });
 
             // استخدام الكاش للرابط المولد لتجنب استدعاء الـ API بكثرة
             const cached = cache.get(id);
