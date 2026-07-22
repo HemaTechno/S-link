@@ -20,45 +20,53 @@
         }
 
         body {
-            /* خلفية متدرجة انسيابية فائقة الجودة متوافقة مع لوحة الإحصائيات */
-            background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
+            /* خلفية داكنة مع لمسات إضاءة صفراء خفيفة */
+            background-color: #0c0d10; 
+            background-image: 
+                radial-gradient(at 10% 10%, rgba(255, 215, 0, 0.05) 0px, transparent 50%),
+                radial-gradient(at 90% 90%, rgba(255, 215, 0, 0.05) 0px, transparent 50%);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            color: #0f172a;
+            color: #ffffff;
             padding: 20px;
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        /* حاوية زجاجية ناعمة وعصرية جداً */
+        /* حاوية زجاجية باللون الأسود الشفاف (Dark Glassmorphism) */
         .container {
             width: 480px;
             max-width: 100%;
-            padding: 45px 35px;
+            padding: 30px 35px 45px;
             border-radius: 28px;
-            background: rgba(255, 255, 255, 0.45);
-            box-shadow: 0 20px 50px rgba(31, 38, 135, 0.06),
-                        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+            background: rgba(20, 21, 25, 0.6);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .container:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px);
+            box-shadow: 0 30px 60px rgba(255, 215, 0, 0.05);
+        }
+
+        /* حاوية الشعار الجديدة (مستطيل بدون حدود) */
+        .logo-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo-container img {
+            max-width: 180px; /* يمكنك تكبير أو تصغير هذا الرقم حسب حجم شعارك */
+            height: auto;
+            display: inline-block;
         }
 
         h1 {
-            color: #1e1b4b;
+            color: #ffd700;
             text-align: center;
             margin-bottom: 12px;
             font-size: 2.1rem;
@@ -67,12 +75,12 @@
             align-items: center;
             justify-content: center;
             gap: 12px;
-            text-shadow: 0px 1px 2px rgba(255, 255, 255, 0.8);
+            text-shadow: 0px 2px 10px rgba(255, 215, 0, 0.2);
         }
 
         .desc {
             text-align: center;
-            color: #475569;
+            color: #a0a0a0;
             margin-bottom: 35px;
             font-size: 0.95rem;
             font-weight: 500;
@@ -89,7 +97,7 @@
         .input-group i {
             position: absolute;
             right: 18px;
-            color: #4f46e5;
+            color: #ffd700;
             font-size: 16px;
             pointer-events: none;
             transition: all 0.3s ease;
@@ -97,45 +105,44 @@
 
         input, select {
             width: 100%;
-            padding: 15px 48px 15px 18px; /* مسافة مخصصة للأيقونة من اليمين */
-            background: rgba(255, 255, 255, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.8);
+            padding: 15px 48px 15px 18px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 16px;
             outline: none;
-            color: #0f172a;
+            color: #ffffff;
             font-size: 15px;
             font-weight: 600;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.01), 0 4px 12px rgba(0, 0, 0, 0.02);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         input::placeholder {
-            color: #64748b;
+            color: #606060;
             font-weight: 500;
         }
 
         input:focus, select:focus {
-            background: #ffffff;
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.15), 0 10px 20px rgba(79, 70, 229, 0.05);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: #ffd700;
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1), 0 5px 15px rgba(255, 215, 0, 0.05);
         }
 
         input:focus + i {
             transform: scale(1.1);
-            color: #3b82f6;
+            color: #ffea00;
         }
 
-        /* تنسيق قسم الخيارات المتقدمة الفاخر */
+        /* تنسيق قسم الخيارات المتقدمة */
         .advanced-settings {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 18px;
             padding: 20px 16px 6px 16px;
-            border: 1px solid rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(255, 215, 0, 0.1);
             margin-bottom: 24px;
             display: flex;
             gap: 16px;
             justify-content: space-between;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.01);
         }
 
         .setting-item {
@@ -149,42 +156,47 @@
             margin-bottom: 8px;
             font-size: 12.5px;
             font-weight: 800;
-            color: #1e1b4b;
+            color: #ffd700;
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
         .advanced-settings label i {
-            color: #4f46e5;
+            color: #ffd700;
             font-size: 12px;
         }
 
         .advanced-settings select {
-            padding: 12px 14px 12px 32px; /* تعديل مسافات القوائم المنسدلة */
+            padding: 12px 14px 12px 32px;
             border-radius: 12px;
             font-size: 13.5px;
             cursor: pointer;
             appearance: none;
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ffd700' stroke-width='2.5'><polyline points='6 9 12 15 18 9'></polyline></svg>");
             background-repeat: no-repeat;
             background-position: left 12px center;
             background-size: 12px;
         }
 
-        /* تنسيق زر الاختصار الذكي */
+        .advanced-settings select option {
+            background-color: #1a1c23;
+            color: #ffffff;
+        }
+
+        /* تنسيق زر الاختصار */
         button {
             width: 100%;
             padding: 16px;
-            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
-            color: white;
+            background: linear-gradient(135deg, #ffd700 0%, #b89b00 100%);
+            color: #000;
             border: none;
             border-radius: 16px;
             cursor: pointer;
             font-size: 16px;
-            font-weight: 700;
+            font-weight: 800;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.25);
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.15);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -193,8 +205,8 @@
 
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(79, 70, 229, 0.35);
-            background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%);
+            box-shadow: 0 10px 25px rgba(255, 215, 0, 0.25);
+            background: linear-gradient(135deg, #ffea00 0%, #c9a900 100%);
         }
 
         button:active {
@@ -202,8 +214,8 @@
         }
 
         button:disabled {
-            background: rgba(255, 255, 255, 0.4);
-            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.1);
+            color: #606060;
             cursor: not-allowed;
             box-shadow: none;
             transform: none;
@@ -213,7 +225,7 @@
         #loading {
             margin-top: 20px;
             text-align: center;
-            color: #4f46e5;
+            color: #ffd700;
             font-weight: 700;
             font-size: 14px;
             animation: pulse 1.5s infinite;
@@ -232,7 +244,7 @@
             border-radius: 18px;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
             animation: slideUp 0.4s ease;
         }
@@ -243,12 +255,12 @@
         }
 
         .success-box {
-            background: rgba(240, 253, 244, 0.5);
-            border-color: rgba(74, 222, 128, 0.5);
+            background: rgba(20, 253, 70, 0.05);
+            border-color: rgba(74, 222, 128, 0.3);
         }
 
         .success-box p {
-            color: #15803d;
+            color: #4ade80;
             font-weight: 800;
             margin-bottom: 15px;
             font-size: 15px;
@@ -259,16 +271,18 @@
         }
 
         .success-box input {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(0, 0, 0, 0.4);
             text-align: center;
             font-weight: 800;
-            color: #4f46e5;
+            color: #ffd700;
             margin-bottom: 14px;
             padding: 12px;
+            border-color: rgba(255, 215, 0, 0.2);
         }
 
         .success-box button {
             background: #10b981;
+            color: #fff;
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
             padding: 12px;
             font-size: 14px;
@@ -281,9 +295,9 @@
         }
 
         .error-box {
-            background: rgba(254, 242, 242, 0.55);
-            border-color: rgba(248, 113, 113, 0.5);
-            color: #991b1b;
+            background: rgba(254, 242, 242, 0.05);
+            border-color: rgba(248, 113, 113, 0.3);
+            color: #f87171;
             font-weight: 700;
             font-size: 14px;
             display: flex;
@@ -303,6 +317,11 @@
 
     <div class="container">
 
+        <!-- مكان صورة أو شعار الموقع -->
+        <div class="logo-container">
+            <img src="logo.png" alt="شعار الموقع">
+        </div>
+
         <h1><i class="fa-solid fa-wand-magic-sparkles"></i> اختصار الروابط</h1>
 
         <p class="desc">
@@ -321,7 +340,7 @@
             <i class="fa-solid fa-signature"></i>
         </div>
 
-        <!-- الإعدادات المتقدمة المدمجة بشكل فخم وأنيق -->
+        <!-- الإعدادات المتقدمة -->
         <div class="advanced-settings">
             <div class="setting-item">
                 <label for="tier"><i class="fa-solid fa-circle-dollar-to-slot"></i> مستوى الربح (Tier):</label>
@@ -349,13 +368,14 @@
         </button>
 
         <div id="loading" style="display:none;">
-            <i class="fa-solid fa-spinner fa-spin"></i> جاري تهيئة لوكر LootLabs وإنشاء رابطك...
+            <i class="fa-solid fa-spinner fa-spin"></i> جاري إنشاء رابطك...
         </div>
 
         <div id="result"></div>
 
     </div>
 
+    <!-- استدعاء ملف الجافاسكريبت الخاص بك -->
     <script src="script.js"></script>
 
 </body>
