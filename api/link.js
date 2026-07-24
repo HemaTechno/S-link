@@ -10,10 +10,10 @@ const spamCache = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000; 
 const MAX_REQUESTS = 5;
 
-// دالة التصميم الزجاجي لصفحة التوجيه
+// Glassmorphism UI Generation (English version with Logo)
 const generatePageHtml = (title, linkName, targetUrl, messageTitle) => `
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,6 +45,11 @@ const generatePageHtml = (title, linkName, targetUrl, messageTitle) => `
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .container:hover { transform: translateY(-3px); box-shadow: 0 30px 60px rgba(255, 215, 0, 0.05); }
+        
+        /* تنسيق اللوجو */
+        .logo-container { text-align: center; margin-bottom: 25px; }
+        .logo-container img { max-width: 180px; height: auto; display: inline-block; }
+
         h1 { color: var(--primary); margin-bottom: 15px; font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; text-shadow: 0px 2px 10px rgba(255, 215, 0, 0.2); }
         .desc { color: var(--text-muted); margin-bottom: 30px; font-size: 1.1rem; line-height: 1.6; word-break: break-all; }
         .warning-box {
@@ -65,16 +70,21 @@ const generatePageHtml = (title, linkName, targetUrl, messageTitle) => `
 </head>
 <body>
     <div class="container">
+        <!-- اللوجو -->
+        <div class="logo-container">
+            <img src="/logo.png" alt="Website Logo">
+        </div>
+
         <h1><i class="fa-solid fa-shield-halved"></i> ${messageTitle}</h1>
-        <div class="desc">اسم الرابط: <strong>${linkName}</strong></div>
+        <div class="desc">Link Name: <strong>${linkName}</strong></div>
         
         <div class="warning-box">
             <i class="fa-solid fa-triangle-exclamation"></i> 
-            <strong>خلي بالك:</strong> الصفحة القادمة تحتوي على إعلانات منبثقة (Pop-up)، يرجى إغلاقها عند ظهورها.
+            <strong>Attention:</strong> The next page contains pop-up ads. Please close them when they appear.
         </div>
 
         <a href="${targetUrl}" class="btn">
-            للحصول على الرابط اضغط هنا <i class="fa-solid fa-arrow-left"></i>
+            Click here to get the link <i class="fa-solid fa-arrow-right"></i>
         </a>
     </div>
 </body>
@@ -100,21 +110,21 @@ export default async function handler(req, res) {
             if (userSpamData.count > MAX_REQUESTS) {
                 return res.status(429).json({
                     success: false,
-                    message: "طلبات كثيرة جداً! يرجى الانتظار دقيقة قبل إنشاء روابط جديدة."
+                    message: "Too many requests! Please wait a minute before creating new links."
                 });
             }
 
             const { url, slug, tier, tasks } = req.body;
 
             if (!url) {
-                return res.status(400).json({ success: false, message: "URL مطلوب" });
+                return res.status(400).json({ success: false, message: "URL is required" });
             }
 
             let id;
             if (slug && slug.trim() !== "") {
                 id = slug.trim().toLowerCase();
                 if (!/^[a-zA-Z0-9_-]{3,30}$/.test(id)) {
-                    return res.status(400).json({ success: false, message: "اسم الرابط غير صالح" });
+                    return res.status(400).json({ success: false, message: "Invalid link name" });
                 }
             } else {
                 id = nanoid(6);
@@ -122,7 +132,7 @@ export default async function handler(req, res) {
 
             const exists = await db.collection("links").doc(id).get();
             if (exists.exists) {
-                return res.status(400).json({ success: false, message: "اسم الرابط مستخدم بالفعل" });
+                return res.status(400).json({ success: false, message: "Link name is already in use" });
             }
 
             await db.collection("links").doc(id).set({
@@ -147,13 +157,13 @@ export default async function handler(req, res) {
     if (req.method === "PUT") {
         try {
             const { id, url } = req.body;
-            if (!id || !url) return res.status(400).json({ success: false, message: "المعرف والرابط الجديد مطلوبان" });
+            if (!id || !url) return res.status(400).json({ success: false, message: "ID and new URL are required" });
             const docRef = db.collection("links").doc(id);
             const doc = await docRef.get();
-            if (!doc.exists) return res.status(404).json({ success: false, message: "الرابط غير موجود في قاعدة البيانات" });
+            if (!doc.exists) return res.status(404).json({ success: false, message: "Link not found in database" });
             await docRef.update({ url: url });
             cache.delete(id);
-            return res.status(200).json({ success: true, message: "تم تحديث الرابط بنجاح" });
+            return res.status(200).json({ success: true, message: "Link updated successfully" });
         } catch (err) {
             console.error(err);
             return res.status(500).json({ success: false, message: err.message });
@@ -163,13 +173,13 @@ export default async function handler(req, res) {
     if (req.method === "DELETE") {
         try {
             const { id } = req.body;
-            if (!id) return res.status(400).json({ success: false, message: "معرف الرابط (ID) مطلوب للحذف" });
+            if (!id) return res.status(400).json({ success: false, message: "Link ID is required for deletion" });
             const docRef = db.collection("links").doc(id);
             const doc = await docRef.get();
-            if (!doc.exists) return res.status(404).json({ success: false, message: "الرابط المراد حذفه غير موجود" });
+            if (!doc.exists) return res.status(404).json({ success: false, message: "Link to be deleted not found" });
             await docRef.delete();
             cache.delete(id);
-            return res.status(200).json({ success: true, message: "تم حذف الرابط بنجاح" });
+            return res.status(200).json({ success: true, message: "Link deleted successfully" });
         } catch (err) {
             console.error(err);
             return res.status(500).json({ success: false, message: err.message });
@@ -184,7 +194,7 @@ export default async function handler(req, res) {
             if (!id) return res.status(404).send("Not Found");
 
             const doc = await db.collection("links").doc(id).get();
-            if (!doc.exists) return res.status(404).send("الرابط غير موجود");
+            if (!doc.exists) return res.status(404).send("Link not found");
 
             const data = doc.data();
             originalUrl = data.url;
@@ -194,7 +204,7 @@ export default async function handler(req, res) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
 
             if (cached && cached.expire > Date.now() && cached.url) {
-                return res.status(200).send(generatePageHtml("جاري التوجيه...", id, cached.url, "توجيه إلى منصة التحقق"));
+                return res.status(200).send(generatePageHtml("Redirecting...", id, cached.url, "Redirecting to Verification"));
             }
 
             const completionUrl = `https://subx.click/api/complete?id=${id}&tc=[tc]`;
@@ -224,10 +234,10 @@ export default async function handler(req, res) {
                     url: lootUrl,
                     expire: Date.now() + 60000
                 });
-                return res.status(200).send(generatePageHtml("جاري التوجيه...", id, lootUrl, "توجيه إلى منصة التحقق"));
+                return res.status(200).send(generatePageHtml("Redirecting...", id, lootUrl, "Redirecting to Verification"));
             } else {
                 console.error("LootLabs error: URL missing in response", response.data);
-                return res.status(200).send(generatePageHtml("جاري التوجيه...", id, originalUrl, "الرابط النهائي مباشر"));
+                return res.status(200).send(generatePageHtml("Redirecting...", id, originalUrl, "Direct Final Link"));
             }
 
         } catch (err) {
@@ -235,7 +245,7 @@ export default async function handler(req, res) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             
             if (originalUrl) {
-                return res.status(200).send(generatePageHtml("جاري التوجيه...", id, originalUrl, "الرابط النهائي مباشر"));
+                return res.status(200).send(generatePageHtml("Redirecting...", id, originalUrl, "Direct Final Link"));
             }
 
             return res.status(500).json({
