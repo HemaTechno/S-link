@@ -5,6 +5,7 @@ const generateSuccessPage = (finalUrl) => `
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
+<script>(function(s){s.dataset.zone='11383401',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Successfully Bypassed</title>
