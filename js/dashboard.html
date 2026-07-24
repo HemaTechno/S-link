@@ -34,7 +34,6 @@
             margin: 0 auto;
         }
 
-        /* Logo Container */
         .logo-container {
             display: flex;
             justify-content: center;
@@ -49,7 +48,6 @@
             outline: none;
         }
 
-        /* Dark Glass Containers */
         header, .stat-card, .link-item, .chart-card {
             background: rgba(20, 21, 25, 0.6);
             backdrop-filter: blur(20px);
@@ -127,20 +125,9 @@
             transition: all 0.3s ease;
         }
 
-        input {
-            padding-left: 40px;
-            width: 200px;
-        }
-
-        input::placeholder, textarea::placeholder {
-            color: #606060;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: #ffd700;
-            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
-        }
+        input { padding-left: 40px; width: 200px; }
+        input::placeholder, textarea::placeholder { color: #606060; }
+        input:focus, select:focus, textarea:focus { background: rgba(255, 255, 255, 0.05); border-color: #ffd700; box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1); }
 
         select {
             cursor: pointer;
@@ -153,22 +140,35 @@
             background-size: 12px;
         }
 
-        select option {
-            background-color: #1a1c23;
-            color: #ffffff;
-        }
+        select option { background-color: #1a1c23; color: #ffffff; }
 
+        /* Stats Enhancements */
         .stats-overview {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 24px;
         }
 
         .stat-card {
             padding: 24px;
-            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
         }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.04) 0%, transparent 60%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .stat-card > * { position: relative; z-index: 1; }
 
         .stat-card h3 {
             font-size: 13px;
@@ -180,265 +180,78 @@
             gap: 8px;
         }
 
-        .stat-card h3 i {
-            color: #ffd700;
-            font-size: 14px;
-        }
-
-        .stat-card:nth-child(2) h3 i {
-            color: #4ade80; 
-        }
+        .stat-card h3 i { color: #ffd700; font-size: 14px; }
+        .stat-card:nth-child(2) h3 i { color: #4ade80; }
+        .stat-card:nth-child(3) h3 i { color: #60a5fa; }
 
         .stat-card .value {
-            font-size: 32px;
+            font-size: 36px;
             font-weight: 800;
             color: #ffffff;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
         /* Chart Styling */
-        .chart-card {
-            padding: 24px;
-            margin-bottom: 30px;
-        }
+        .chart-card { padding: 24px; margin-bottom: 30px; }
+        .chart-header { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: #ffd700; margin-bottom: 20px; }
+
+        .or-divider { text-align: center; margin: 30px 0; position: relative; }
+        .or-divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.1); z-index: 1; }
+        .or-divider span { background: rgba(20, 21, 25, 0.9); padding: 6px 16px; border-radius: 12px; font-size: 12px; font-weight: 800; color: #ffd700; position: relative; z-index: 2; border: 1px solid rgba(255, 215, 0, 0.2); }
+
+        .links-list { display: flex; flex-direction: column; gap: 16px; }
+        .link-item { border-radius: 20px; overflow: hidden; transition: all 0.3s ease; }
+        .link-item:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 215, 0, 0.3); transform: translateY(-2px); }
+        .link-header { padding: 22px 24px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
+        .link-info { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow: hidden; }
         
-        .chart-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 15px;
-            font-weight: 800;
-            color: #ffd700;
-            margin-bottom: 20px;
-        }
-
-        .or-divider {
-            text-align: center;
-            margin: 30px 0;
-            position: relative;
-        }
-
-        .or-divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            width: 100%;
-            height: 1px;
-            background: rgba(255, 255, 255, 0.1);
-            z-index: 1;
-        }
-
-        .or-divider span {
-            background: rgba(20, 21, 25, 0.9);
-            padding: 6px 16px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 800;
-            color: #ffd700;
-            position: relative;
-            z-index: 2;
-            border: 1px solid rgba(255, 215, 0, 0.2);
-        }
-
-        .links-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .link-item {
-            border-radius: 20px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .link-item:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 215, 0, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .link-header {
-            padding: 22px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        .link-info {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex: 1;
-            overflow: hidden;
-        }
-
         .link-slug {
-            font-size: 17px;
+            font-size: 18px;
             font-weight: 800;
             color: #ffd700;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
         }
 
-        .link-url {
-            font-size: 13px;
-            color: #a0a0a0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 90%;
-            font-weight: 500;
-        }
-
-        .link-meta {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .success-badge {
-            padding: 8px 14px;
-            border-radius: 12px;
-            font-weight: 700;
+        /* Copy Quick Button */
+        .copy-short-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            padding: 6px 10px;
+            border-radius: 8px;
             font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            border: 1px solid rgba(74, 222, 128, 0.3);
-            background: rgba(20, 253, 70, 0.05);
-            color: #4ade80;
-        }
-
-        .toggle-icon {
-            font-size: 12px;
-            color: #ffd700;
-            transition: transform 0.35s ease, background 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+        .copy-short-btn:hover { background: #ffd700; color: #000; transform: scale(1.05); }
 
-        .link-item.open .toggle-icon {
-            transform: rotate(180deg);
-            color: #000;
-            background: #ffd700;
-            border-color: #ffd700;
-        }
-
-        .link-details {
-            display: grid;
-            grid-template-rows: 0fr;
-            transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-            background: rgba(0, 0, 0, 0.2);
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .link-item.open .link-details {
-            grid-template-rows: 1fr;
-        }
-
-        .details-wrapper {
-            overflow: hidden;
-        }
-
-        .edit-box {
-            padding: 24px;
-        }
-
-        .edit-box h4 {
-            font-size: 14px;
-            font-weight: 800;
-            color: #ffd700;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .edit-input-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 100%;
-        }
-
-        .edit-content-input {
-            width: 100%;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 215, 0, 0.2);
-            padding: 14px;
-            color: #fff;
-            resize: vertical;
-            min-height: 80px;
-            font-family: monospace;
-            border-radius: 12px;
-        }
-
-        .edit-content-input:focus {
-            background: rgba(0, 0, 0, 0.5);
-            border-color: #ffd700;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-        }
-
-        .save-btn, .delete-btn {
-            border: none;
-            padding: 12px 20px;
-            border-radius: 12px;
-            font-weight: 800;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .save-btn {
-            background: linear-gradient(135deg, #ffd700 0%, #b89b00 100%);
-            color: #000;
-            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.15);
-        }
-
-        .save-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(255, 215, 0, 0.25);
-            background: linear-gradient(135deg, #ffea00 0%, #c9a900 100%);
-        }
-
-        .delete-btn {
-            background: linear-gradient(135deg, #ff4d4d 0%, #cc0000 100%);
-            color: white;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
-        }
-
-        .delete-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(239, 68, 68, 0.3);
-            background: linear-gradient(135deg, #ff6666 0%, #e60000 100%);
-        }
-
-        .no-data {
-            text-align: center;
-            color: #a0a0a0;
-            padding: 30px;
-            font-size: 14px;
-            font-weight: 600;
-        }
+        .link-url { font-size: 13px; color: #a0a0a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; font-weight: 500; }
+        .link-meta { display: flex; align-items: center; gap: 14px; }
+        .success-badge { padding: 8px 14px; border-radius: 12px; font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(74, 222, 128, 0.3); background: rgba(20, 253, 70, 0.05); color: #4ade80; }
+        .toggle-icon { font-size: 12px; color: #ffd700; transition: transform 0.35s ease, background 0.3s ease; background: rgba(255, 255, 255, 0.05); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .link-item.open .toggle-icon { transform: rotate(180deg); color: #000; background: #ffd700; border-color: #ffd700; }
+        
+        .link-details { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1); background: rgba(0, 0, 0, 0.2); border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        .link-item.open .link-details { grid-template-rows: 1fr; }
+        .details-wrapper { overflow: hidden; }
+        .edit-box { padding: 24px; }
+        .edit-box h4 { font-size: 14px; font-weight: 800; color: #ffd700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .edit-input-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
+        .edit-content-input { width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 215, 0, 0.2); padding: 14px; color: #fff; resize: vertical; min-height: 80px; font-family: monospace; border-radius: 12px; }
+        .edit-content-input:focus { background: rgba(0, 0, 0, 0.5); border-color: #ffd700; }
+        
+        .action-buttons { display: flex; gap: 10px; justify-content: flex-end; }
+        .save-btn, .delete-btn { border: none; padding: 12px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
+        .save-btn { background: linear-gradient(135deg, #ffd700 0%, #b89b00 100%); color: #000; box-shadow: 0 4px 12px rgba(255, 215, 0, 0.15); }
+        .save-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(255, 215, 0, 0.25); background: linear-gradient(135deg, #ffea00 0%, #c9a900 100%); }
+        .delete-btn { background: linear-gradient(135deg, #ff4d4d 0%, #cc0000 100%); color: white; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+        .delete-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(239, 68, 68, 0.3); background: linear-gradient(135deg, #ff6666 0%, #e60000 100%); }
+        .no-data { text-align: center; color: #a0a0a0; padding: 30px; font-size: 14px; font-weight: 600; }
 
         @media (max-width: 768px) {
             body { padding: 20px 12px; }
@@ -456,7 +269,6 @@
 
     <div class="dashboard-container">
         
-        <!-- Dashboard Logo -->
         <div class="logo-container">
             <img src="/logo.png" alt="Website Logo">
         </div>
@@ -466,7 +278,7 @@
                 <i class="fa-solid fa-gear"></i>
                 <div class="header-info">
                     <h1>Dashboard & Analytics</h1>
-                    <p>Manage and edit stored content & scripts</p>
+                    <p>Manage and track content performance</p>
                 </div>
             </div>
             <div class="controls">
@@ -482,18 +294,22 @@
             </div>
         </header>
 
+        <!-- Enhanced Stats Overview -->
         <div class="stats-overview">
             <div class="stat-card">
-                <h3><i class="fa-solid fa-link"></i> Total Locked Content</h3>
+                <h3><i class="fa-solid fa-link"></i> Total Links</h3>
                 <div class="value" id="totalLinks">0</div>
             </div>
             <div class="stat-card">
-                <h3><i class="fa-solid fa-square-check"></i> Total Completed Tasks</h3>
+                <h3><i class="fa-solid fa-square-check"></i> Total Completed</h3>
                 <div class="value" id="totalCompleted" style="color: #4ade80">0</div>
             </div>
+            <div class="stat-card">
+                <h3><i class="fa-solid fa-chart-pie"></i> Avg. Completions / Link</h3>
+                <div class="value" id="avgCompleted" style="color: #60a5fa">0</div>
+            </div>
         </div>
-        
-        <!-- Interactive Chart Section -->
+
         <div class="chart-card">
             <div class="chart-header">
                 <i class="fa-solid fa-chart-line"></i> Top Performing Links
@@ -516,7 +332,6 @@
 
         async function fetchAnalytics() {
             try {
-                // Adjust this endpoint if your backend route differs
                 const response = await fetch('/api/analytics'); 
                 const data = await response.json();
                 if(data.success) {
@@ -524,17 +339,22 @@
                     renderDashboard();     
                 }
             } catch (err) {
-                console.error("Failed to fetch real data:", err);
+                console.error("Failed to fetch data:", err);
             }
         }
 
         function calculateOverview(links) {
-            document.getElementById('totalLinks').innerText = links.length;
+            const totalLinks = links.length;
+            document.getElementById('totalLinks').innerText = totalLinks;
+            
             const totalCompleted = links.reduce((sum, link) => sum + (link.completedTasksCount || 0), 0);
             document.getElementById('totalCompleted').innerText = totalCompleted;
+
+            const avg = totalLinks > 0 ? (totalCompleted / totalLinks).toFixed(1) : 0;
+            document.getElementById('avgCompleted').innerText = avg;
         }
-        
-        // Chart Update Function
+
+        // Updated Chart Function (Gradient & Curved Edges)
         function updateChart(links) {
             const ctx = document.getElementById('performanceChart').getContext('2d');
             
@@ -544,6 +364,11 @@
 
             if (myChart) { myChart.destroy(); }
 
+            // Create beautiful gradient
+            let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+            gradient.addColorStop(1, 'rgba(255, 215, 0, 0.05)');
+
             myChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -551,18 +376,22 @@
                     datasets: [{
                         label: 'Completed Tasks',
                         data: dataCounts,
-                        backgroundColor: 'rgba(255, 215, 0, 0.7)',
+                        backgroundColor: gradient,
                         borderColor: '#ffd700',
-                        borderWidth: 1,
-                        borderRadius: 6
+                        borderWidth: 1.5,
+                        borderRadius: 8,
+                        borderSkipped: false
                     }]
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { display: false } },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', titleColor: '#ffd700', padding: 12, cornerRadius: 8 }
+                    },
                     scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0a0', stepSize: 1 } },
-                        x: { grid: { display: false }, ticks: { color: '#a0a0a0' } }
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false }, ticks: { color: '#a0a0a0', stepSize: 1 } },
+                        x: { grid: { display: false, drawBorder: false }, ticks: { color: '#a0a0a0' } }
                     }
                 }
             });
@@ -573,16 +402,24 @@
             item.classList.toggle('open');
         }
 
-        // Added an HTML escape function to prevent scripts from breaking the textarea visually
+        // Function to copy link dynamically
+        function copyToClipboard(text, btnElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const originalHtml = btnElement.innerHTML;
+                btnElement.innerHTML = '<i class="fa-solid fa-check"></i>';
+                btnElement.style.background = '#4ade80';
+                btnElement.style.color = '#000';
+                setTimeout(() => {
+                    btnElement.innerHTML = originalHtml;
+                    btnElement.style.background = '';
+                    btnElement.style.color = '';
+                }, 2000);
+            });
+        }
+
         function escapeHTML(str) {
             return str.replace(/[&<>'"]/g, 
-                tag => ({
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    "'": '&#39;',
-                    '"': '&quot;'
-                }[tag] || tag)
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
             );
         }
 
@@ -655,7 +492,7 @@
             }
 
             calculateOverview(filteredLinks);
-            updateChart(filteredLinks); // تحديث الرسم البياني بالبيانات المفلترة
+            updateChart(filteredLinks); 
 
             if (filteredLinks.length === 0) {
                 container.innerHTML = '<div class="no-data"><i class="fa-regular fa-folder-open"></i> No content found.</div>';
@@ -665,13 +502,20 @@
             filteredLinks.forEach(link => {
                 const inputId = `input-${link.id}`;
                 const safeContent = escapeHTML(link.url || "");
+                const currentDomain = window.location.origin;
+                const shareableLink = `${currentDomain}/?id=${link.id}`;
                 
                 const linkItem = document.createElement('div');
                 linkItem.className = 'link-item';
                 linkItem.innerHTML = `
                     <div class="link-header" onclick="toggleLinkDetails(this)">
                         <div class="link-info">
-                            <div class="link-slug"><i class="fa-solid fa-lock" style="font-size: 14px;"></i> /${link.id}</div>
+                            <div class="link-slug">
+                                <i class="fa-solid fa-lock" style="font-size: 14px;"></i> /${link.id}
+                                <button class="copy-short-btn" onclick="event.stopPropagation(); copyToClipboard('${shareableLink}', this)" title="Copy Shareable Link">
+                                    <i class="fa-solid fa-copy"></i>
+                                </button>
+                            </div>
                             <div class="link-url">${safeContent}</div>
                         </div>
                         <div class="link-meta">
