@@ -80,7 +80,7 @@ const generatePageHtml = (title, linkName, targetUrl, messageTitle) => `
         
         <div class="warning-box">
             <i class="fa-solid fa-triangle-exclamation"></i> 
-            <strong>Attention:</strong> The next page contains pop-up ads. Please close them when they appear.
+            <strong>Attention:</strong> page contains pop-up ads. Please close them when they appear.
         </div>
 
         <a href="${targetUrl}" class="btn">
