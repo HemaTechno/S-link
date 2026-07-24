@@ -10,8 +10,15 @@ const spamCache = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000; 
 const MAX_REQUESTS = 5;
 
-const generatePageHtml = (title, linkName, content, messageTitle) => {
+// Glassmorphism UI Generation with Open Graph (Dynamic Domain)
+const generatePageHtml = (title, linkName, content, messageTitle, req) => {
     const isUrl = content.trim().startsWith("http://") || content.trim().startsWith("https://");
+
+    // استخراج الدومين تلقائياً لصور Open Graph
+    const host = req.headers.host || "";
+    const protocol = host.includes("localhost") ? "http" : "https";
+    const fullImageUrl = host ? `${protocol}://${host}/logo.png` : "/logo.png";
+    const pageUrl = host ? `${protocol}://${host}/?id=${linkName}` : "";
 
     let actionHtml = '';
     if (isUrl) {
@@ -45,16 +52,32 @@ const generatePageHtml = (title, linkName, content, messageTitle) => {
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-
-<script src="https://beansnicerroller.com/1c/8c/07/1c8c07e41dacee6cc4a64a6f22c04a4b.js"></script>
-
-<script>(function(s){s.dataset.zone='11383401',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary Meta Tags -->
     <title>${title}</title>
+    <meta name="title" content="Unlock: ${linkName}">
+    <meta name="description" content="Get secure access to this exclusive content, script, or file via our smart locker.">
+    <meta name="theme-color" content="#ffd700">
+
+    <!-- Open Graph / Facebook / Discord -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="${pageUrl}">
+    <meta property="og:title" content="Unlock: ${linkName}">
+    <meta property="og:description" content="Get secure access to this exclusive content, script, or file via our smart locker.">
+    <meta property="og:image" content="${fullImageUrl}">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="${pageUrl}">
+    <meta property="twitter:title" content="Unlock: ${linkName}">
+    <meta property="twitter:description" content="Get secure access to this exclusive content, script, or file via our smart locker.">
+    <meta property="twitter:image" content="${fullImageUrl}">
+
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         :root {
             --primary: #ffd700;
@@ -241,7 +264,8 @@ export default async function handler(req, res) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
 
             if (cached && cached.expire > Date.now() && cached.url) {
-                return res.status(200).send(generatePageHtml("Redirecting...", id, cached.url, "Redirecting to Verification"));
+                // تمرير req هنا لسحب الدومين
+                return res.status(200).send(generatePageHtml("Redirecting...", id, cached.url, "Redirecting to Verification", req));
             }
 
             const completionUrl = `https://subx.click/api/complete?id=${id}&tc=[tc]`;
@@ -271,10 +295,12 @@ export default async function handler(req, res) {
                     url: lootUrl,
                     expire: Date.now() + 60000
                 });
-                return res.status(200).send(generatePageHtml("Redirecting...", id, lootUrl, "Redirecting to Verification"));
+                // تمرير req هنا لسحب الدومين
+                return res.status(200).send(generatePageHtml("Redirecting...", id, lootUrl, "Redirecting to Verification", req));
             } else {
                 console.error("LootLabs error: URL missing in response", response.data);
-                return res.status(200).send(generatePageHtml("Redirecting...", id, originalUrl, "Direct Access"));
+                // تمرير req هنا لسحب الدومين
+                return res.status(200).send(generatePageHtml("Redirecting...", id, originalUrl, "Direct Access", req));
             }
 
         } catch (err) {
@@ -282,7 +308,8 @@ export default async function handler(req, res) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             
             if (originalUrl) {
-                return res.status(200).send(generatePageHtml("Redirecting...", id, originalUrl, "Direct Access"));
+                // تمرير req هنا لسحب الدومين
+                return res.status(200).send(generatePageHtml("Redirecting...", id, originalUrl, "Direct Access", req));
             }
 
             return res.status(500).json({
@@ -294,4 +321,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).send("Method Not Allowed");
-                }
+}
