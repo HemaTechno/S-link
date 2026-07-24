@@ -7,6 +7,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -47,7 +50,7 @@
         }
 
         /* Dark Glass Containers */
-        header, .stat-card, .link-item {
+        header, .stat-card, .link-item, .chart-card {
             background: rgba(20, 21, 25, 0.6);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -190,6 +193,22 @@
             font-size: 32px;
             font-weight: 800;
             color: #ffffff;
+        }
+
+        /* Chart Styling */
+        .chart-card {
+            padding: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 800;
+            color: #ffd700;
+            margin-bottom: 20px;
         }
 
         .or-divider {
@@ -473,6 +492,14 @@
                 <div class="value" id="totalCompleted" style="color: #4ade80">0</div>
             </div>
         </div>
+        
+        <!-- Interactive Chart Section -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <i class="fa-solid fa-chart-line"></i> Top Performing Links
+            </div>
+            <canvas id="performanceChart" height="100"></canvas>
+        </div>
 
         <div class="or-divider">
             <span>Manage & Edit Content</span>
@@ -485,6 +512,7 @@
 
     <script>
         let mockData = []; 
+        let myChart = null;
 
         async function fetchAnalytics() {
             try {
@@ -504,6 +532,40 @@
             document.getElementById('totalLinks').innerText = links.length;
             const totalCompleted = links.reduce((sum, link) => sum + (link.completedTasksCount || 0), 0);
             document.getElementById('totalCompleted').innerText = totalCompleted;
+        }
+        
+        // Chart Update Function
+        function updateChart(links) {
+            const ctx = document.getElementById('performanceChart').getContext('2d');
+            
+            const topLinks = [...links].sort((a,b) => (b.completedTasksCount || 0) - (a.completedTasksCount || 0)).slice(0, 7);
+            const labels = topLinks.map(l => '/' + l.id);
+            const dataCounts = topLinks.map(l => l.completedTasksCount || 0);
+
+            if (myChart) { myChart.destroy(); }
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Completed Tasks',
+                        data: dataCounts,
+                        backgroundColor: 'rgba(255, 215, 0, 0.7)',
+                        borderColor: '#ffd700',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#a0a0a0', stepSize: 1 } },
+                        x: { grid: { display: false }, ticks: { color: '#a0a0a0' } }
+                    }
+                }
+            });
         }
 
         function toggleLinkDetails(element) {
@@ -593,6 +655,7 @@
             }
 
             calculateOverview(filteredLinks);
+            updateChart(filteredLinks); // تحديث الرسم البياني بالبيانات المفلترة
 
             if (filteredLinks.length === 0) {
                 container.innerHTML = '<div class="no-data"><i class="fa-regular fa-folder-open"></i> No content found.</div>';
