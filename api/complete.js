@@ -1,32 +1,62 @@
 import db from "./firebase.js";
 
+// دالة لحماية النصوص (تمنع الأكواد من إفساد تصميم الصفحة)
+const escapeHTML = (str) => {
+    return str.replace(/[&<>'"]/g, 
+        tag => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            "'": '&#39;',
+            '"': '&quot;'
+        }[tag] || tag)
+    );
+};
+
 const generateSuccessPage = (content) => {
     const isUrl = content.trim().startsWith("http://") || content.trim().startsWith("https://");
 
     let actionHtml = '';
+    let warningHtml = '';
+
     if (isUrl) {
+        // إظهار التحذير فقط في حالة الروابط
+        warningHtml = `
+        <div class="warning-box">
+            <i class="fa-solid fa-triangle-exclamation"></i> 
+            <strong>Attention:</strong> The final destination might open pop-up ads. Please close them safely.
+        </div>`;
+
         actionHtml = `
         <a href="${content}" class="btn">
             Click here to get the link <i class="fa-solid fa-download"></i>
         </a>`;
     } else {
+        // تصميم نافذة الكود الاحترافية مع تلوين Prism.js
+        const escapedContent = escapeHTML(content);
         actionHtml = `
-        <div class="text-container">
-            <textarea id="finalText" readonly rows="5">${content}</textarea>
+        <div class="code-container">
+            <div class="code-header">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+                <span class="code-title">Script / Text</span>
+            </div>
+            <pre><code class="language-lua" id="finalText">${escapedContent}</code></pre>
         </div>
-        <button class="btn copy-btn" onclick="copyText()">
-            Copy Text <i class="fa-solid fa-copy"></i>
+        <button class="btn copy-btn" onclick="copyCode()">
+            Copy Code <i class="fa-solid fa-copy"></i>
         </button>
         <script>
-            function copyText() {
-                const text = document.getElementById("finalText");
-                text.select();
-                navigator.clipboard.writeText(text.value);
-                const btn = document.querySelector(".copy-btn");
-                btn.innerHTML = 'Copied! <i class="fa-solid fa-check"></i>';
-                setTimeout(() => {
-                    btn.innerHTML = 'Copy Text <i class="fa-solid fa-copy"></i>';
-                }, 2000);
+            function copyCode() {
+                const text = document.getElementById("finalText").innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    const btn = document.querySelector(".copy-btn");
+                    btn.innerHTML = 'Copied! <i class="fa-solid fa-check"></i>';
+                    setTimeout(() => {
+                        btn.innerHTML = 'Copy Code <i class="fa-solid fa-copy"></i>';
+                    }, 2000);
+                });
             }
         </script>`;
     }
@@ -35,15 +65,15 @@ const generateSuccessPage = (content) => {
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-<script src="https://beansnicerroller.com/1c/8c/07/1c8c07e41dacee6cc4a64a6f22c04a4b.js"></script>
-
-<script>(function(s){s.dataset.zone='11383401',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Successfully Bypassed</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Prism.js Dark Theme for Syntax Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    
     <style>
         :root {
             --bg-dark: #0c0d10;
@@ -60,25 +90,51 @@ const generateSuccessPage = (content) => {
             display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px;
         }
         .container {
-            width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 28px;
+            width: 550px; max-width: 100%; padding: 40px 35px; border-radius: 28px;
             background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border); text-align: center;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        .container:hover { transform: translateY(-3px); box-shadow: 0 30px 60px rgba(74, 222, 128, 0.05); }
         .logo-container { text-align: center; margin-bottom: 25px; }
         .logo-container img { max-width: 180px; height: auto; display: inline-block; }
         h1 { color: var(--success-color); margin-bottom: 25px; font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; text-shadow: 0px 2px 10px rgba(74, 222, 128, 0.2); }
         
-        .text-container {
-            background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border);
-            border-radius: 16px; padding: 15px; margin-bottom: 20px; text-align: left;
+        /* Mac-like Code Window Styling */
+        .code-container {
+            background: #1d1f21;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: left;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
-        textarea {
-            width: 100%; background: transparent; border: none; color: var(--text-main);
-            font-size: 16px; resize: none; outline: none; font-family: inherit; line-height: 1.5;
+        .code-header {
+            background: #2c2e33;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .red { background: #ff5f56; }
+        .yellow { background: #ffbd2e; }
+        .green { background: #27c93f; }
+        .code-title { margin-left: auto; margin-right: auto; color: #888; font-size: 13px; font-family: monospace; font-weight: bold; }
+        
+        pre[class*="language-"] {
+            margin: 0 !important;
+            border-radius: 0 0 12px 12px !important;
+            background: transparent !important;
+            max-height: 280px;
+            overflow-y: auto;
+            font-size: 14px;
+        }
+        /* Custom Scrollbar for the code block */
+        pre::-webkit-scrollbar { width: 8px; }
+        pre::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        pre::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
 
         .warning-box {
             background: rgba(255, 80, 80, 0.05); border: 1px solid rgba(248, 113, 113, 0.3);
@@ -104,14 +160,14 @@ const generateSuccessPage = (content) => {
 
         <h1><i class="fa-solid fa-circle-check"></i> Successfully Bypassed!</h1>
         
-        <div class="warning-box">
-            <i class="fa-solid fa-triangle-exclamation"></i> 
-            <strong>Attention:</strong> The final destination might open pop-up ads. Please close them.
-        </div>
-
+        ${warningHtml}
         ${actionHtml}
 
     </div>
+
+    <!-- Prism.js Core & Languages (Lua included) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-lua.min.js"></script>
 </body>
 </html>
     `;
