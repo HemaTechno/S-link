@@ -1,18 +1,48 @@
 import db from "./firebase.js";
 
-// Success UI Generation (English version with Logo)
-const generateSuccessPage = (finalUrl) => `
+const generateSuccessPage = (content) => {
+    const isUrl = content.trim().startsWith("http://") || content.trim().startsWith("https://");
+
+    let actionHtml = '';
+    if (isUrl) {
+        actionHtml = `
+        <a href="${content}" class="btn">
+            Click here to get the link <i class="fa-solid fa-download"></i>
+        </a>`;
+    } else {
+        actionHtml = `
+        <div class="text-container">
+            <textarea id="finalText" readonly rows="5">${content}</textarea>
+        </div>
+        <button class="btn copy-btn" onclick="copyText()">
+            Copy Text <i class="fa-solid fa-copy"></i>
+        </button>
+        <script>
+            function copyText() {
+                const text = document.getElementById("finalText");
+                text.select();
+                navigator.clipboard.writeText(text.value);
+                const btn = document.querySelector(".copy-btn");
+                btn.innerHTML = 'Copied! <i class="fa-solid fa-check"></i>';
+                setTimeout(() => {
+                    btn.innerHTML = 'Copy Text <i class="fa-solid fa-copy"></i>';
+                }, 2000);
+            }
+        </script>`;
+    }
+
+    return `
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
 <script src="https://beansnicerroller.com/1c/8c/07/1c8c07e41dacee6cc4a64a6f22c04a4b.js"></script>
 
 <script>(function(s){s.dataset.zone='11383401',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Successfully Bypassed</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -37,12 +67,19 @@ const generateSuccessPage = (finalUrl) => `
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         .container:hover { transform: translateY(-3px); box-shadow: 0 30px 60px rgba(74, 222, 128, 0.05); }
-        
-        /* تنسيق اللوجو */
         .logo-container { text-align: center; margin-bottom: 25px; }
         .logo-container img { max-width: 180px; height: auto; display: inline-block; }
-
         h1 { color: var(--success-color); margin-bottom: 25px; font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; text-shadow: 0px 2px 10px rgba(74, 222, 128, 0.2); }
+        
+        .text-container {
+            background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 15px; margin-bottom: 20px; text-align: left;
+        }
+        textarea {
+            width: 100%; background: transparent; border: none; color: var(--text-main);
+            font-size: 16px; resize: none; outline: none; font-family: inherit; line-height: 1.5;
+        }
+
         .warning-box {
             background: rgba(255, 80, 80, 0.05); border: 1px solid rgba(248, 113, 113, 0.3);
             color: #f87171; padding: 18px; border-radius: 16px; margin-bottom: 25px; font-weight: 600; font-size: 15px; line-height: 1.6;
@@ -61,25 +98,24 @@ const generateSuccessPage = (finalUrl) => `
 </head>
 <body>
     <div class="container">
-        <!-- اللوجو -->
         <div class="logo-container">
-            <img src="/logo.png" alt="Website Logo">
+            <img src="/logo.png" alt="Logo">
         </div>
 
         <h1><i class="fa-solid fa-circle-check"></i> Successfully Bypassed!</h1>
         
         <div class="warning-box">
             <i class="fa-solid fa-triangle-exclamation"></i> 
-            <strong>Attention:</strong> The final page might open pop-up ads. Please close them to download your file safely.
+            <strong>Attention:</strong> The final destination might open pop-up ads. Please close them.
         </div>
 
-        <a href="${finalUrl}" class="btn">
-            Click here to get the link <i class="fa-solid fa-download"></i>
-        </a>
+        ${actionHtml}
+
     </div>
 </body>
 </html>
-`;
+    `;
+};
 
 export default async function handler(req, res) {
     if (req.method !== "GET") {
@@ -96,7 +132,7 @@ export default async function handler(req, res) {
         const doc = await db.collection("links").doc(id).get();
 
         if (!doc.exists) {
-            return res.status(404).send("Link not found");
+            return res.status(404).send("Content not found");
         }
 
         const data = doc.data();
