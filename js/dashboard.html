@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم والإحصائيات 📊</title>
+    <title>Dashboard & Analytics 📊</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -16,7 +16,6 @@
         }
 
         body {
-            /* خلفية داكنة مع لمسات إضاءة صفراء خفيفة */
             background-color: #0c0d10; 
             background-image: 
                 radial-gradient(at 10% 10%, rgba(255, 215, 0, 0.05) 0px, transparent 50%),
@@ -32,7 +31,7 @@
             margin: 0 auto;
         }
 
-        /* حاوية الشعار */
+        /* Logo Container */
         .logo-container {
             display: flex;
             justify-content: center;
@@ -47,7 +46,7 @@
             outline: none;
         }
 
-        /* حاويات الزجاج الداكن */
+        /* Dark Glass Containers */
         header, .stat-card, .link-item {
             background: rgba(20, 21, 25, 0.6);
             backdrop-filter: blur(20px);
@@ -108,12 +107,12 @@
 
         .search-wrapper i {
             position: absolute;
-            right: 14px;
+            left: 14px;
             color: #ffd700;
             font-size: 14px;
         }
 
-        select, input {
+        select, input, textarea {
             padding: 12px 16px;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -126,15 +125,15 @@
         }
 
         input {
-            padding-right: 40px;
+            padding-left: 40px;
             width: 200px;
         }
 
-        input::placeholder {
+        input::placeholder, textarea::placeholder {
             color: #606060;
         }
 
-        input:focus, select:focus {
+        input:focus, select:focus, textarea:focus {
             background: rgba(255, 255, 255, 0.05);
             border-color: #ffd700;
             box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1);
@@ -142,11 +141,12 @@
 
         select {
             cursor: pointer;
-            padding-left: 28px;
+            padding-right: 32px;
+            padding-left: 14px;
             appearance: none;
             background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ffd700' stroke-width='2.5'><polyline points='6 9 12 15 18 9'></polyline></svg>");
             background-repeat: no-repeat;
-            background-position: left 12px center;
+            background-position: right 12px center;
             background-size: 12px;
         }
 
@@ -183,7 +183,7 @@
         }
 
         .stat-card:nth-child(2) h3 i {
-            color: #4ade80; /* لون أخضر للإنجاز */
+            color: #4ade80; 
         }
 
         .stat-card .value {
@@ -253,6 +253,7 @@
             flex-direction: column;
             gap: 6px;
             flex: 1;
+            overflow: hidden;
         }
 
         .link-slug {
@@ -267,8 +268,10 @@
         .link-url {
             font-size: 13px;
             color: #a0a0a0;
-            word-break: break-all;
-            max-width: 85%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 90%;
             font-weight: 500;
         }
 
@@ -344,33 +347,39 @@
 
         .edit-input-group {
             display: flex;
+            flex-direction: column;
             gap: 12px;
             width: 100%;
         }
 
-        .edit-url-input {
-            flex: 1;
+        .edit-content-input {
+            width: 100%;
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 215, 0, 0.2);
             padding: 14px;
             color: #fff;
+            resize: vertical;
+            min-height: 80px;
+            font-family: monospace;
+            border-radius: 12px;
         }
 
-        .edit-url-input:focus {
+        .edit-content-input:focus {
             background: rgba(0, 0, 0, 0.5);
             border-color: #ffd700;
         }
 
-        /* تحسين الأزرار */
+        /* Action Buttons */
         .action-buttons {
             display: flex;
             gap: 10px;
+            justify-content: flex-end;
         }
 
         .save-btn, .delete-btn {
             border: none;
-            padding: 0 20px;
-            border-radius: 14px;
+            padding: 12px 20px;
+            border-radius: 12px;
             font-weight: 800;
             font-size: 14px;
             cursor: pointer;
@@ -408,7 +417,7 @@
             text-align: center;
             color: #a0a0a0;
             padding: 30px;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
         }
 
@@ -419,8 +428,7 @@
             .search-wrapper, input, select { width: 100%; }
             .link-header { flex-direction: column; align-items: flex-start; gap: 14px; }
             .link-meta { width: 100%; justify-content: space-between; }
-            .edit-input-group { flex-direction: column; }
-            .action-buttons { width: 100%; }
+            .action-buttons { width: 100%; flex-direction: column; }
             .save-btn, .delete-btn { padding: 14px; justify-content: center; flex: 1; }
         }
     </style>
@@ -429,49 +437,49 @@
 
     <div class="dashboard-container">
         
-        <!-- الشعار في لوحة التحكم -->
+        <!-- Dashboard Logo -->
         <div class="logo-container">
-            <img src="/logo.png" alt="شعار الموقع">
+            <img src="/logo.png" alt="Website Logo">
         </div>
 
         <header>
             <div class="header-profile">
                 <i class="fa-solid fa-gear"></i>
                 <div class="header-info">
-                    <h1>لوحة التحكم وتحليل الإحصائيات</h1>
-                    <p>إدارة وتعديل الروابط المحفوظة في قاعدة البيانات</p>
+                    <h1>Dashboard & Analytics</h1>
+                    <p>Manage and edit stored content & scripts</p>
                 </div>
             </div>
             <div class="controls">
                 <div class="search-wrapper">
                     <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="searchInput" placeholder="بحث عن رابط..." oninput="renderDashboard()">
+                    <input type="text" id="searchInput" placeholder="Search ID or content..." oninput="renderDashboard()">
                 </div>
                 <select id="sortSelect" onchange="renderDashboard()">
-                    <option value="tasks-desc">الأعلى اكتمالاً للمهام 🔥</option>
-                    <option value="tasks-asc">الأقل اكتمالاً للمهام ❄️</option>
-                    <option value="date-desc">الأحدث إنشاءً 🕒</option>
+                    <option value="tasks-desc">Highest Completions 🔥</option>
+                    <option value="tasks-asc">Lowest Completions ❄️</option>
+                    <option value="date-desc">Newest Created 🕒</option>
                 </select>
             </div>
         </header>
 
         <div class="stats-overview">
             <div class="stat-card">
-                <h3><i class="fa-solid fa-link"></i> إجمالي الروابط المختصرة</h3>
+                <h3><i class="fa-solid fa-link"></i> Total Locked Content</h3>
                 <div class="value" id="totalLinks">0</div>
             </div>
             <div class="stat-card">
-                <h3><i class="fa-solid fa-square-check"></i> إجمالي المهام المكتملة</h3>
+                <h3><i class="fa-solid fa-square-check"></i> Total Completed Tasks</h3>
                 <div class="value" id="totalCompleted" style="color: #4ade80">0</div>
             </div>
         </div>
 
         <div class="or-divider">
-            <span>إدارة وتعديل محتوى الروابط</span>
+            <span>Manage & Edit Content</span>
         </div>
 
         <div class="links-list" id="linksList">
-            <!-- سيتم توليد الكروت هنا -->
+            <!-- Cards will be generated here -->
         </div>
     </div>
 
@@ -480,6 +488,7 @@
 
         async function fetchAnalytics() {
             try {
+                // Adjust this endpoint if your backend route differs
                 const response = await fetch('/api/analytics'); 
                 const data = await response.json();
                 if(data.success) {
@@ -487,7 +496,7 @@
                     renderDashboard();     
                 }
             } catch (err) {
-                console.error("فشل جلب البيانات الحقيقية:", err);
+                console.error("Failed to fetch real data:", err);
             }
         }
 
@@ -502,32 +511,45 @@
             item.classList.toggle('open');
         }
 
+        // Added an HTML escape function to prevent scripts from breaking the textarea visually
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag] || tag)
+            );
+        }
+
         async function updateLink(id, inputId) {
-            const newUrl = document.getElementById(inputId).value;
-            if(!newUrl) return alert("الرجاء إدخال رابط صالح!");
+            const newContent = document.getElementById(inputId).value;
+            if(!newContent.trim()) return alert("Please enter valid URL or text content!");
 
             try {
                 const response = await fetch('/api/analytics', {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id, url: newUrl })
+                    body: JSON.stringify({ id: id, url: newContent })
                 });
                 
                 const result = await response.json();
                 if(result.success) {
-                    alert("تم تحديث الرابط في قاعدة البيانات بنجاح! 🎉");
+                    alert("Content updated successfully! 🎉");
                     fetchAnalytics(); 
                 } else {
-                    alert("فشل التحديث: " + result.message);
+                    alert("Update failed: " + result.message);
                 }
             } catch (err) {
-                console.error("خطأ أثناء تحديث الرابط:", err);
-                alert("تم إرسال طلب التحديث بنجاح (تأكد من إعداد سيرفر الـ PUT لديك).");
+                console.error("Error updating content:", err);
+                alert("Update request sent successfully (Ensure your backend supports the PUT method).");
             }
         }
 
         async function deleteLink(id) {
-            if(!confirm("هل أنت متأكد من رغبتك في حذف هذا الرابط نهائياً من قاعدة البيانات؟ ⚠️")) return;
+            if(!confirm("Are you sure you want to permanently delete this content from the database? ⚠️")) return;
 
             try {
                 const response = await fetch('/api/analytics', {
@@ -538,14 +560,14 @@
 
                 const result = await response.json();
                 if(result.success) {
-                    alert("تم حذف الرابط بنجاح! 🗑️");
+                    alert("Content deleted successfully! 🗑️");
                     fetchAnalytics(); 
                 } else {
-                    alert("فشل الحذف: " + result.message);
+                    alert("Deletion failed: " + result.message);
                 }
             } catch (err) {
-                console.error("خطأ أثناء حذف الرابط:", err);
-                alert("تم إرسال طلب الحذف بنجاح (تأكد من دعم السيرفر لطلب الـ DELETE ومزامنته).");
+                console.error("Error deleting content:", err);
+                alert("Delete request sent successfully (Ensure your backend supports the DELETE method).");
                 fetchAnalytics();
             }
         }
@@ -573,37 +595,39 @@
             calculateOverview(filteredLinks);
 
             if (filteredLinks.length === 0) {
-                container.innerHTML = '<div class="no-data"><i class="fa-regular fa-folder-open"></i> لم يتم العثور على روابط.</div>';
+                container.innerHTML = '<div class="no-data"><i class="fa-regular fa-folder-open"></i> No content found.</div>';
                 return;
             }
 
             filteredLinks.forEach(link => {
                 const inputId = `input-${link.id}`;
+                const safeContent = escapeHTML(link.url || "");
+                
                 const linkItem = document.createElement('div');
                 linkItem.className = 'link-item';
                 linkItem.innerHTML = `
                     <div class="link-header" onclick="toggleLinkDetails(this)">
                         <div class="link-info">
-                            <div class="link-slug"><i class="fa-solid fa-link" style="font-size: 14px;"></i> /${link.id}</div>
-                            <div class="link-url" id="display-url-${link.id}">${link.url}</div>
+                            <div class="link-slug"><i class="fa-solid fa-lock" style="font-size: 14px;"></i> /${link.id}</div>
+                            <div class="link-url">${safeContent}</div>
                         </div>
                         <div class="link-meta">
-                            <span class="success-badge"><i class="fa-solid fa-circle-check"></i> ${link.completedTasksCount || 0} مكتمل</span>
+                            <span class="success-badge"><i class="fa-solid fa-circle-check"></i> ${link.completedTasksCount || 0} Completed</span>
                             <span class="toggle-icon"><i class="fa-solid fa-chevron-down"></i></span>
                         </div>
                     </div>
                     <div class="link-details">
                         <div class="details-wrapper">
                             <div class="edit-box">
-                                <h4><i class="fa-solid fa-pen-to-square"></i> خيارات إدارة الرابط الأصلي:</h4>
+                                <h4><i class="fa-solid fa-pen-to-square"></i> Edit Original Content (URL/Script):</h4>
                                 <div class="edit-input-group">
-                                    <input type="text" id="${inputId}" class="edit-url-input" value="${link.url}" placeholder="أدخل الرابط الجديد هنا...">
+                                    <textarea id="${inputId}" class="edit-content-input" placeholder="Paste your URL or code script here...">${safeContent}</textarea>
                                     <div class="action-buttons">
                                         <button class="save-btn" onclick="updateLink('${link.id}', '${inputId}')">
-                                            <i class="fa-solid fa-floppy-disk"></i> حفظ التعديل
+                                            <i class="fa-solid fa-floppy-disk"></i> Save Changes
                                         </button>
                                         <button class="delete-btn" onclick="deleteLink('${link.id}')">
-                                            <i class="fa-solid fa-trash-can"></i> حذف الرابط
+                                            <i class="fa-solid fa-trash-can"></i> Delete Content
                                         </button>
                                     </div>
                                 </div>
