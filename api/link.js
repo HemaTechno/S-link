@@ -10,31 +10,72 @@ const spamCache = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000; 
 const MAX_REQUESTS = 5;
 
-// دالة لتوليد صفحة HTML بألوان وتصميم متناسق
-const generatePageHtml = (title, linkName, targetUrl, messageTitle, showSuccess = false) => `
+// دالة التصميم الزجاجي لصفحة التوجيه
+const generatePageHtml = (title, linkName, targetUrl, messageTitle) => `
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background-color: white; padding: 40px 30px; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); text-align: center; max-width: 400px; width: 90%; }
-        h2 { color: #1f2937; margin-bottom: 10px; font-size: 24px; }
-        .link-name { color: #4b5563; font-size: 18px; margin-bottom: 25px; word-break: break-all; }
-        .warning { color: #b91c1c; background-color: #fef2f2; border: 1px solid #f87171; padding: 15px; border-radius: 8px; margin-bottom: 25px; font-weight: bold; line-height: 1.5; }
-        .success { color: #047857; background-color: #d1fae5; border: 1px solid #34d399; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; }
-        .btn { background-color: #3b82f6; color: white; padding: 14px 25px; text-decoration: none; border-radius: 8px; font-size: 18px; font-weight: bold; display: block; transition: background 0.3s; }
-        .btn:hover { background-color: #2563eb; }
+        :root {
+            --primary: #ffd700;
+            --primary-hover: #ffea00;
+            --bg-dark: #0c0d10;
+            --glass-bg: rgba(20, 21, 25, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(at 10% 10%, rgba(255, 215, 0, 0.05) 0px, transparent 50%),
+                              radial-gradient(at 90% 90%, rgba(255, 215, 0, 0.05) 0px, transparent 50%);
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px;
+        }
+        .container {
+            width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 28px;
+            background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .container:hover { transform: translateY(-3px); box-shadow: 0 30px 60px rgba(255, 215, 0, 0.05); }
+        h1 { color: var(--primary); margin-bottom: 15px; font-size: 1.8rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; text-shadow: 0px 2px 10px rgba(255, 215, 0, 0.2); }
+        .desc { color: var(--text-muted); margin-bottom: 30px; font-size: 1.1rem; line-height: 1.6; word-break: break-all; }
+        .warning-box {
+            background: rgba(255, 80, 80, 0.05); border: 1px solid rgba(248, 113, 113, 0.3);
+            color: #f87171; padding: 18px; border-radius: 16px; margin-bottom: 25px; font-weight: 600; font-size: 15px; line-height: 1.6;
+        }
+        .btn {
+            width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary) 0%, #b89b00 100%);
+            color: #000; border: none; border-radius: 16px; cursor: pointer; font-size: 18px; font-weight: 800;
+            text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.15);
+        }
+        .btn:hover {
+            transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255, 215, 0, 0.25);
+            background: linear-gradient(135deg, var(--primary-hover) 0%, #c9a900 100%);
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        ${showSuccess ? `<div class="success">✅ تم التخطي بنجاح!</div>` : `<h2>${messageTitle}</h2>`}
-        <div class="link-name">اسم الرابط: <strong>${linkName}</strong></div>
-        <div class="warning">⚠️ خلي بالك: الصفحة القادمة تحتوي على إعلانات منبثقة (Pop-up)، يرجى إغلاقها عند ظهورها.</div>
-        <a href="${targetUrl}" class="btn">للحصول على الرابط اضغط هنا</a>
+    <div class="container">
+        <h1><i class="fa-solid fa-shield-halved"></i> ${messageTitle}</h1>
+        <div class="desc">اسم الرابط: <strong>${linkName}</strong></div>
+        
+        <div class="warning-box">
+            <i class="fa-solid fa-triangle-exclamation"></i> 
+            <strong>خلي بالك:</strong> الصفحة القادمة تحتوي على إعلانات منبثقة (Pop-up)، يرجى إغلاقها عند ظهورها.
+        </div>
+
+        <a href="${targetUrl}" class="btn">
+            للحصول على الرابط اضغط هنا <i class="fa-solid fa-arrow-left"></i>
+        </a>
     </div>
 </body>
 </html>
@@ -43,9 +84,6 @@ const generatePageHtml = (title, linkName, targetUrl, messageTitle, showSuccess 
 export default async function handler(req, res) {
     const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "unknown";
 
-    // =======================================================
-    // 1. إنشاء رابط (POST) 
-    // =======================================================
     if (req.method === "POST") {
         try {
             const currentTime = Date.now();
@@ -106,11 +144,7 @@ export default async function handler(req, res) {
         }
     }
 
-    // =======================================================
-    // 2. تعديل رابط محفوظ (PUT) 
-    // =======================================================
     if (req.method === "PUT") {
-        // نفس كود التعديل بدون تغيير
         try {
             const { id, url } = req.body;
             if (!id || !url) return res.status(400).json({ success: false, message: "المعرف والرابط الجديد مطلوبان" });
@@ -126,11 +160,7 @@ export default async function handler(req, res) {
         }
     }
 
-    // =======================================================
-    // 3. حذف رابط نهائياً (DELETE)
-    // =======================================================
     if (req.method === "DELETE") {
-        // نفس كود الحذف بدون تغيير
         try {
             const { id } = req.body;
             if (!id) return res.status(400).json({ success: false, message: "معرف الرابط (ID) مطلوب للحذف" });
@@ -146,9 +176,6 @@ export default async function handler(req, res) {
         }
     }
 
-    // =======================================================
-    // 4. فتح وتحويل الرابط (GET)
-    // =======================================================
     if (req.method === "GET") {
         const id = req.query.id;
         let originalUrl = "";
@@ -164,11 +191,9 @@ export default async function handler(req, res) {
 
             const cached = cache.get(id);
             
-            // تجهيز الاستجابة كـ HTML
             res.setHeader("Content-Type", "text/html; charset=utf-8");
 
             if (cached && cached.expire > Date.now() && cached.url) {
-                // إرجاع الصفحة بدلاً من التوجيه المباشر
                 return res.status(200).send(generatePageHtml("جاري التوجيه...", id, cached.url, "توجيه إلى منصة التحقق"));
             }
 
@@ -199,11 +224,9 @@ export default async function handler(req, res) {
                     url: lootUrl,
                     expire: Date.now() + 60000
                 });
-                // إرجاع الصفحة بدلاً من التوجيه المباشر
                 return res.status(200).send(generatePageHtml("جاري التوجيه...", id, lootUrl, "توجيه إلى منصة التحقق"));
             } else {
                 console.error("LootLabs error: URL missing in response", response.data);
-                // توجيه للرابط الأصلي في حال فشل LootLabs
                 return res.status(200).send(generatePageHtml("جاري التوجيه...", id, originalUrl, "الرابط النهائي مباشر"));
             }
 
