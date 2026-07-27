@@ -183,7 +183,8 @@ export default async function handler(req, res) {
         return res.status(405).send("Method Not Allowed");
     }
 
-    const { id } = req.query;
+    // إضافة استخراج المتغير network من الرابط
+    const { id, network } = req.query; 
 
     if (!id) {
         return res.status(400).send("Missing Link ID");
@@ -198,10 +199,21 @@ export default async function handler(req, res) {
 
         const data = doc.data();
 
-        await doc.ref.update({
+        // تجهيز بيانات التحديث
+        let updateData = {
             completedTasksCount: (data.completedTasksCount || 0) + 1,
             lastCompletedAt: Date.now()
-        });
+        };
+
+        // التفرقة بين الشبكات لتحديث العداد الصحيح
+        if (network === 'lootlabs') {
+            updateData.lootlabsCompletions = (data.lootlabsCompletions || 0) + 1;
+        } else if (network === 'linkvertise') {
+            updateData.linkvertiseCompletions = (data.linkvertiseCompletions || 0) + 1;
+        }
+
+        // رفع التحديثات الجديدة للداتابيز
+        await doc.ref.update(updateData);
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         return res.status(200).send(generateSuccessPage(data.url));
