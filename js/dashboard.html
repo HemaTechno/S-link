@@ -48,7 +48,8 @@
             outline: none;
         }
 
-        header, .stat-card, .link-item, .chart-card {
+        /* Added .settings-card to the shared glassmorphism styles */
+        header, .stat-card, .link-item, .chart-card, .settings-card {
             background: rgba(20, 21, 25, 0.6);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -142,6 +143,101 @@
 
         select option { background-color: #1a1c23; color: #ffffff; }
 
+        /* ================= Settings Card Styles ================= */
+        .settings-card {
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .settings-header {
+            font-size: 16px;
+            font-weight: 800;
+            color: #ffd700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        /* Toggle Switch CSS */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input { 
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+            border-radius: 34px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #a0a0a0;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: rgba(255, 215, 0, 0.2);
+            border-color: #ffd700;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+            background-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .admin-auth-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        #settingsStatus {
+            width: 100%;
+            text-align: right;
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 10px;
+            height: 15px; /* keep layout stable */
+        }
+        /* ======================================================== */
+
         /* Stats Enhancements */
         .stats-overview {
             display: grid;
@@ -214,7 +310,6 @@
             gap: 12px;
         }
 
-        /* Copy Quick Button */
         .copy-short-btn {
             background: rgba(255, 255, 255, 0.1);
             border: none;
@@ -262,6 +357,13 @@
             .link-meta { width: 100%; justify-content: space-between; }
             .action-buttons { width: 100%; flex-direction: column; }
             .save-btn, .delete-btn { padding: 14px; justify-content: center; flex: 1; }
+            
+            /* Responsive updates for new Settings card */
+            .settings-grid { flex-direction: column; align-items: flex-start; }
+            .admin-auth-group { width: 100%; flex-direction: column; }
+            .admin-auth-group input { width: 100%; }
+            .admin-auth-group .save-btn { width: 100%; justify-content: center; }
+            #settingsStatus { text-align: center; }
         }
     </style>
 </head>
@@ -293,6 +395,41 @@
                 </select>
             </div>
         </header>
+
+        <!-- New Ad Networks Settings Card -->
+        <div class="settings-card">
+            <div class="settings-header">
+                <i class="fa-solid fa-sliders"></i> Monetization Settings
+            </div>
+            <div class="settings-grid">
+                <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+                    <div class="switch-wrapper">
+                        <label>LootLabs</label>
+                        <label class="switch">
+                            <!-- Checked by default. The actual state should be loaded from backend if possible -->
+                            <input type="checkbox" id="lootlabsToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <div class="switch-wrapper">
+                        <label>Linkvertise</label>
+                        <label class="switch">
+                            <input type="checkbox" id="linkvertiseToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="admin-auth-group">
+                    <input type="password" id="adminKey" placeholder="Admin Password..." style="width: 180px;">
+                    <button class="save-btn" onclick="saveAdSettings()">
+                        <i class="fa-solid fa-shield-check"></i> Update Settings
+                    </button>
+                </div>
+            </div>
+            <div id="settingsStatus"></div>
+        </div>
 
         <!-- Enhanced Stats Overview -->
         <div class="stats-overview">
@@ -330,6 +467,50 @@
         let mockData = []; 
         let myChart = null;
 
+        // Function to update Ad settings via API
+        async function saveAdSettings() {
+            const lootlabs = document.getElementById('lootlabsToggle').checked;
+            const linkvertise = document.getElementById('linkvertiseToggle').checked;
+            const adminKey = document.getElementById('adminKey').value;
+            const status = document.getElementById('settingsStatus');
+
+            if(!adminKey) {
+                status.style.color = "#ff4d4d";
+                status.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Password required!';
+                return;
+            }
+
+            status.style.color = "#a0a0a0";
+            status.innerHTML = "Saving changes...";
+
+            try {
+                // تأكد من تعديل الرابط ('/api/links') إذا كان مسار الـ API الخاص بك مختلفاً
+                const response = await fetch('/api/links', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        lootlabsEnabled: lootlabs,
+                        linkvertiseEnabled: linkvertise,
+                        adminKey: adminKey
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    status.style.color = "#4ade80";
+                    status.innerHTML = '<i class="fa-solid fa-circle-check"></i> Settings updated successfully!';
+                    setTimeout(() => status.innerHTML = "", 3000);
+                } else {
+                    status.style.color = "#ff4d4d";
+                    status.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Error: ' + data.message;
+                }
+            } catch (e) {
+                status.style.color = "#ff4d4d";
+                status.innerHTML = '<i class="fa-solid fa-wifi"></i> Network error, please try again.';
+            }
+        }
+
         async function fetchAnalytics() {
             try {
                 const response = await fetch('/api/analytics'); 
@@ -354,7 +535,6 @@
             document.getElementById('avgCompleted').innerText = avg;
         }
 
-        // Updated Chart Function (Gradient & Curved Edges)
         function updateChart(links) {
             const ctx = document.getElementById('performanceChart').getContext('2d');
             
@@ -364,7 +544,6 @@
 
             if (myChart) { myChart.destroy(); }
 
-            // Create beautiful gradient
             let gradient = ctx.createLinearGradient(0, 0, 0, 400);
             gradient.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
             gradient.addColorStop(1, 'rgba(255, 215, 0, 0.05)');
@@ -402,7 +581,6 @@
             item.classList.toggle('open');
         }
 
-        // Function to copy link dynamically
         function copyToClipboard(text, btnElement) {
             navigator.clipboard.writeText(text).then(() => {
                 const originalHtml = btnElement.innerHTML;
@@ -443,7 +621,7 @@
                 }
             } catch (err) {
                 console.error("Error updating content:", err);
-                alert("Update request sent successfully (Ensure your backend supports the PUT method).");
+                alert("Update request sent successfully.");
             }
         }
 
@@ -466,7 +644,7 @@
                 }
             } catch (err) {
                 console.error("Error deleting content:", err);
-                alert("Delete request sent successfully (Ensure your backend supports the DELETE method).");
+                alert("Delete request sent successfully.");
                 fetchAnalytics();
             }
         }
