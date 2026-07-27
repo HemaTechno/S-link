@@ -14,6 +14,8 @@ export default async function handler(req, res) {
                     url: data.url || "",
                     clicks: data.clicks || 0,
                     completedTasksCount: data.completedTasksCount || 0, 
+                    lootlabsCompletions: data.lootlabsCompletions || 0,       // تم إضافة عداد LootLabs
+                    linkvertiseCompletions: data.linkvertiseCompletions || 0, // تم إضافة عداد Linkvertise
                     createdAt: data.createdAt || Date.now(),
                     tier: data.tier || 1,
                     tasks: data.tasks || 3,
@@ -92,7 +94,7 @@ export default async function handler(req, res) {
     }
 
     // Fallback if the method isn't GET, PUT, or DELETE
-    return res.status(405).json({
+    return  res.status(405).json({
         success: false,
         message: "Method Not Allowed"
     });
