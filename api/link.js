@@ -3,7 +3,7 @@ import { nanoid } from "nanoid";
 import axios from "axios";
 
 const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
-const LINKVERTISE_USER_ID = "123456"; // ضع الـ ID الخاص بك هنا
+const LINKVERTISE_USER_ID = "1322389"; // ضع الـ ID الخاص بك هنا
 
 const cache = new Map();
 const spamCache = new Map(); 
