@@ -215,7 +215,7 @@ export default async function handler(req, res) {
 
         const data = doc.data();
 
-        // إذا كان الطلب مكرراً، نظهر الصفحة فقط بدون زيادة العداد أو إرسال إشعار
+        // إذا كان الطلب مكرراً، نظهر الصفحة فقط بدون زيادة العداد أو إرسال إشعار الديسكورد
         if (isDuplicate) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             return res.status(200).send(generateSuccessPage(data.url));
@@ -255,11 +255,11 @@ export default async function handler(req, res) {
 
         await doc.ref.update(updateData);
 
-        // 2. إرسال إشعار الديسكورد بتصميم احترافي
+        // 2. إرسال إشعار الديسكورد بتصميم احترافي (عصري) مع زر حقيقي
         if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL !== "YOUR_DISCORD_WEBHOOK_URL_HERE") {
             
-            let networkName = 'Direct/Unknown ❓';
-            let embedColor = 10181046; // لون رمادي
+            let networkName = 'Direct Access';
+            let embedColor = 2829617; // أزرق مودرن
             let thumbnailUrl = "https://cdn-icons-png.flaticon.com/512/8451/8451122.png";
 
             if (network === 'lootlabs') {
@@ -269,35 +269,50 @@ export default async function handler(req, res) {
             } else if (network === 'linkvertise') {
                 networkName = 'Linkvertise';
                 embedColor = 45244; // أخضر
-                // استخدام أيقونة Linkvertise واضحة ومربعة
                 thumbnailUrl = "https://publisher.linkvertise.com/assets/favicon/favicon.ico"; 
             }
 
-            // قص المحتوى إذا كان طويلاً جداً ليتناسب مع الـ Embed
-            const shortContent = data.url.length > 60 ? data.url.substring(0, 60) + "..." : data.url;
+            // رابط التخطي الأساسي
+            const shareableLink = `https://www.subx.click/?id=${id}`;
 
             const payload = {
-                username: "Subx Unlock",
-                avatar_url: "https://cdn-icons-png.flaticon.com/512/8451/8451122.png",
+                username: "SubX Analytics",
+                avatar_url: "https://cdn-icons-png.flaticon.com/512/2933/2933116.png",
                 embeds: [
                     {
-                        title: "🚀 New Unlock Registered!",
-                        description: `A user successfully bypassed the locker for content ID: **${id}**`,
+                        author: {
+                            name: "New Successful Bypass! 🎉",
+                            icon_url: "https://cdn-icons-png.flaticon.com/512/8451/8451122.png"
+                        },
+                        title: `Content ID: /${id}`,
                         color: embedColor,
                         thumbnail: {
                             url: thumbnailUrl
                         },
                         fields: [
-                            { name: "🛡️ Network", value: `**${networkName}**`, inline: true },
-                            { name: "🌍 Country", value: `**${country}**`, inline: true },
-                            { name: "🌐 IP Address", value: `||${ip}||`, inline: true },
-                            { name: "🔗 Content Preview", value: `\`\`\`text\n${shortContent}\n\`\`\``, inline: false }
+                            { name: "📡 Network", value: `**${networkName}**`, inline: true },
+                            { name: "🌍 Location", value: `**${country}**`, inline: true },
+                            { name: "🛡️ IP Address", value: `||${ip}||`, inline: true }
                         ],
                         footer: { 
-                            text: "Smart Locker System",
-                            icon_url: "https://cdn-icons-png.flaticon.com/512/8451/8451122.png" 
+                            text: "SubX Smart Locker • Modern Analytics",
+                            icon_url: "https://cdn-icons-png.flaticon.com/512/2933/2933116.png" 
                         },
                         timestamp: new Date().toISOString()
+                    }
+                ],
+                // إضافة زر (Button) للديسكورد لفتح الرابط
+                components: [
+                    {
+                        type: 1, // Action Row
+                        components: [
+                            {
+                                type: 2, // Button
+                                style: 5, // Link Button Style
+                                label: "🔗 Open SubX Link",
+                                url: shareableLink
+                            }
+                        ]
                     }
                 ]
             };
