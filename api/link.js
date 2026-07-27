@@ -28,7 +28,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             buttons += `
             <a href="${lootlabsUrl}" class="network-btn lootlabs-btn">
                 <span class="btn-text">Unlock via LootLabs</span>
-                <img src="https://lootlabs.gg/favicon.ico" alt="LootLabs Logo" class="network-logo">
+                <img src="/LootLabs.png" alt="LootLabs Logo" class="network-logo">
             </a>`;
         }
 
@@ -40,7 +40,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             buttons += `
             <a href="${linkvertiseUrl}" class="network-btn linkvertise-btn">
                 <span class="btn-text">Unlock via Linkvertise</span>
-                <img src="https://publisher.linkvertise.com/assets/logos/logo_long_white.svg" alt="Linkvertise Logo" class="network-logo link-logo">
+                <img src="/linkvertise.png" alt="Linkvertise Logo" class="network-logo link-logo">
             </a>`;
         }
         
