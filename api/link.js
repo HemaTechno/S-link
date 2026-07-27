@@ -27,7 +27,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         if (lootlabsUrl) {
             buttons += `
             <a href="${lootlabsUrl}" class="network-btn lootlabs-btn">
-                <span class="btn-text">Unlock via LootLabs</span>
+                <span class="btn-text"><i class="fa-solid fa-gem"></i> Unlock via LootLabs</span>
                 <img src="/LootLabs.png" alt="LootLabs Logo" class="network-logo">
             </a>`;
         }
@@ -39,7 +39,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         if (linkvertiseUrl) {
             buttons += `
             <a href="${linkvertiseUrl}" class="network-btn linkvertise-btn">
-                <span class="btn-text">Unlock via Linkvertise</span>
+                <span class="btn-text"><i class="fa-solid fa-link"></i> Unlock via Linkvertise</span>
                 <img src="/linkvertise.png" alt="Linkvertise Logo" class="network-logo link-logo">
             </a>`;
         }
@@ -89,69 +89,74 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         :root { --primary: #ffd700; --bg-dark: #0c0d10; --glass-bg: rgba(20, 21, 25, 0.6); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .container { width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        
+        .container { 
+            width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 28px; 
+            background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.08); text-align: center; 
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5); 
+        }
+        
         .logo-container img { max-width: 180px; margin-bottom: 25px; }
         h1 { color: var(--primary); margin-bottom: 15px; font-size: 1.8rem; }
         .desc { color: #a0a0a0; margin-bottom: 30px; font-size: 1.1rem; }
         
         /* New Button Styles */
-        .networks-container { display: flex; flex-direction: column; gap: 15px; }
+        .networks-container { display: flex; flex-direction: column; gap: 16px; }
         
         .network-btn {
             position: relative;
             width: 100%;
-            padding: 20px;
-            border-radius: 18px;
+            padding: 18px 24px;
+            border-radius: 16px;
             cursor: pointer;
             text-decoration: none;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
-            justify-content: center;
-            gap: 12px;
+            justify-content: space-between;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 2px solid transparent;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.3);
             overflow: hidden;
         }
 
-        .btn-text { font-size: 17px; font-weight: 800; z-index: 2; }
+        .btn-text { 
+            font-size: 16px; 
+            font-weight: 800; 
+            z-index: 2; 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
         
-        .network-logo { height: 28px; object-fit: contain; z-index: 2; }
-        .link-logo { height: 22px; } /* Linkvertise logo needs specific sizing */
+        .network-logo { height: 24px; object-fit: contain; z-index: 2; max-width: 120px; }
 
         /* LootLabs Button Styling */
-        .lootlabs-btn {
-            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-            border-color: rgba(255, 215, 0, 0.3);
-            color: #ffd700;
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.1);
-        }
+        .lootlabs-btn { color: #ffd700; border-color: rgba(255, 215, 0, 0.15); }
         .lootlabs-btn:hover {
-            transform: translateY(-3px);
-            border-color: #ffd700;
-            box-shadow: 0 12px 30px rgba(255, 215, 0, 0.25);
-            background: linear-gradient(135deg, #2a2a2a 0%, #111 100%);
+            transform: translateY(-4px);
+            border-color: rgba(255, 215, 0, 0.5);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15);
+            background: rgba(255, 215, 0, 0.05);
         }
 
         /* Linkvertise Button Styling */
-        .linkvertise-btn {
-            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
-            color: #ffffff;
-            box-shadow: 0 8px 25px rgba(0, 176, 155, 0.2);
-        }
+        .linkvertise-btn { color: #4ade80; border-color: rgba(74, 222, 128, 0.15); }
         .linkvertise-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(0, 176, 155, 0.4);
-            background: linear-gradient(135deg, #00c9b1 0%, #a3d944 100%);
+            transform: translateY(-4px);
+            border-color: rgba(74, 222, 128, 0.5);
+            box-shadow: 0 8px 25px rgba(74, 222, 128, 0.15);
+            background: rgba(74, 222, 128, 0.05);
         }
 
         /* OR Divider */
         .or-divider { text-align: center; margin: 10px 0; position: relative; }
         .or-divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.1); z-index: 1; }
-        .or-divider span { background: var(--bg-dark); padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 800; color: #a0a0a0; position: relative; z-index: 2; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .or-divider span { background: var(--bg-dark); padding: 4px 14px; border-radius: 12px; font-size: 13px; font-weight: 800; color: #a0a0a0; position: relative; z-index: 2; border: 1px solid rgba(255, 255, 255, 0.1); }
 
-        .default-btn { width: 100%; padding: 16px; border-radius: 16px; cursor: pointer; font-size: 18px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; color: #000; background: var(--primary); border: none; transition: transform 0.3s; }
-        .default-btn:hover { transform: translateY(-2px); }
+        .default-btn { width: 100%; padding: 18px; border-radius: 16px; cursor: pointer; font-size: 17px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; color: #000; background: linear-gradient(135deg, var(--primary) 0%, #b89b00 100%); border: none; transition: transform 0.3s; }
+        .default-btn:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2); }
     </style>
 </head>
 <body>
@@ -207,8 +212,8 @@ export default async function handler(req, res) {
             await db.collection("links").doc(id).set({
                 url, 
                 completedTasksCount: 0, 
-                lootlabsCompletions: 0, // عداد مخصص للوت لابز
-                linkvertiseCompletions: 0, // عداد مخصص للينك فيرتيس
+                lootlabsCompletions: 0, 
+                linkvertiseCompletions: 0, 
                 createdAt: Date.now(),
                 tier: tier ? parseInt(tier) : 1,       
                 tasks: tasks ? parseInt(tasks) : 3      
@@ -242,9 +247,7 @@ export default async function handler(req, res) {
 
             let urls = { lootlabs: null, linkvertise: null, direct: originalContent };
             
-            // إضافة &network=linkvertise إلى رابط العودة لتسجيل المصدر
             const linkvertiseCompletionUrl = `https://subx.click/api/complete?id=${id}&network=linkvertise&tc=[tc]`;
-            // إضافة &network=lootlabs إلى رابط العودة لتسجيل المصدر
             const lootlabsCompletionUrl = `https://subx.click/api/complete?id=${id}&network=lootlabs&tc=[tc]`;
 
             if (adSettings.linkvertise) {
