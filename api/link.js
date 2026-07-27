@@ -1,8 +1,10 @@
 import db from "./firebase.js";
 import { nanoid } from "nanoid";
-import axios from "axios";
+// لم نعد بحاجة ماسة لـ axios مع Linkvertise لأننا سنستخدم الـ Dynamic Links، ولكن تم الإبقاء عليه تحسباً لاحتياجاتك.
+import axios from "axios"; 
 
-const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
+// قم بتغيير هذا الرقم إلى الـ User ID الخاص بك في Linkvertise
+const LINKVERTISE_USER_ID = "1322389"; 
 
 const cache = new Map();
 const spamCache = new Map(); 
@@ -268,58 +270,41 @@ export default async function handler(req, res) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
 
             if (cached && cached.expire > Date.now() && cached.url) {
-                // تمرير req هنا لسحب الدومين
                 return res.status(200).send(generatePageHtml("Redirecting...", id, cached.url, "Redirecting to Verification", req));
             }
 
+            // إنشاء رابط الإكمال الخاص بموقعك (الذي سيعود إليه المستخدم بعد إنهاء تخطي Linkvertise)
             const completionUrl = `https://subx.click/api/complete?id=${id}&tc=[tc]`;
 
-            const response = await axios.post(
-                "https://creators.lootlabs.gg/api/public/content_locker",
-                {
-                    title: id,
-                    url: completionUrl,                  
-                    tier_id: data.tier || 1,             
-                    number_of_tasks: data.tasks || 3,    
-                    theme: 1
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${LOOTLABS_API}`,
-                        "Content-Type": "application/json"
-                    }
-                }
-            );
+            // تشفير الرابط بصيغة Base64 حسب متطلبات نظام Linkvertise
+            const base64Url = Buffer.from(completionUrl).toString('base64');
+            
+            // دمج الرابط مع رقم حسابك في Linkvertise. يتم إضافة Math.random لمنع تخزين الرابط في الـ Cache الخاص بالمتصفحات
+            const randomString = Math.random().toString(36).substring(7);
+            const linkvertiseUrl = `https://link-to.net/${LINKVERTISE_USER_ID}/${randomString}/dynamic?r=${base64Url}`;
 
-            const messageData = Array.isArray(response.data?.message) ? response.data.message[0] : response.data?.message;
-            const lootUrl = messageData?.loot_url || response.data?.loot_url;
-
-            if (lootUrl) {
+            if (linkvertiseUrl) {
                 cache.set(id, {
-                    url: lootUrl,
-                    expire: Date.now() + 60000
+                    url: linkvertiseUrl,
+                    expire: Date.now() + 60000 // مدة الكاش
                 });
-                // تمرير req هنا لسحب الدومين
-                return res.status(200).send(generatePageHtml("Redirecting...", id, lootUrl, "Redirecting to Verification", req));
-            } else {
-                console.error("LootLabs error: URL missing in response", response.data);
-                // تمرير req هنا لسحب الدومين
-                return res.status(200).send(generatePageHtml("Redirecting...", id, originalUrl, "Direct Access", req));
+                
+                return res.status(200).send(generatePageHtml("Redirecting...", id, linkvertiseUrl, "Redirecting to Verification", req));
             }
 
         } catch (err) {
-            console.error("LootLabs API Error Details:", err.response?.data || err.message);
+            console.error("Link Generation Error Details:", err.message);
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             
             if (originalUrl) {
-                // تمرير req هنا لسحب الدومين
+                // العودة للرابط الأصلي في حال حدوث خطأ
                 return res.status(200).send(generatePageHtml("Redirecting...", id, originalUrl, "Direct Access", req));
             }
 
             return res.status(500).json({
                 success: false,
-                message: "LootLabs API Error",
-                error: err.response?.data || err.message
+                message: "Linkvertise Generation Error",
+                error: err.message
             });
         }
     }
