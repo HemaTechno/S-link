@@ -485,7 +485,7 @@
 
             try {
                 // تأكد من تعديل الرابط ('/api/links') إذا كان مسار الـ API الخاص بك مختلفاً
-                const response = await fetch('/api/links', {
+                const response = await fetch('/api/link', {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
