@@ -3,6 +3,10 @@ import db from "./firebase.js";
 // ضع رابط الديسكورد ويب هوك الخاص بك هنا
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
+// نظام لمنع التكرار (Cooldown) لتجنب إرسال الإشعار أو زيادة العداد أكثر من مرة لنفس الشخص
+const recentCompletions = new Map();
+const COOLDOWN_TIME = 5 * 60 * 1000; // 5 دقائق
+
 // دالة لحماية النصوص (تمنع الأكواد من إفساد تصميم الصفحة)
 const escapeHTML = (str) => {
     return str.replace(/[&<>'"]/g, 
@@ -186,23 +190,20 @@ export default async function handler(req, res) {
 
     // 1. استخراج الآي بي والدولة
     const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "Unknown";
-    let country = req.headers["x-vercel-ip-country"] || req.headers["cf-ipcountry"] || ""; // جلب الدولة من سيرفر Vercel أو Cloudflare لو متاح
+    
+    // التحقق من الـ Cooldown (منع التكرار)
+    const cacheKey = `${ip}_${id}`;
+    const lastCompleted = recentCompletions.get(cacheKey);
+    const isDuplicate = lastCompleted && (Date.now() - lastCompleted < COOLDOWN_TIME);
 
-    // لو الدولة مش متسجلة في الهيدرز، نستخدم API مجاني لجلبها
-    if (!country && ip !== "Unknown" && ip !== "::1") {
-        try {
-            const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
-            const geoData = await geoRes.json();
-            if (geoData.status === "success") {
-                country = geoData.country;
-            } else {
-                country = "Unknown";
+    // تنظيف الكاش القديم لتجنب استهلاك الذاكرة
+    if (recentCompletions.size > 500) {
+        const now = Date.now();
+        for (let [key, time] of recentCompletions.entries()) {
+            if (now - time > COOLDOWN_TIME) {
+                recentCompletions.delete(key);
             }
-        } catch (e) {
-            country = "Unknown";
         }
-    } else if (!country) {
-        country = "Unknown";
     }
 
     try {
@@ -213,6 +214,33 @@ export default async function handler(req, res) {
         }
 
         const data = doc.data();
+
+        // إذا كان الطلب مكرراً، نظهر الصفحة فقط بدون زيادة العداد أو إرسال إشعار
+        if (isDuplicate) {
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            return res.status(200).send(generateSuccessPage(data.url));
+        }
+
+        // تسجيل الطلب الجديد في الكاش
+        recentCompletions.set(cacheKey, Date.now());
+
+        // جلب الدولة
+        let country = req.headers["x-vercel-ip-country"] || req.headers["cf-ipcountry"] || ""; 
+        if (!country && ip !== "Unknown" && ip !== "::1") {
+            try {
+                const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
+                const geoData = await geoRes.json();
+                if (geoData.status === "success") {
+                    country = geoData.country;
+                } else {
+                    country = "Unknown";
+                }
+            } catch (e) {
+                country = "Unknown";
+            }
+        } else if (!country) {
+            country = "Unknown";
+        }
 
         let updateData = {
             completedTasksCount: (data.completedTasksCount || 0) + 1,
@@ -227,34 +255,48 @@ export default async function handler(req, res) {
 
         await doc.ref.update(updateData);
 
-        // 2. إرسال إشعار الديسكورد (بدون استخدام await حتى لا نعطل فتح الصفحة للمستخدم)
+        // 2. إرسال إشعار الديسكورد بتصميم احترافي
         if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL !== "YOUR_DISCORD_WEBHOOK_URL_HERE") {
             
             let networkName = 'Direct/Unknown ❓';
             let embedColor = 10181046; // لون رمادي
+            let thumbnailUrl = "https://cdn-icons-png.flaticon.com/512/8451/8451122.png";
 
             if (network === 'lootlabs') {
-                networkName = 'LootLabs 💎';
-                embedColor = 16766720; // لون أصفر/ذهبي
+                networkName = 'LootLabs';
+                embedColor = 16766720; // ذهبي
+                thumbnailUrl = "https://lootlabs.gg/favicon.ico";
             } else if (network === 'linkvertise') {
-                networkName = 'Linkvertise 🔗';
-                embedColor = 45244; // لون أخضر
+                networkName = 'Linkvertise';
+                embedColor = 45244; // أخضر
+                // استخدام أيقونة Linkvertise واضحة ومربعة
+                thumbnailUrl = "https://publisher.linkvertise.com/assets/favicon/favicon.ico"; 
             }
 
+            // قص المحتوى إذا كان طويلاً جداً ليتناسب مع الـ Embed
+            const shortContent = data.url.length > 60 ? data.url.substring(0, 60) + "..." : data.url;
+
             const payload = {
-                username: "Bypass Notifier",
+                username: "Subx Unlock",
                 avatar_url: "https://cdn-icons-png.flaticon.com/512/8451/8451122.png",
                 embeds: [
                     {
-                        title: "🎉 New Successful Bypass!",
+                        title: "🚀 New Unlock Registered!",
+                        description: `A user successfully bypassed the locker for content ID: **${id}**`,
                         color: embedColor,
+                        thumbnail: {
+                            url: thumbnailUrl
+                        },
                         fields: [
-                            { name: "🆔 Content ID", value: `\`${id}\``, inline: true },
-                            { name: "🛡️ Network", value: networkName, inline: true },
-                            { name: "🌍 Country", value: country, inline: true },
-                            { name: "🌐 IP Address", value: `||${ip}||`, inline: true } // الـ IP مخفي كـ Spoiler للمتعة والحماية
+                            { name: "🛡️ Network", value: `**${networkName}**`, inline: true },
+                            { name: "🌍 Country", value: `**${country}**`, inline: true },
+                            { name: "🌐 IP Address", value: `||${ip}||`, inline: true },
+                            { name: "🔗 Content Preview", value: `\`\`\`text\n${shortContent}\n\`\`\``, inline: false }
                         ],
-                        footer: { text: "System Analytics" },
+                        footer: { 
+                            text: "Smart Locker System",
+                            icon_url: "https://cdn-icons-png.flaticon.com/512/8451/8451122.png" 
+                        },
                         timestamp: new Date().toISOString()
                     }
                 ]
