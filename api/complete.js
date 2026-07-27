@@ -1,5 +1,8 @@
 import db from "./firebase.js";
 
+// ضع رابط الديسكورد ويب هوك الخاص بك هنا
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
+
 // دالة لحماية النصوص (تمنع الأكواد من إفساد تصميم الصفحة)
 const escapeHTML = (str) => {
     return str.replace(/[&<>'"]/g, 
@@ -20,7 +23,6 @@ const generateSuccessPage = (content) => {
     let warningHtml = '';
 
     if (isUrl) {
-        // إظهار التحذير فقط في حالة الروابط
         warningHtml = `
         <div class="warning-box">
             <i class="fa-solid fa-triangle-exclamation"></i> 
@@ -32,7 +34,6 @@ const generateSuccessPage = (content) => {
             Click here to get the link <i class="fa-solid fa-download"></i>
         </a>`;
     } else {
-        // تصميم نافذة الكود الاحترافية مع تلوين Prism.js
         const escapedContent = escapeHTML(content);
         actionHtml = `
         <div class="code-container">
@@ -67,7 +68,6 @@ const generateSuccessPage = (content) => {
 <head>
 
 <script src="https://beansnicerroller.com/1c/8c/07/1c8c07e41dacee6cc4a64a6f22c04a4b.js"></script>
-
 <script>(function(s){s.dataset.zone='11383401',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 
     <meta charset="UTF-8">
@@ -75,8 +75,6 @@ const generateSuccessPage = (content) => {
     <title>Successfully Bypassed</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Prism.js Dark Theme for Syntax Highlighting -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     
     <style>
@@ -104,7 +102,6 @@ const generateSuccessPage = (content) => {
         .logo-container img { max-width: 180px; height: auto; display: inline-block; }
         h1 { color: var(--success-color); margin-bottom: 25px; font-size: 2rem; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; text-shadow: 0px 2px 10px rgba(74, 222, 128, 0.2); }
         
-        /* Mac-like Code Window Styling */
         .code-container {
             background: #1d1f21;
             border: 1px solid var(--glass-border);
@@ -136,7 +133,6 @@ const generateSuccessPage = (content) => {
             overflow-y: auto;
             font-size: 14px;
         }
-        /* Custom Scrollbar for the code block */
         pre::-webkit-scrollbar { width: 8px; }
         pre::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         pre::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
@@ -170,7 +166,6 @@ const generateSuccessPage = (content) => {
 
     </div>
 
-    <!-- Prism.js Core & Languages (Lua included) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-lua.min.js"></script>
 </body>
@@ -183,11 +178,31 @@ export default async function handler(req, res) {
         return res.status(405).send("Method Not Allowed");
     }
 
-    // إضافة استخراج المتغير network من الرابط
     const { id, network } = req.query; 
 
     if (!id) {
         return res.status(400).send("Missing Link ID");
+    }
+
+    // 1. استخراج الآي بي والدولة
+    const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "Unknown";
+    let country = req.headers["x-vercel-ip-country"] || req.headers["cf-ipcountry"] || ""; // جلب الدولة من سيرفر Vercel أو Cloudflare لو متاح
+
+    // لو الدولة مش متسجلة في الهيدرز، نستخدم API مجاني لجلبها
+    if (!country && ip !== "Unknown" && ip !== "::1") {
+        try {
+            const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
+            const geoData = await geoRes.json();
+            if (geoData.status === "success") {
+                country = geoData.country;
+            } else {
+                country = "Unknown";
+            }
+        } catch (e) {
+            country = "Unknown";
+        }
+    } else if (!country) {
+        country = "Unknown";
     }
 
     try {
@@ -199,21 +214,58 @@ export default async function handler(req, res) {
 
         const data = doc.data();
 
-        // تجهيز بيانات التحديث
         let updateData = {
             completedTasksCount: (data.completedTasksCount || 0) + 1,
             lastCompletedAt: Date.now()
         };
 
-        // التفرقة بين الشبكات لتحديث العداد الصحيح
         if (network === 'lootlabs') {
             updateData.lootlabsCompletions = (data.lootlabsCompletions || 0) + 1;
         } else if (network === 'linkvertise') {
             updateData.linkvertiseCompletions = (data.linkvertiseCompletions || 0) + 1;
         }
 
-        // رفع التحديثات الجديدة للداتابيز
         await doc.ref.update(updateData);
+
+        // 2. إرسال إشعار الديسكورد (بدون استخدام await حتى لا نعطل فتح الصفحة للمستخدم)
+        if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL !== "YOUR_DISCORD_WEBHOOK_URL_HERE") {
+            
+            let networkName = 'Direct/Unknown ❓';
+            let embedColor = 10181046; // لون رمادي
+
+            if (network === 'lootlabs') {
+                networkName = 'LootLabs 💎';
+                embedColor = 16766720; // لون أصفر/ذهبي
+            } else if (network === 'linkvertise') {
+                networkName = 'Linkvertise 🔗';
+                embedColor = 45244; // لون أخضر
+            }
+
+            const payload = {
+                username: "Bypass Notifier",
+                avatar_url: "https://cdn-icons-png.flaticon.com/512/8451/8451122.png",
+                embeds: [
+                    {
+                        title: "🎉 New Successful Bypass!",
+                        color: embedColor,
+                        fields: [
+                            { name: "🆔 Content ID", value: `\`${id}\``, inline: true },
+                            { name: "🛡️ Network", value: networkName, inline: true },
+                            { name: "🌍 Country", value: country, inline: true },
+                            { name: "🌐 IP Address", value: `||${ip}||`, inline: true } // الـ IP مخفي كـ Spoiler للمتعة والحماية
+                        ],
+                        footer: { text: "System Analytics" },
+                        timestamp: new Date().toISOString()
+                    }
+                ]
+            };
+
+            fetch(DISCORD_WEBHOOK_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            }).catch(err => console.error("Discord Webhook Error:", err));
+        }
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         return res.status(200).send(generateSuccessPage(data.url));
