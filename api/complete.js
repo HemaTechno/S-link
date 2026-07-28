@@ -1,6 +1,6 @@
 import db from "./firebase.js";
 
-// ضع رابط الديسكورد ويب هوك الخاص بك هنا
+// ⚠️ تنبيه أمني: يرجى تغيير هذا الرابط فوراً من إعدادات سيرفر ديسكورد لأنك قمت بنشره للعامة!
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
 // نظام لمنع التكرار (Cooldown) لتجنب إرسال الإشعار أو زيادة العداد أكثر من مرة لنفس الشخص
@@ -265,11 +265,11 @@ export default async function handler(req, res) {
             if (network === 'lootlabs') {
                 networkName = 'LootLabs';
                 embedColor = 16766720; // ذهبي
-                thumbnailUrl = "https://lootlabs.gg/favicon.ico";
+                thumbnailUrl = "/LootLabs.png";
             } else if (network === 'linkvertise') {
                 networkName = 'Linkvertise';
                 embedColor = 45244; // أخضر
-                thumbnailUrl = "https://publisher.linkvertise.com/assets/favicon/favicon.ico"; 
+                thumbnailUrl = "/linkvertise.png"; 
             }
 
             // رابط التخطي الأساسي
@@ -317,7 +317,8 @@ export default async function handler(req, res) {
                 ]
             };
 
-            fetch(DISCORD_WEBHOOK_URL, {
+            // التعديل هنا: تم إضافة await قبل fetch لحل مشكلة الإغلاق المبكر
+            await fetch(DISCORD_WEBHOOK_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
