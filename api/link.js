@@ -20,7 +20,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 
     let actionHtml = '';
 
-    // HTML & CSS الخاص بالأزرار الجديدة
+    // HTML & CSS الخاص بالأزرار (LootLabs & Linkvertise)
     const getNetworkButtons = (lootlabsUrl, linkvertiseUrl) => {
         let buttons = '';
         
@@ -47,6 +47,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         return `<div class="networks-container">${buttons}</div>`;
     };
 
+    // في حالة تعطيل الإعلانات من لوحة التحكم، نعرض المحتوى المباشر
     if (urls.text) {
         actionHtml = `
         <div class="text-container">
@@ -67,6 +68,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         </script>`;
     } 
     else if (urls.lootlabs || urls.linkvertise) {
+        // عرض أزرار التخطي (في الوضع الطبيعي)
         actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise);
     } 
     else if (urls.direct) {
@@ -160,6 +162,21 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 
         .default-btn { width: 100%; padding: 18px; border-radius: 16px; cursor: pointer; font-size: 17px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; color: #000; background: linear-gradient(135deg, var(--primary) 0%, #b89b00 100%); border: none; transition: transform 0.3s; }
         .default-btn:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2); }
+
+        .text-container {
+            background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 15px; margin-bottom: 20px; text-align: left;
+        }
+        textarea {
+            width: 100%; background: transparent; border: none; color: var(--text-main);
+            font-size: 16px; resize: none; outline: none; font-family: inherit; line-height: 1.5;
+        }
+        .copy-btn {
+            width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary) 0%, #b89b00 100%);
+            color: #000; border: none; border-radius: 16px; cursor: pointer; font-size: 18px; font-weight: 800;
+            display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s;
+        }
+        .copy-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255, 215, 0, 0.25); background: linear-gradient(135deg, #ffea00 0%, #c9a900 100%); }
     </style>
 </head>
 <body>
@@ -236,10 +253,6 @@ export default async function handler(req, res) {
             const doc = await db.collection("links").doc(id).get();
             if (!doc.exists) return res.status(404).send("Content not found");
             const data = doc.data();
-            const originalContent = data.url;
-            const isUrl = originalContent.trim().startsWith("http");
-
-            if (!isUrl) return res.status(200).send(generatePageHtml("Unlock Content", id, "Direct Access", req, { text: originalContent }));
 
             let adSettings = cache.get("adSettings");
             if (!adSettings) {
@@ -248,7 +261,7 @@ export default async function handler(req, res) {
                 cache.set("adSettings", adSettings);
             }
 
-            let urls = { lootlabs: null, linkvertise: null, direct: originalContent };
+            let urls = { lootlabs: null, linkvertise: null };
             
             const linkvertiseCompletionUrl = `https://subx.click/api/complete?id=${id}&network=linkvertise&tc=[tc]`;
             const lootlabsCompletionUrl = `https://subx.click/api/complete?id=${id}&network=lootlabs&tc=[tc]`;
@@ -273,6 +286,16 @@ export default async function handler(req, res) {
                 }
             }
 
+            // إذا كانت جميع الشبكات الإعلانية معطلة في الإعدادات، يتم إظهار المحتوى المباشر
+            if (!urls.lootlabs && !urls.linkvertise) {
+                const isUrlCheck = data.url.trim().startsWith("http");
+                if (!isUrlCheck) {
+                    urls.text = data.url; 
+                } else {
+                    urls.direct = data.url; 
+                }
+            }
+
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             return res.status(200).send(generatePageHtml("Choose Verification", id, "Select a Method to Unlock", req, urls));
 
@@ -284,4 +307,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).send("Method Not Allowed");
-}
+        }
