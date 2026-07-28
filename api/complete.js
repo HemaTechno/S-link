@@ -265,11 +265,13 @@ export default async function handler(req, res) {
             if (network === 'lootlabs') {
                 networkName = 'LootLabs';
                 embedColor = 16766720; // ذهبي
-                thumbnailUrl = "/LootLabs.png";
+                // ⚠️ التعديل هنا: يجب استخدام رابط خارجي (Absolute) للصورة حتى تظهر في الديسكورد
+                thumbnailUrl = "https://lootlabs.gg/favicon.ico";
             } else if (network === 'linkvertise') {
                 networkName = 'Linkvertise';
                 embedColor = 45244; // أخضر
-                thumbnailUrl = "/linkvertise.png"; 
+                // ⚠️ التعديل هنا: يجب استخدام رابط خارجي (Absolute) للصورة حتى تظهر في الديسكورد
+                thumbnailUrl = "https://publisher.linkvertise.com/assets/favicon/favicon.ico"; 
             }
 
             // رابط التخطي الأساسي
@@ -317,7 +319,7 @@ export default async function handler(req, res) {
                 ]
             };
 
-            // التعديل هنا: تم إضافة await قبل fetch لحل مشكلة الإغلاق المبكر
+            // التعديل هنا: تم إضافة await قبل fetch لحل مشكلة الإغلاق المبكر (كما طلبت)
             await fetch(DISCORD_WEBHOOK_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
