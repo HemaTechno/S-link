@@ -297,7 +297,7 @@ export default async function handler(req, res) {
             } else if (network === 'nitrolink') {
                 networkName = 'Nitro Link';
                 embedColor = 16734002;
-                thumbnailUrl = "https://nitro-link.com/favicon.ico";
+                thumbnailUrl = "https://i.ibb.co/GQ22bMHN/nitrolink.png";
             }
 
             const shareableLink = `https://www.subx.click/?id=${id}`;
