@@ -34,6 +34,79 @@ const invalidLinkUI = `
 </html>
 `;
 
+// 🛡️ واجهة الخطأ إذا كان الـ VPN مفعلاً
+const vpnBlockUI = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN Detected 🛡️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
+        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(255, 165, 0, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
+        h1 { color: #ffa500; margin-bottom: 15px; font-size: 1.6rem; font-weight: 800; }
+        p { color: #aaa; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+        .error-icon { font-size: 60px; color: #ffa500; margin-bottom: 20px; text-shadow: 0 0 20px rgba(255, 165, 0, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h1>VPN / Proxy Detected!</h1>
+        <p>We detected that you are using a VPN or Proxy connection.</p>
+        <p style="color:#fff; font-weight:bold;">Please turn off your VPN and refresh the page to continue.</p>
+    </div>
+</body>
+</html>
+`;
+
+// ⏳ واجهة التحميل عند العودة من المهمة
+const verifyingTaskUI = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verifying Task ⏳</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
+        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(74, 222, 128, 0.3); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
+        h1 { color: #4ade80; margin-bottom: 15px; font-size: 1.5rem; font-weight: 800; }
+        p { color: #aaa; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+        .spinner-icon { font-size: 50px; color: #4ade80; margin-bottom: 20px; }
+        #countdown { font-size: 20px; font-weight: bold; color: #ffd700; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner-icon"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+        <h1>Verifying Task...</h1>
+        <p>Please wait <span id="countdown">5</span> seconds while we confirm your task completion.</p>
+    </div>
+    <script>
+        let count = 5;
+        const timer = setInterval(() => {
+            count--;
+            document.getElementById('countdown').innerText = count;
+            if(count <= 0) {
+                clearInterval(timer);
+                window.location.replace('/api/keysystem');
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
+`;
+
 // 🔑 الواجهة الرئيسية لإنشاء المفتاح
 const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
     let actionHtml = '';
@@ -172,6 +245,28 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
 };
 
 export default async function handler(req, res) {
+    // 0. 🛡️ فحص الـ VPN / Proxy أولاً
+    const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
+    let isVPN = false;
+    
+    if (clientIp) {
+        try {
+            // استخدام خدمة مجانية وسريعة لفحص الآي بي
+            const response = await fetch(`https://blackbox.ipinfo.app/lookup/${clientIp}`);
+            const text = await response.text();
+            if (text.trim() === 'Y') {
+                isVPN = true;
+            }
+        } catch (error) {
+            console.error("VPN check failed");
+        }
+    }
+
+    if (isVPN) {
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        return res.status(403).send(vpnBlockUI);
+    }
+
     const cookieHeader = req.headers.cookie || '';
     
     // 1. التقاط بصمة اللاعب (HWID)
@@ -201,7 +296,6 @@ export default async function handler(req, res) {
         try {
             const keyDoc = await db.collection("keys").doc(activeKey).get();
             if (!keyDoc.exists) {
-                // لو المفتاح اتمسح من لوحة التحكم، ألغه وأجبر اللاعب على إنشاء واحد جديد
                 activeKey = null;
                 errorMessage = "Your key has expired or been deleted. Please get a new key!";
                 res.setHeader('Set-Cookie', [
@@ -215,7 +309,7 @@ export default async function handler(req, res) {
         }
     }
 
-    // 4. معالجة عودة المستخدم من Linkvertise بنجاح
+    // 4. معالجة عودة المستخدم من Linkvertise (إظهار شاشة الانتظار 5 ثوانٍ)
     if (req.method === "GET" && req.query.complete_step) {
         const completedStep = parseInt(req.query.complete_step);
         if (completedStep === keyStep + 1 && completedStep <= 3) {
@@ -228,8 +322,9 @@ export default async function handler(req, res) {
         ];
         
         res.setHeader('Set-Cookie', cookies);
-        res.writeHead(302, { Location: '/api/keysystem' });
-        return res.end();
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        // إظهار شاشة الـ Loading بدلاً من التحويل المباشر
+        return res.status(200).send(verifyingTaskUI);
     }
 
     // 5. إنشاء المفتاح بعد تخطي الـ 3 مهام
@@ -245,7 +340,7 @@ export default async function handler(req, res) {
                 createdAt: Date.now(),
                 expiresAt: expiresAt,
                 hwid: userHwid, // ربط المفتاح ببصمة اللاعب إجبارياً
-                ip: req.headers["x-forwarded-for"]?.split(",")[0] || "Unknown"
+                ip: clientIp || "Unknown"
             });
 
             res.setHeader('Set-Cookie', [
