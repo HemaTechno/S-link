@@ -587,7 +587,7 @@
                 const inputId = `input-${link.id}`;
                 const safeContent = escapeHTML(link.url || "");
                 // Modified: Hardcoded base URL for copy links
-                const shareableLink = `https://www.subx.click/?id=${link.id}`;
+                const shareableLink = `https://www.subx.click/${link.id}`;
                 
                 const linkItem = document.createElement('div');
                 linkItem.className = 'link-item';
