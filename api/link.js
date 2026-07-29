@@ -21,7 +21,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 
     let actionHtml = '';
 
-    // HTML & CSS الخاص بالأزرار (تم التعديل إلى Short Jambo)
+    // HTML & CSS الخاص بالأزرار
     const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, shortjamboUrl) => {
         let buttonsArray = [];
         
@@ -285,14 +285,13 @@ export default async function handler(req, res) {
             
             const linkvertiseCompletionUrl = `https://subx.click/api/complete?id=${id}&network=linkvertise&tc=[tc]`;
             const lootlabsCompletionUrl = `https://subx.click/api/complete?id=${id}&network=lootlabs&tc=[tc]`;
-            // التعديل الهام هنا للشبكة الجديدة 
             const shortjamboCompletionUrl = `https://subx.click/api/complete?id=${id}&network=shortjambo`;
 
-            // ✅ فحص الكوكيز لمعرفة ما إذا كان المستخدم قد تخطى Short Jambo خلال الـ 24 ساعة الماضية
+            // ✅ فحص الكوكيز لمعرفة ما إذا كان المستخدم قد تخطى Short Jambo خلال الـ 24 ساعة الماضية[cite: 13]
             const cookieHeader = req.headers.cookie || '';
             const hasShortjamboCooldown = cookieHeader.includes('shortjambo_24h_cooldown=1');
 
-            // ✅ يظهر Linkvertise إذا كان مفعلاً من الإعدادات، أو إجبارياً إذا كان المستخدم قد استهلك Short Jambo
+            // ✅ يظهر Linkvertise إذا كان مفعلاً من الإعدادات، أو إجبارياً إذا كان المستخدم قد استهلك Short Jambo[cite: 13]
             const shouldShowLinkvertise = (adSettings.linkvertise !== false) || hasShortjamboCooldown;
 
             if (shouldShowLinkvertise) {
@@ -315,20 +314,26 @@ export default async function handler(req, res) {
                 }
             }
 
-            // ✅ تفعيل Short Jambo فقط إذا كان مفعلاً من الإعدادات + لم يتم تخطيه مؤخراً من قبل هذا المتصفح
+            // ✅ تفعيل Short Jambo بشكل أسرع ومباشر[cite: 13]
             if (adSettings.shortjambo !== false && !hasShortjamboCooldown) {
                 try {
-                    const reqUrl = `https://short-jambo.com/api?api=${SHORT_JAMBO_API}&url=${encodeURIComponent(shortjamboCompletionUrl)}`;
+                    // استخدام ميزة النص المباشر من الـ API لسرعة المعالجة
+                    const reqUrl = `https://short-jambo.com/api?api=${SHORT_JAMBO_API}&url=${encodeURIComponent(shortjamboCompletionUrl)}&format=text`;
                     const response = await axios.get(reqUrl);
-                    if (response.data && response.data.status === 'success') {
-                        urls.shortjambo = response.data.shortenedUrl;
+                    
+                    if (response.data && response.data.startsWith('http')) {
+                        urls.shortjambo = response.data;
+                    } else {
+                        // الرابط الاحتياطي المباشر (Quick Link) في حال فشل جلب النص[cite: 13]
+                        urls.shortjambo = `https://short-jambo.com/st?api=${SHORT_JAMBO_API}&url=${encodeURIComponent(shortjamboCompletionUrl)}`;
                     }
                 } catch (err) {
                     console.error("Short Jambo API Error", err.message);
+                    urls.shortjambo = `https://short-jambo.com/st?api=${SHORT_JAMBO_API}&url=${encodeURIComponent(shortjamboCompletionUrl)}`;
                 }
             }
 
-            // إذا كانت جميع الشبكات الإعلانية معطلة في الإعدادات، يتم إظهار المحتوى المباشر
+            // إذا كانت جميع الشبكات الإعلانية معطلة في الإعدادات، يتم إظهار المحتوى المباشر[cite: 13]
             if (!urls.lootlabs && !urls.linkvertise && !urls.shortjambo) {
                 const isUrlCheck = data.url.trim().startsWith("http");
                 if (!isUrlCheck) {
