@@ -16,6 +16,7 @@ export default async function handler(req, res) {
                     completedTasksCount: data.completedTasksCount || 0, 
                     lootlabsCompletions: data.lootlabsCompletions || 0,       // تم إضافة عداد LootLabs
                     linkvertiseCompletions: data.linkvertiseCompletions || 0, // تم إضافة عداد Linkvertise
+                    nitrolinkCompletions: data.nitrolinkCompletions || 0,     // تم إضافة عداد Nitro Link
                     createdAt: data.createdAt || Date.now(),
                     tier: data.tier || 1,
                     tasks: data.tasks || 3,
