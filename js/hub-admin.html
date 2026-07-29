@@ -9,14 +9,15 @@
     
     <style>
         :root {
-            --bg-dark: #07080b;
-            --sidebar-bg: rgba(12, 14, 20, 0.9);
-            --glass-bg: rgba(18, 20, 28, 0.75);
+            --bg-dark: #07090f;
+            --sidebar-bg: rgba(12, 14, 22, 0.85);
+            --glass-bg: rgba(18, 21, 31, 0.75);
             --glass-border: rgba(255, 215, 0, 0.15);
             --primary-gold: #ffd700;
             --success-green: #4ade80;
             --danger-red: #f87171;
             --text-main: #ffffff;
+            --text-muted: #9ca3af;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
@@ -29,54 +30,69 @@
             display: flex; height: 100vh; overflow: hidden; color: var(--text-main);
         }
 
+        /* Sidebar Styling */
         .sidebar {
-            width: 260px; background: var(--sidebar-bg); backdrop-filter: blur(20px);
-            border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; padding: 25px 15px;
+            width: 270px; background: var(--sidebar-bg); backdrop-filter: blur(25px);
+            border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; padding: 30px 20px;
         }
-        .sidebar-brand { font-size: 20px; font-weight: 800; color: var(--primary-gold); display: flex; align-items: center; gap: 10px; margin-bottom: 35px; padding-left: 10px; }
+        .sidebar-brand { font-size: 22px; font-weight: 800; color: var(--primary-gold); display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
         .nav-btn {
-            width: 100%; padding: 14px 18px; background: transparent; border: none; color: #9ca3af;
-            font-size: 14px; font-weight: 700; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px;
-            transition: 0.3s; margin-bottom: 8px; text-align: left;
+            width: 100%; padding: 15px 18px; background: transparent; border: none; color: var(--text-muted);
+            font-size: 14px; font-weight: 700; border-radius: 14px; cursor: pointer; display: flex; align-items: center; gap: 14px;
+            transition: 0.3s; margin-bottom: 10px; text-align: left;
         }
-        .nav-btn:hover, .nav-btn.active { background: rgba(255, 215, 0, 0.1); color: var(--primary-gold); border: 1px solid rgba(255, 215, 0, 0.2); }
+        .nav-btn:hover, .nav-btn.active { background: rgba(255, 215, 0, 0.1); color: var(--primary-gold); border: 1px solid rgba(255, 215, 0, 0.25); box-shadow: 0 4px 15px rgba(255, 215, 0, 0.05); }
 
+        /* Main Content Area */
         .main-content { flex: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; position: relative; }
         
-        .panel { display: none; width: 100%; max-width: 800px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
-        .panel.active { display: block; animation: fadeIn 0.4s ease; }
+        .panel { display: none; width: 100%; max-width: 900px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); padding: 40px; border-radius: 24px; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
+        .panel.active { display: block; animation: fadeIn 0.3s ease; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        h2 { font-size: 20px; font-weight: 800; color: var(--primary-gold); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        h2 { font-size: 22px; font-weight: 800; color: var(--primary-gold); margin-bottom: 25px; display: flex; align-items: center; gap: 12px; }
         
-        .input-group { position: relative; margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; font-weight: 600; }
+        .input-group { position: relative; margin-bottom: 18px; }
+        .input-group label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; }
         .input-group input, .input-group select {
-            width: 100%; padding: 12px 15px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px; color: #fff; font-size: 13px; outline: none; transition: 0.3s;
+            width: 100%; padding: 14px 16px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px; color: #fff; font-size: 14px; outline: none; transition: 0.3s;
         }
-        .input-group input:focus, .input-group select:focus { border-color: var(--primary-gold); box-shadow: 0 0 10px rgba(255,215,0,0.1); }
-        .input-group select option { background: #111; }
+        .input-group input:focus, .input-group select:focus { border-color: var(--primary-gold); box-shadow: 0 0 12px rgba(255,215,0,0.15); }
+        .input-group select option { background: #111; color: #fff; }
 
         .btn-action {
-            width: 100%; padding: 14px; border-radius: 12px; border: none; cursor: pointer;
-            font-size: 14px; font-weight: 800; color: #000;
+            width: 100%; padding: 15px; border-radius: 14px; border: none; cursor: pointer;
+            font-size: 15px; font-weight: 800; color: #000;
             background: linear-gradient(135deg, var(--primary-gold) 0%, #b89b00 100%);
-            transition: 0.3s; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: 0.3s; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,215,0,0.2); }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(255, 215, 0, 0.25); }
 
+        /* Modern Grid/Cards for Manage Hub */
+        .map-card { background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 16px; padding: 20px; margin-bottom: 20px; }
+        .map-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(255, 255, 255, 0.06); padding-bottom: 12px; }
+        .map-title { font-size: 17px; font-weight: 700; color: var(--primary-gold); display: flex; align-items: center; gap: 8px; }
+        
+        .script-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.03); padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; border: 1px solid rgba(255, 255, 255, 0.04); }
+        .script-info { display: flex; flex-direction: column; gap: 3px; max-width: 600px; }
+        .script-name { font-size: 14px; font-weight: 700; color: #fff; }
+        .script-url { font-size: 11px; color: var(--text-muted); font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 500px; }
+
+        .btn-sm { padding: 7px 14px; border-radius: 8px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .btn-edit { background: rgba(255, 215, 0, 0.15); color: var(--primary-gold); border: 1px solid rgba(255, 215, 0, 0.3); }
+        .btn-edit:hover { background: rgba(255, 215, 0, 0.25); }
+        .btn-delete { background: rgba(248, 113, 113, 0.15); color: var(--danger-red); border: 1px solid rgba(248, 113, 113, 0.3); }
+        .btn-delete:hover { background: rgba(248, 113, 113, 0.25); }
+
+        /* Tables */
         .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
-        .data-table th { color: var(--primary-gold); font-weight: 700; background: rgba(0,0,0,0.3); }
-        .action-btns { display: flex; gap: 6px; }
-        .btn-sm { padding: 5px 10px; border-radius: 6px; border: none; font-size: 11px; font-weight: 700; cursor: pointer; }
-        .btn-edit { background: rgba(255, 215, 0, 0.2); color: var(--primary-gold); }
-        .btn-delete { background: rgba(248, 113, 113, 0.2); color: var(--danger-red); }
+        .data-table th, .data-table td { padding: 14px 18px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 13px; }
+        .data-table th { color: var(--primary-gold); font-weight: 700; background: rgba(0,0,0,0.4); }
 
-        .auth-box { position: absolute; top: 30px; right: 40px; width: 220px; z-index: 10; }
-        #statusMsg { text-align: center; margin-top: 10px; font-weight: 700; font-size: 12px; }
+        .auth-box { position: absolute; top: 30px; right: 40px; width: 240px; z-index: 10; }
+        #statusMsg { text-align: center; margin-top: 15px; font-weight: 700; font-size: 13px; }
     </style>
 </head>
 <body>
@@ -91,9 +107,9 @@
 
     <div class="main-content">
         
-        <!-- Admin Password -->
+        <!-- Admin Password Box -->
         <div class="auth-box">
-            <input type="password" id="adminKey" placeholder="Admin Password..." style="width:100%; padding: 10px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:#fff; font-size:12px; outline:none;">
+            <input type="password" id="adminKey" placeholder="Admin Password..." style="width:100%; padding: 12px 16px; background:rgba(0,0,0,0.7); border:1px solid rgba(255,255,255,0.2); border-radius:12px; color:#fff; font-size:13px; outline:none;">
         </div>
 
         <!-- 1. Add Panel -->
@@ -134,11 +150,11 @@
             <p id="statusMsg"></p>
         </div>
 
-        <!-- 2. Manage Hub Panel (Edit & Delete Scripts/Maps) -->
+        <!-- 2. Manage Hub Panel (Modern Cards View) -->
         <div id="managePanel" class="panel">
             <h2><i class="fa-solid fa-folder-tree"></i> Manage Maps & Scripts</h2>
-            <div style="max-height: 400px; overflow-y: auto;">
-                <div id="mapsContainer">Loading...</div>
+            <div style="max-height: 500px; overflow-y: auto; padding-right: 5px;" id="mapsContainer">
+                <p style="text-align:center; color:var(--text-muted); padding:20px;">Loading hub data...</p>
             </div>
         </div>
 
@@ -146,21 +162,21 @@
         <div id="keysPanel" class="panel">
             <h2><i class="fa-solid fa-key"></i> Custom & Universal Keys</h2>
             
-            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                <div class="input-group">
+            <div style="background: rgba(0,0,0,0.35); padding: 20px; border-radius: 16px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05);">
+                <div class="input-group" style="margin-bottom: 12px;">
                     <label>Expiration Hours (e.g. 24 = 1 Day, 720 = 30 Days)</label>
                     <input type="number" id="keyHours" value="24">
                 </div>
                 <button class="btn-action" onclick="generateCustomKey()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Universal Key</button>
             </div>
 
-            <div style="max-height: 250px; overflow-y: auto;">
+            <div style="max-height: 300px; overflow-y: auto;">
                 <table class="data-table">
                     <thead>
                         <tr><th>Key</th><th>Expires At</th><th>Action</th></tr>
                     </thead>
                     <tbody id="keysTableBody">
-                        <tr><td colspan="3" style="text-align:center; color:#888;">Loading keys...</td></tr>
+                        <tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Loading keys...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -244,33 +260,50 @@
 
         async function fetchHubData() {
             const container = document.getElementById('mapsContainer');
-            container.innerHTML = 'Loading...';
+            container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:20px;">Loading maps and scripts...</p>';
+            
             const res = await fetch('/api/scripts');
             const data = await res.json();
+            
             if(data.success) {
                 cachedHubs = data.games;
                 container.innerHTML = '';
+                
+                if(data.games.length === 0) {
+                    container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:20px;">No maps found yet.</p>';
+                    return;
+                }
+
                 data.games.forEach(g => {
                     let scriptsHtml = '';
-                    g.scripts.forEach((s, idx) => {
-                        scriptsHtml += `
-                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:8px; margin-top:5px;">
-                                <span style="font-size:12px;">📄 ${s.name}</span>
-                                <div class="action-btns">
-                                    <button class="btn-sm btn-edit" onclick="editScript('${g.id}', ${idx}, '${s.name}', '${s.url}')">Edit</button>
-                                    <button class="btn-sm btn-delete" onclick="deleteScript('${g.id}', ${idx})">Delete</button>
+                    if(g.scripts && g.scripts.length > 0) {
+                        g.scripts.forEach((s, idx) => {
+                            scriptsHtml += `
+                                <div class="script-item">
+                                    <div class="script-info">
+                                        <span class="script-name"><i class="fa-solid fa-code" style="color:var(--success-green); margin-right:6px;"></i> ${s.name}</span>
+                                        <span class="script-url">${s.url}</span>
+                                    </div>
+                                    <div style="display:flex; gap:6px;">
+                                        <button class="btn-sm btn-edit" onclick="editScript('${g.id}', ${idx}, '${s.name.replace(/'/g, "\\'")}', '${s.url.replace(/'/g, "\\'")}')"><i class="fa-solid fa-pen"></i> Edit</button>
+                                        <button class="btn-sm btn-delete" onclick="deleteScript('${g.id}', ${idx})"><i class="fa-solid fa-trash"></i> Delete</button>
+                                    </div>
                                 </div>
-                            </div>
-                        `;
-                    });
+                            `;
+                        });
+                    } else {
+                        scriptsHtml = '<p style="font-size:12px; color:var(--text-muted); padding:5px 0;">No scripts added to this map yet.</p>';
+                    }
 
                     container.innerHTML += `
-                        <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:15px;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                                <h3 style="color:var(--primary-gold); font-size:15px;">🎮 ${g.gameName}</h3>
-                                <button class="btn-sm btn-delete" onclick="deleteMap('${g.id}')">Delete Map</button>
+                        <div class="map-card">
+                            <div class="map-header">
+                                <span class="map-title"><i class="fa-solid fa-gamepad"></i> ${g.gameName}</span>
+                                <button class="btn-sm btn-delete" onclick="deleteMap('${g.id}')"><i class="fa-solid fa-trash-can"></i> Delete Map</button>
                             </div>
-                            ${scriptsHtml || '<p style="font-size:11px; color:#777;">No scripts in this map.</p>'}
+                            <div class="script-list">
+                                ${scriptsHtml}
+                            </div>
                         </div>
                     `;
                 });
@@ -279,13 +312,16 @@
 
         async function deleteMap(id) {
             const adminKey = document.getElementById('adminKey').value;
-            if(!confirm("Delete this map and all its scripts?")) return;
-            await fetch('/api/scripts', {
+            if(!confirm("Are you sure you want to delete this map and all its scripts?")) return;
+            
+            const res = await fetch('/api/scripts', {
                 method: 'DELETE',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ id, adminKey })
             });
-            fetchHubData();
+            const data = await res.json();
+            if(data.success) fetchHubData();
+            else alert("Error: " + data.message);
         }
 
         async function deleteScript(mapId, scriptIdx) {
@@ -293,14 +329,18 @@
             const targetGame = cachedHubs.find(g => g.id === mapId);
             if(!targetGame) return;
 
-            targetGame.scripts.splice(scriptIdx, 1); // حذف السكربت من القائمة
+            if(!confirm("Are you sure you want to delete this script?")) return;
 
-            await fetch('/api/scripts', {
+            targetGame.scripts.splice(scriptIdx, 1);
+
+            const res = await fetch('/api/scripts', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ adminKey, gameName: targetGame.gameName, scripts: targetGame.scripts })
             });
-            fetchHubData();
+            const data = await res.json();
+            if(data.success) fetchHubData();
+            else alert("Error: " + data.message);
         }
 
         async function editScript(mapId, scriptIdx, oldName, oldUrl) {
@@ -315,28 +355,36 @@
 
             targetGame.scripts[scriptIdx] = { name: newName, url: newUrl };
 
-            await fetch('/api/scripts', {
+            const res = await fetch('/api/scripts', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ adminKey, gameName: targetGame.gameName, scripts: targetGame.scripts })
             });
-            fetchHubData();
+            const data = await res.json();
+            if(data.success) fetchHubData();
+            else alert("Error: " + data.message);
         }
 
         async function fetchKeys() {
             const tbody = document.getElementById('keysTableBody');
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Loading...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Loading keys...</td></tr>';
+            
             const res = await fetch('/api/keys');
             const data = await res.json();
+            
             if(data.success) {
                 tbody.innerHTML = '';
+                if(data.keys.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">No active keys found.</td></tr>';
+                    return;
+                }
                 data.keys.forEach(k => {
                     const expiryDate = new Date(k.expiresAt).toLocaleString();
                     tbody.innerHTML += `
                         <tr>
-                            <td style="font-family:monospace; font-size:11px;">${k.key}</td>
+                            <td style="font-family:monospace; font-size:12px; color:var(--primary-gold);">${k.key}</td>
                             <td>${expiryDate}</td>
-                            <td><button class="btn-sm btn-delete" onclick="deleteKey('${k.key}')">Delete</button></td>
+                            <td><button class="btn-sm btn-delete" onclick="deleteKey('${k.key}')"><i class="fa-solid fa-trash"></i> Delete</button></td>
                         </tr>
                     `;
                 });
@@ -346,6 +394,7 @@
         async function deleteKey(key) {
             const adminKey = document.getElementById('adminKey').value;
             if(!confirm("Delete this key?")) return;
+            
             await fetch('/api/keys', {
                 method: 'DELETE',
                 headers: {'Content-Type': 'application/json'},
@@ -365,7 +414,7 @@
             });
             const data = await res.json();
             if(data.success) {
-                alert("Key Generated: " + data.key);
+                alert("Key Generated Successfully: " + data.key);
                 fetchKeys();
             } else {
                 alert("Error: " + data.message);
