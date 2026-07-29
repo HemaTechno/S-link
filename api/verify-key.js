@@ -28,7 +28,8 @@ export default async function handler(req, res) {
             return res.status(200).json({ success: false, message: "Key has expired! Get a new one." });
         }
 
-        if (keyData.hwid !== hwid) {
+        // 🟢 التعديل هنا: السماح للمفاتيح المخصصة (Universal Keys) بالمرور بدون مشاكل
+        if (keyData.hwid !== hwid && keyData.hwid !== "UNIVERSAL_KEY") {
             await keyRef.delete(); 
             return res.status(200).json({ success: false, message: "Key Sharing Detected! Your key has been DESTROYED." });
         }
