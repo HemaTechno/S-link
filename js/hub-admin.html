@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SubX Hub Manager 👑</title>
+    <title>SubX Admin Dashboard 👑</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
             --bg-dark: #0a0a0f;
-            --glass-bg: rgba(20, 21, 25, 0.7);
+            --sidebar-bg: rgba(15, 16, 22, 0.85);
+            --glass-bg: rgba(20, 21, 28, 0.7);
             --glass-border: rgba(255, 215, 0, 0.15);
             --primary-gold: #ffd700;
             --success-green: #4ade80;
+            --danger-red: #f87171;
             --text-main: #ffffff;
         }
 
@@ -22,262 +24,300 @@
         body {
             background-color: var(--bg-dark);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(255, 215, 0, 0.05) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(74, 222, 128, 0.05) 0px, transparent 50%);
-            display: flex; justify-content: center; align-items: center; min-height: 100vh;
-            color: var(--text-main); padding: 20px;
+                radial-gradient(at 0% 0%, rgba(255, 215, 0, 0.04) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(74, 222, 128, 0.04) 0px, transparent 50%);
+            display: flex; height: 100vh; overflow: hidden; color: var(--text-main);
         }
 
-        .dashboard-card {
-            width: 550px; max-width: 100%; padding: 40px; border-radius: 24px;
-            background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.05);
-            position: relative; overflow: hidden;
+        /* Sidebar Bar */
+        .sidebar {
+            width: 260px; background: var(--sidebar-bg); backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; padding: 25px 15px;
         }
-
-        .dashboard-card::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
-            background: linear-gradient(90deg, var(--primary-gold), var(--success-green));
+        .sidebar-brand { font-size: 20px; font-weight: 800; color: var(--primary-gold); display: flex; align-items: center; gap: 10px; margin-bottom: 35px; padding-left: 10px; }
+        .nav-btn {
+            width: 100%; padding: 14px 18px; background: transparent; border: none; color: #9ca3af;
+            font-size: 15px; font-weight: 700; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px;
+            transition: 0.3s; margin-bottom: 8px; text-align: left;
         }
+        .nav-btn:hover, .nav-btn.active { background: rgba(255, 215, 0, 0.1); color: var(--primary-gold); border: 1px solid rgba(255, 215, 0, 0.2); }
 
-        .header { text-align: center; margin-bottom: 30px; }
-        .header h1 { font-size: 24px; font-weight: 800; color: var(--primary-gold); display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .header p { color: #888; font-size: 14px; margin-top: 5px; }
-
-        .auth-section { margin-bottom: 25px; }
+        /* Main Content Area */
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; }
         
-        .input-group { position: relative; margin-bottom: 20px; }
-        .input-group i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--primary-gold); font-size: 16px; }
-        .input-group input, .input-group select {
-            width: 100%; padding: 15px 15px 15px 45px;
-            background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 14px; color: #fff; font-size: 15px; font-weight: 500;
-            transition: all 0.3s ease; outline: none; appearance: none;
-        }
-        .input-group input:focus, .input-group select:focus {
-            border-color: var(--primary-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); background: rgba(0, 0, 0, 0.6);
-        }
-        .input-group select option { background: #111; color: #fff; }
+        .panel { display: none; width: 100%; max-width: 750px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        .panel.active { display: block; animation: fadeIn 0.4s ease; }
 
-        /* Tabs Styling */
-        .tabs { display: flex; gap: 10px; margin-bottom: 25px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 14px; }
-        .tab-btn {
-            flex: 1; padding: 12px; border: none; background: transparent; color: #888;
-            border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 700; transition: 0.3s;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        }
-        .tab-btn.active { background: rgba(255, 215, 0, 0.1); color: var(--primary-gold); border: 1px solid rgba(255, 215, 0, 0.2); }
-
-        .tab-content { display: none; animation: fadeIn 0.4s ease forwards; }
-        .tab-content.active { display: block; }
-        
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .btn-submit {
-            width: 100%; padding: 16px; border-radius: 14px; border: none; cursor: pointer;
-            font-size: 16px; font-weight: 800; color: #000;
-            background: linear-gradient(135deg, var(--primary-gold) 0%, #b89b00 100%);
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-            transition: transform 0.3s, box-shadow 0.3s; margin-top: 10px;
+        h2 { font-size: 22px; font-weight: 800; color: var(--primary-gold); margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+        
+        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 13px; color: #aaa; margin-bottom: 8px; font-weight: 600; }
+        .input-group input, .input-group select {
+            width: 100%; padding: 14px 15px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; color: #fff; font-size: 14px; outline: none; transition: 0.3s;
         }
-        .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255, 215, 0, 0.2); }
+        .input-group input:focus, .input-group select:focus { border-color: var(--primary-gold); box-shadow: 0 0 10px rgba(255,215,0,0.1); }
+        .input-group select option { background: #111; }
 
-        #statusMsg { text-align: center; margin-top: 20px; font-weight: 700; font-size: 14px; min-height: 20px; }
+        .btn-action {
+            width: 100%; padding: 15px; border-radius: 12px; border: none; cursor: pointer;
+            font-size: 15px; font-weight: 800; color: #000;
+            background: linear-gradient(135deg, var(--primary-gold) 0%, #b89b00 100%);
+            transition: 0.3s; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,215,0,0.2); }
+
+        /* Tables for Managing */
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+        .data-table th { color: var(--primary-gold); font-weight: 700; background: rgba(0,0,0,0.3); }
+        .action-btns { display: flex; gap: 8px; }
+        .btn-sm { padding: 6px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .btn-edit { background: rgba(74, 222, 128, 0.2); color: var(--success-green); }
+        .btn-delete { background: rgba(248, 113, 113, 0.2); color: var(--danger-red); }
+
+        .auth-bar { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        #statusMsg { text-align: center; margin-top: 15px; font-weight: 700; font-size: 13px; }
     </style>
 </head>
 <body>
 
-    <div class="dashboard-card">
-        <div class="header">
-            <h1><i class="fa-solid fa-crown"></i> SubX Script Hub</h1>
-            <p>Manage Games and Scripts Professionally</p>
+    <!-- Sidebar Bar -->
+    <div class="sidebar">
+        <div class="sidebar-brand"><i class="fa-solid fa-crown"></i> SubX Admin</div>
+        <button class="nav-btn active" onclick="switchPanel('addPanel', this)"><i class="fa-solid fa-plus-circle"></i> Add Map / Script</button>
+        <button class="nav-btn" onclick="switchPanel('managePanel', this); fetchHubData();"><i class="fa-solid fa-folder-open"></i> Manage Hub</button>
+        <button class="nav-btn" onclick="switchPanel('keysPanel', this); fetchKeys();"><i class="fa-solid fa-key"></i> Manage Keys</button>
+    </div>
+
+    <!-- Main Content Panels -->
+    <div class="main-content">
+        
+        <!-- Admin Password Bar (Shared) -->
+        <div style="position: absolute; top: 30px; right: 40px; width: 250px;">
+            <input type="password" id="adminKey" placeholder="Admin Password..." style="width:100%; padding: 10px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#fff; font-size:12px;">
         </div>
 
-        <div class="auth-section">
+        <!-- 1. Add Panel -->
+        <div id="addPanel" class="panel active">
+            <h2><i class="fa-solid fa-circle-plus"></i> Add Map or Script</h2>
+            
             <div class="input-group">
-                <i class="fa-solid fa-lock"></i>
-                <input type="password" id="adminKey" placeholder="Enter Admin Password...">
-            </div>
-        </div>
-
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('mapTab', this)"><i class="fa-solid fa-gamepad"></i> Add New Map</button>
-            <button class="tab-btn" onclick="switchTab('scriptTab', this)"><i class="fa-solid fa-code"></i> Add Script</button>
-        </div>
-
-        <!-- 🎮 قسم إضافة ماب جديد -->
-        <div id="mapTab" class="tab-content active">
-            <div class="input-group">
-                <i class="fa-solid fa-heading"></i>
-                <input type="text" id="mapName" placeholder="Game / Map Name (e.g. Blox Fruits)">
-            </div>
-            <div class="input-group">
-                <i class="fa-solid fa-hashtag"></i>
-                <input type="text" id="placeId" placeholder="Roblox Place ID (Optional)">
-            </div>
-            <button class="btn-submit" onclick="addMap()">
-                <i class="fa-solid fa-folder-plus"></i> Create Map Folder
-            </button>
-        </div>
-
-        <!-- 💻 قسم إضافة سكربت لماب موجود -->
-        <div id="scriptTab" class="tab-content">
-            <div class="input-group">
-                <i class="fa-solid fa-list"></i>
-                <select id="mapSelect">
-                    <option value="" disabled selected>Loading Maps...</option>
+                <label>Action Type</label>
+                <select id="addType" onchange="toggleAddType()">
+                    <option value="map">Create New Map Folder</option>
+                    <option value="script">Add Script to Map</option>
                 </select>
             </div>
-            <div class="input-group">
-                <i class="fa-solid fa-file-signature"></i>
-                <input type="text" id="scriptName" placeholder="Script Name (e.g. Auto Farm Hub)">
+
+            <div id="mapFields">
+                <div class="input-group">
+                    <label>Map Name</label>
+                    <input type="text" id="mapName" placeholder="e.g. Blox Fruits">
+                </div>
             </div>
-            <div class="input-group">
-                <i class="fa-solid fa-link"></i>
-                <input type="text" id="scriptUrl" placeholder="Raw Script URL (https://raw.github...)">
+
+            <div id="scriptFields" style="display:none;">
+                <div class="input-group">
+                    <label>Select Target Map</label>
+                    <select id="targetMapSelect"><option value="">Loading maps...</option></select>
+                </div>
+                <div class="input-group">
+                    <label>Script Name</label>
+                    <input type="text" id="scriptName" placeholder="e.g. Auto Farm Hub">
+                </div>
+                <div class="input-group">
+                    <label>Script URL / Loadstring</label>
+                    <input type="text" id="scriptUrl" placeholder="https://raw.githubusercontent.com/...">
+                </div>
             </div>
-            <button class="btn-submit" onclick="addScript()">
-                <i class="fa-solid fa-cloud-arrow-up"></i> Upload Script to Map
-            </button>
+
+            <button class="btn-action" onclick="executeAdd()"><i class="fa-solid fa-save"></i> Save Data</button>
+            <p id="statusMsg"></p>
         </div>
 
-        <div id="statusMsg"></div>
+        <!-- 2. Manage Hub Content Panel -->
+        <div id="managePanel" class="panel">
+            <h2><i class="fa-solid fa-folder-tree"></i> Manage Maps & Scripts</h2>
+            <div style="max-height: 400px; overflow-y: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Map Name</th><th>Scripts Count</th><th>Actions</th></tr>
+                    </thead>
+                    <tbody id="hubTableBody">
+                        <tr><td colspan="3" style="text-align:center; color:#888;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3. Manage Keys Panel (Custom Expiry & Universal Keys) -->
+        <div id="keysPanel" class="panel">
+            <h2><i class="fa-solid fa-key"></i> Generate & Manage Custom Keys</h2>
+            
+            <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                <h3 style="font-size: 14px; color: var(--primary-gold); margin-bottom: 12px;">Create Custom Universal Key</h3>
+                <div class="input-group">
+                    <label>Expiration Hours (e.g. 24 for 1 day, 720 for 30 days, or 99999 for Lifetime)</label>
+                    <input type="number" id="keyHours" value="24" placeholder="Hours">
+                </div>
+                <button class="btn-action" onclick="generateCustomKey()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Key</button>
+            </div>
+
+            <h3 style="font-size: 14px; color: #fff; margin-bottom: 10px;">Active Database Keys</h3>
+            <div style="max-height: 250px; overflow-y: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Key</th><th>Expires In</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="keysTableBody">
+                        <tr><td colspan="3" style="text-align:center; color:#888;">Loading keys...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        let allGamesData = []; // لحفظ بيانات المابات والسكربتات الحالية
+        let cachedHubs = [];
 
-        // 1. التبديل بين التبويبات (Tabs)
-        function switchTab(tabId, btnElement) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            btnElement.classList.add('active');
+        function switchPanel(panelId, btn) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            btn.classList.add('active');
+        }
 
-            if(tabId === 'scriptTab') {
-                fetchMaps(); // تحديث قائمة المابات عند فتح قسم السكربتات
+        function toggleAddType() {
+            const type = document.getElementById('addType').value;
+            if(type === 'map') {
+                document.getElementById('mapFields').style.display = 'block';
+                document.getElementById('scriptFields').style.display = 'none';
+            } else {
+                document.getElementById('mapFields').style.display = 'none';
+                document.getElementById('scriptFields').style.display = 'block';
+                loadMapDropdown();
             }
         }
 
-        // 2. جلب المابات من قاعدة البيانات لملء القائمة المنسدلة (Dropdown)
-        async function fetchMaps() {
-            const select = document.getElementById('mapSelect');
-            select.innerHTML = '<option value="" disabled selected>Loading Maps...</option>';
-            
-            try {
-                const response = await fetch('/api/scripts');
-                const data = await response.json();
+        async function loadMapDropdown() {
+            const select = document.getElementById('targetMapSelect');
+            select.innerHTML = '<option value="">Loading...</option>';
+            const res = await fetch('/api/scripts');
+            const data = await res.json();
+            if(data.success) {
+                cachedHubs = data.games;
+                select.innerHTML = '';
+                data.games.forEach(g => {
+                    select.innerHTML += `<option value="${g.id}">${g.gameName}</option>`;
+                });
+            }
+        }
+
+        async function executeAdd() {
+            const adminKey = document.getElementById('adminKey').value;
+            const type = document.getElementById('addType').value;
+            const status = document.getElementById('statusMsg');
+
+            if(type === 'map') {
+                const gameName = document.getElementById('mapName').value;
+                if(!gameName) return showStatus("Enter map name!", "#ff4d4d");
                 
-                if (data.success && data.games.length > 0) {
-                    allGamesData = data.games; // حفظ الداتا محلياً
-                    select.innerHTML = '<option value="" disabled selected>-- Select Target Map --</option>';
-                    data.games.forEach(game => {
-                        select.innerHTML += `<option value="${game.id}">${game.gameName} (${game.scripts.length} Scripts)</option>`;
-                    });
-                } else {
-                    select.innerHTML = '<option value="" disabled selected>No Maps Found! Add a map first.</option>';
-                }
-            } catch (err) {
-                select.innerHTML = '<option value="" disabled selected>Error loading maps.</option>';
-            }
-        }
-
-        // 3. دالة إضافة ماب جديد
-        async function addMap() {
-            const adminKey = document.getElementById('adminKey').value;
-            const gameName = document.getElementById('mapName').value;
-            const placeId = document.getElementById('placeId').value;
-            const status = document.getElementById('statusMsg');
-
-            if (!adminKey || !gameName) {
-                showStatus("Please enter Admin Key and Map Name!", "#ff4d4d");
-                return;
-            }
-
-            showStatus('<i class="fa-solid fa-spinner fa-spin"></i> Creating Map...', "#ffd700");
-
-            // نرسل الماب بسكربتات فارغة (مجلد فاضي)
-            try {
                 const res = await fetch('/api/scripts', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ adminKey, gameName, placeId, scripts: [] })
+                    body: JSON.stringify({ adminKey, gameName, scripts: [] })
                 });
-
                 const data = await res.json();
-                if (data.success) {
-                    showStatus('<i class="fa-solid fa-circle-check"></i> Map created successfully!', "#4ade80");
-                    document.getElementById('mapName').value = '';
-                    document.getElementById('placeId').value = '';
-                    fetchMaps(); // تحديث القائمة خلف الكواليس
-                } else {
-                    showStatus("Error: " + data.message, "#ff4d4d");
-                }
-            } catch (err) {
-                showStatus("Network Error!", "#ff4d4d");
-            }
-        }
+                if(data.success) showStatus("Map created successfully! ✅", "#4ade80");
+                else showStatus(data.message, "#ff4d4d");
 
-        // 4. دالة إضافة سكربت بداخل الماب المختار
-        async function addScript() {
-            const adminKey = document.getElementById('adminKey').value;
-            const selectedMapId = document.getElementById('mapSelect').value;
-            const scriptName = document.getElementById('scriptName').value;
-            const scriptUrl = document.getElementById('scriptUrl').value;
-            const status = document.getElementById('statusMsg');
+            } else {
+                const mapId = document.getElementById('targetMapSelect').value;
+                const scriptName = document.getElementById('scriptName').value;
+                const scriptUrl = document.getElementById('scriptUrl').value;
+                
+                const targetGame = cachedHubs.find(g => g.id === mapId);
+                if(!targetGame || !scriptName || !scriptUrl) return showStatus("Fill all fields!", "#ff4d4d");
 
-            if (!adminKey || !selectedMapId || !scriptName || !scriptUrl) {
-                showStatus("Please fill all fields!", "#ff4d4d");
-                return;
-            }
-
-            showStatus('<i class="fa-solid fa-spinner fa-spin"></i> Uploading Script...', "#ffd700");
-
-            // البحث عن الماب الذي تم اختياره وجلب السكربتات القديمة الخاصة به
-            const targetGame = allGamesData.find(g => g.id === selectedMapId);
-            if (!targetGame) return showStatus("Map data not found!", "#ff4d4d");
-
-            // إضافة السكربت الجديد للسكربتات القديمة
-            const updatedScripts = [...targetGame.scripts, { name: scriptName, url: scriptUrl }];
-
-            try {
+                const updatedScripts = [...targetGame.scripts, { name: scriptName, url: scriptUrl }];
                 const res = await fetch('/api/scripts', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ 
-                        adminKey, 
-                        gameName: targetGame.gameName, 
-                        placeId: targetGame.placeId, 
-                        scripts: updatedScripts 
-                    })
+                    body: JSON.stringify({ adminKey, gameName: targetGame.gameName, scripts: updatedScripts })
                 });
-
                 const data = await res.json();
-                if (data.success) {
-                    showStatus('<i class="fa-solid fa-circle-check"></i> Script added successfully!', "#4ade80");
-                    document.getElementById('scriptName').value = '';
-                    document.getElementById('scriptUrl').value = '';
-                    fetchMaps(); // تحديث عدد السكربتات في القائمة
-                } else {
-                    showStatus("Error: " + data.message, "#ff4d4d");
-                }
-            } catch (err) {
-                showStatus("Network Error!", "#ff4d4d");
+                if(data.success) showStatus("Script added successfully! ✅", "#4ade80");
+                else showStatus(data.message, "#ff4d4d");
             }
         }
 
-        // دالة مساعدة لإظهار الرسائل
+        async function fetchHubData() {
+            const tbody = document.getElementById('hubTableBody');
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Loading...</td></tr>';
+            const res = await fetch('/api/scripts');
+            const data = await res.json();
+            if(data.success) {
+                cachedHubs = data.games;
+                tbody.innerHTML = '';
+                data.games.forEach(g => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><b>${g.gameName}</b></td>
+                            <td>${g.scripts.length} Scripts</td>
+                            <td>
+                                <button class="btn-sm btn-delete" onclick="deleteMap('${g.id}')">Delete Map</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        async function deleteMap(id) {
+            const adminKey = document.getElementById('adminKey').value;
+            if(!confirm("Are you sure to delete this map?")) return;
+            const res = await fetch('/api/scripts', {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ id, adminKey })
+            });
+            fetchHubData();
+        }
+
+        async function fetchKeys() {
+            const tbody = document.getElementById('keysTableBody');
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Loading keys...</td></tr>';
+            // سننشئ إندبوينت خاص لجلب المفاتيح أو عرضها
+            // (تأكد من إنشاء API لجلب المفاتيح لو أردت عرضها هنا)
+        }
+
+        async function generateCustomKey() {
+            const adminKey = document.getElementById('adminKey').value;
+            const hours = parseInt(document.getElementById('keyHours').value) || 24;
+            
+            const res = await fetch('/api/create-key', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ adminKey, hours })
+            });
+            const data = await res.json();
+            if(data.success) {
+                alert("Key Generated Successfully: " + data.key);
+            } else {
+                alert("Error: " + data.message);
+            }
+        }
+
         function showStatus(text, color) {
             const status = document.getElementById('statusMsg');
             status.style.color = color;
             status.innerHTML = text;
-            setTimeout(() => { status.innerHTML = ''; }, 4000);
+            setTimeout(() => status.innerHTML = '', 4000);
         }
-
-        // جلب المابات عند فتح الصفحة لأول مرة
-        window.onload = fetchMaps;
     </script>
 </body>
 </html>
