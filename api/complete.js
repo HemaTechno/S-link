@@ -200,23 +200,23 @@ export default async function handler(req, res) {
     const lastCompleted = recentCompletions.get(cacheKey);
     const isIpDuplicate = lastCompleted && (Date.now() - lastCompleted < COOLDOWN_TIME);
 
-    // ب- فحص متصفح المستخدم للـ Nitro Link (لمدة 24 ساعة) متجاهلاً الـ VPN
+    // ب- فحص متصفح المستخدم للـ Short Jambo (لمدة 24 ساعة) متجاهلاً الـ VPN
     const cookieHeader = req.headers.cookie || '';
-    const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
+    const hasShortjamboCooldown = cookieHeader.includes('shortjambo_24h_cooldown=1');
     
-    let isNitroBlocked = false;
-    let shouldSetNitroCookie = false;
+    let isShortjamboBlocked = false;
+    let shouldSetShortjamboCookie = false;
 
-    if (network === 'nitrolink') {
-        if (hasNitroCooldown) {
-            isNitroBlocked = true; // المستخدم تخطى رابط نايترو لينك من نفس المتصفح خلال 24 ساعة
+    if (network === 'shortjambo') {
+        if (hasShortjamboCooldown) {
+            isShortjamboBlocked = true; // المستخدم تخطى رابط شورت جامبو من نفس المتصفح خلال 24 ساعة
         } else {
-            shouldSetNitroCookie = true; // المستخدم نظيف، سنسجل له كوكيز جديدة
+            shouldSetShortjamboCookie = true; // المستخدم نظيف، سنسجل له كوكيز جديدة
         }
     }
 
-    // إذا كان هناك تكرار (سواء سريع بالآي بي، أو خلال 24 ساعة للنايترو عبر المتصفح) نعطيه المحتوى فقط ونتوقف
-    const isDuplicate = isIpDuplicate || isNitroBlocked;
+    // إذا كان هناك تكرار (سواء سريع بالآي بي، أو خلال 24 ساعة للشورت جامبو عبر المتصفح) نعطيه المحتوى فقط ونتوقف
+    const isDuplicate = isIpDuplicate || isShortjamboBlocked;
 
     // تنظيف كاش الـ IP القديم لتجنب استهلاك الذاكرة
     if (recentCompletions.size > 500) {
@@ -269,12 +269,13 @@ export default async function handler(req, res) {
             lastCompletedAt: Date.now()
         };
 
+        // تحديث العدادات بناءً على الشبكة
         if (network === 'lootlabs') {
             updateData.lootlabsCompletions = (data.lootlabsCompletions || 0) + 1;
         } else if (network === 'linkvertise') {
             updateData.linkvertiseCompletions = (data.linkvertiseCompletions || 0) + 1;
-        } else if (network === 'nitrolink') {
-            updateData.nitrolinkCompletions = (data.nitrolinkCompletions || 0) + 1;
+        } else if (network === 'shortjambo') {
+            updateData.shortjamboCompletions = (data.shortjamboCompletions || 0) + 1;
         }
 
         await doc.ref.update(updateData);
@@ -294,10 +295,10 @@ export default async function handler(req, res) {
                 networkName = 'Linkvertise';
                 embedColor = 45244;
                 thumbnailUrl = "https://i.ibb.co/YFSmFQTL/linkvertise.png"; 
-            } else if (network === 'nitrolink') {
-                networkName = 'Nitro Link';
-                embedColor = 16734002;
-                thumbnailUrl = "https://i.ibb.co/GQ22bMHN/nitrolink.png";
+            } else if (network === 'shortjambo') {
+                networkName = 'Short Jambo';
+                embedColor = 16735838; // أحمر فاتح متناسق
+                thumbnailUrl = "https://www.subx.click/short-jambo.png"; // الديسكورد يتطلب رابط كامل للصورة
             }
 
             const shareableLink = `https://www.subx.click/?id=${id}`;
@@ -350,9 +351,9 @@ export default async function handler(req, res) {
             }).catch(err => console.error("Discord Webhook Error:", err));
         }
 
-        // ✅ زرع الكوكيز في متصفح المستخدم لمدة 24 ساعة (86400 ثانية) إذا كان التخطي من نايترو لينك
-        if (shouldSetNitroCookie) {
-            res.setHeader("Set-Cookie", "nitro_24h_cooldown=1; Max-Age=86400; Path=/; SameSite=Lax");
+        // ✅ زرع الكوكيز في متصفح المستخدم لمدة 24 ساعة (86400 ثانية) إذا كان التخطي من Short Jambo
+        if (shouldSetShortjamboCookie) {
+            res.setHeader("Set-Cookie", "shortjambo_24h_cooldown=1; Max-Age=86400; Path=/; SameSite=Lax");
         }
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
