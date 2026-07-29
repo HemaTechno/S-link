@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SubX Admin Dashboard 👑</title>
+    <title>SubX Pro Dashboard 👑</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --bg-dark: #0a0a0f;
-            --sidebar-bg: rgba(15, 16, 22, 0.85);
-            --glass-bg: rgba(20, 21, 28, 0.7);
+            --bg-dark: #07080b;
+            --sidebar-bg: rgba(12, 14, 20, 0.9);
+            --glass-bg: rgba(18, 20, 28, 0.75);
             --glass-border: rgba(255, 215, 0, 0.15);
             --primary-gold: #ffd700;
             --success-green: #4ade80;
@@ -24,12 +24,11 @@
         body {
             background-color: var(--bg-dark);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(255, 215, 0, 0.04) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(74, 222, 128, 0.04) 0px, transparent 50%);
+                radial-gradient(at 0% 0%, rgba(255, 215, 0, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(74, 222, 128, 0.05) 0px, transparent 50%);
             display: flex; height: 100vh; overflow: hidden; color: var(--text-main);
         }
 
-        /* Sidebar Bar */
         .sidebar {
             width: 260px; background: var(--sidebar-bg); backdrop-filter: blur(20px);
             border-right: 1px solid var(--glass-border); display: flex; flex-direction: column; padding: 25px 15px;
@@ -37,49 +36,47 @@
         .sidebar-brand { font-size: 20px; font-weight: 800; color: var(--primary-gold); display: flex; align-items: center; gap: 10px; margin-bottom: 35px; padding-left: 10px; }
         .nav-btn {
             width: 100%; padding: 14px 18px; background: transparent; border: none; color: #9ca3af;
-            font-size: 15px; font-weight: 700; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px;
+            font-size: 14px; font-weight: 700; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 12px;
             transition: 0.3s; margin-bottom: 8px; text-align: left;
         }
         .nav-btn:hover, .nav-btn.active { background: rgba(255, 215, 0, 0.1); color: var(--primary-gold); border: 1px solid rgba(255, 215, 0, 0.2); }
 
-        /* Main Content Area */
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; }
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; display: flex; justify-content: center; align-items: flex-start; position: relative; }
         
-        .panel { display: none; width: 100%; max-width: 750px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        .panel { display: none; width: 100%; max-width: 800px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); padding: 35px; border-radius: 24px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); }
         .panel.active { display: block; animation: fadeIn 0.4s ease; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        h2 { font-size: 22px; font-weight: 800; color: var(--primary-gold); margin-bottom: 25px; display: flex; align-items: center; gap: 10px; }
+        h2 { font-size: 20px; font-weight: 800; color: var(--primary-gold); margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         
-        .input-group { position: relative; margin-bottom: 20px; }
-        .input-group label { display: block; font-size: 13px; color: #aaa; margin-bottom: 8px; font-weight: 600; }
+        .input-group { position: relative; margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 12px; color: #aaa; margin-bottom: 6px; font-weight: 600; }
         .input-group input, .input-group select {
-            width: 100%; padding: 14px 15px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px; color: #fff; font-size: 14px; outline: none; transition: 0.3s;
+            width: 100%; padding: 12px 15px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px; color: #fff; font-size: 13px; outline: none; transition: 0.3s;
         }
         .input-group input:focus, .input-group select:focus { border-color: var(--primary-gold); box-shadow: 0 0 10px rgba(255,215,0,0.1); }
         .input-group select option { background: #111; }
 
         .btn-action {
-            width: 100%; padding: 15px; border-radius: 12px; border: none; cursor: pointer;
-            font-size: 15px; font-weight: 800; color: #000;
+            width: 100%; padding: 14px; border-radius: 12px; border: none; cursor: pointer;
+            font-size: 14px; font-weight: 800; color: #000;
             background: linear-gradient(135deg, var(--primary-gold) 0%, #b89b00 100%);
             transition: 0.3s; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
         .btn-action:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,215,0,0.2); }
 
-        /* Tables for Managing */
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
         .data-table th { color: var(--primary-gold); font-weight: 700; background: rgba(0,0,0,0.3); }
-        .action-btns { display: flex; gap: 8px; }
-        .btn-sm { padding: 6px 12px; border-radius: 6px; border: none; font-size: 11px; font-weight: 700; cursor: pointer; }
-        .btn-edit { background: rgba(74, 222, 128, 0.2); color: var(--success-green); }
+        .action-btns { display: flex; gap: 6px; }
+        .btn-sm { padding: 5px 10px; border-radius: 6px; border: none; font-size: 11px; font-weight: 700; cursor: pointer; }
+        .btn-edit { background: rgba(255, 215, 0, 0.2); color: var(--primary-gold); }
         .btn-delete { background: rgba(248, 113, 113, 0.2); color: var(--danger-red); }
 
-        .auth-bar { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        #statusMsg { text-align: center; margin-top: 15px; font-weight: 700; font-size: 13px; }
+        .auth-box { position: absolute; top: 30px; right: 40px; width: 220px; z-index: 10; }
+        #statusMsg { text-align: center; margin-top: 10px; font-weight: 700; font-size: 12px; }
     </style>
 </head>
 <body>
@@ -92,12 +89,11 @@
         <button class="nav-btn" onclick="switchPanel('keysPanel', this); fetchKeys();"><i class="fa-solid fa-key"></i> Manage Keys</button>
     </div>
 
-    <!-- Main Content Panels -->
     <div class="main-content">
         
-        <!-- Admin Password Bar (Shared) -->
-        <div style="position: absolute; top: 30px; right: 40px; width: 250px;">
-            <input type="password" id="adminKey" placeholder="Admin Password..." style="width:100%; padding: 10px; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:8px; color:#fff; font-size:12px;">
+        <!-- Admin Password -->
+        <div class="auth-box">
+            <input type="password" id="adminKey" placeholder="Admin Password..." style="width:100%; padding: 10px; background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.15); border-radius:8px; color:#fff; font-size:12px; outline:none;">
         </div>
 
         <!-- 1. Add Panel -->
@@ -138,39 +134,30 @@
             <p id="statusMsg"></p>
         </div>
 
-        <!-- 2. Manage Hub Content Panel -->
+        <!-- 2. Manage Hub Panel (Edit & Delete Scripts/Maps) -->
         <div id="managePanel" class="panel">
             <h2><i class="fa-solid fa-folder-tree"></i> Manage Maps & Scripts</h2>
             <div style="max-height: 400px; overflow-y: auto;">
-                <table class="data-table">
-                    <thead>
-                        <tr><th>Map Name</th><th>Scripts Count</th><th>Actions</th></tr>
-                    </thead>
-                    <tbody id="hubTableBody">
-                        <tr><td colspan="3" style="text-align:center; color:#888;">Loading...</td></tr>
-                    </tbody>
-                </table>
+                <div id="mapsContainer">Loading...</div>
             </div>
         </div>
 
-        <!-- 3. Manage Keys Panel (Custom Expiry & Universal Keys) -->
+        <!-- 3. Manage Keys Panel -->
         <div id="keysPanel" class="panel">
-            <h2><i class="fa-solid fa-key"></i> Generate & Manage Custom Keys</h2>
+            <h2><i class="fa-solid fa-key"></i> Custom & Universal Keys</h2>
             
-            <div style="background: rgba(0,0,0,0.3); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                <h3 style="font-size: 14px; color: var(--primary-gold); margin-bottom: 12px;">Create Custom Universal Key</h3>
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
                 <div class="input-group">
-                    <label>Expiration Hours (e.g. 24 for 1 day, 720 for 30 days, or 99999 for Lifetime)</label>
-                    <input type="number" id="keyHours" value="24" placeholder="Hours">
+                    <label>Expiration Hours (e.g. 24 = 1 Day, 720 = 30 Days)</label>
+                    <input type="number" id="keyHours" value="24">
                 </div>
-                <button class="btn-action" onclick="generateCustomKey()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Key</button>
+                <button class="btn-action" onclick="generateCustomKey()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Universal Key</button>
             </div>
 
-            <h3 style="font-size: 14px; color: #fff; margin-bottom: 10px;">Active Database Keys</h3>
             <div style="max-height: 250px; overflow-y: auto;">
                 <table class="data-table">
                     <thead>
-                        <tr><th>Key</th><th>Expires In</th><th>Action</th></tr>
+                        <tr><th>Key</th><th>Expires At</th><th>Action</th></tr>
                     </thead>
                     <tbody id="keysTableBody">
                         <tr><td colspan="3" style="text-align:center; color:#888;">Loading keys...</td></tr>
@@ -210,7 +197,7 @@
             const data = await res.json();
             if(data.success) {
                 cachedHubs = data.games;
-                select.innerHTML = '';
+                select.innerHTML = '<option value="">-- Select Map --</option>';
                 data.games.forEach(g => {
                     select.innerHTML += `<option value="${g.id}">${g.gameName}</option>`;
                 });
@@ -256,22 +243,35 @@
         }
 
         async function fetchHubData() {
-            const tbody = document.getElementById('hubTableBody');
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Loading...</td></tr>';
+            const container = document.getElementById('mapsContainer');
+            container.innerHTML = 'Loading...';
             const res = await fetch('/api/scripts');
             const data = await res.json();
             if(data.success) {
                 cachedHubs = data.games;
-                tbody.innerHTML = '';
+                container.innerHTML = '';
                 data.games.forEach(g => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td><b>${g.gameName}</b></td>
-                            <td>${g.scripts.length} Scripts</td>
-                            <td>
+                    let scriptsHtml = '';
+                    g.scripts.forEach((s, idx) => {
+                        scriptsHtml += `
+                            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,0,0,0.3); padding:8px 12px; border-radius:8px; margin-top:5px;">
+                                <span style="font-size:12px;">📄 ${s.name}</span>
+                                <div class="action-btns">
+                                    <button class="btn-sm btn-edit" onclick="editScript('${g.id}', ${idx}, '${s.name}', '${s.url}')">Edit</button>
+                                    <button class="btn-sm btn-delete" onclick="deleteScript('${g.id}', ${idx})">Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    container.innerHTML += `
+                        <div style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.05); padding:15px; border-radius:12px; margin-bottom:15px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                                <h3 style="color:var(--primary-gold); font-size:15px;">🎮 ${g.gameName}</h3>
                                 <button class="btn-sm btn-delete" onclick="deleteMap('${g.id}')">Delete Map</button>
-                            </td>
-                        </tr>
+                            </div>
+                            ${scriptsHtml || '<p style="font-size:11px; color:#777;">No scripts in this map.</p>'}
+                        </div>
                     `;
                 });
             }
@@ -279,8 +279,8 @@
 
         async function deleteMap(id) {
             const adminKey = document.getElementById('adminKey').value;
-            if(!confirm("Are you sure to delete this map?")) return;
-            const res = await fetch('/api/scripts', {
+            if(!confirm("Delete this map and all its scripts?")) return;
+            await fetch('/api/scripts', {
                 method: 'DELETE',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ id, adminKey })
@@ -288,11 +288,70 @@
             fetchHubData();
         }
 
+        async function deleteScript(mapId, scriptIdx) {
+            const adminKey = document.getElementById('adminKey').value;
+            const targetGame = cachedHubs.find(g => g.id === mapId);
+            if(!targetGame) return;
+
+            targetGame.scripts.splice(scriptIdx, 1); // حذف السكربت من القائمة
+
+            await fetch('/api/scripts', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ adminKey, gameName: targetGame.gameName, scripts: targetGame.scripts })
+            });
+            fetchHubData();
+        }
+
+        async function editScript(mapId, scriptIdx, oldName, oldUrl) {
+            const adminKey = document.getElementById('adminKey').value;
+            const targetGame = cachedHubs.find(g => g.id === mapId);
+            if(!targetGame) return;
+
+            const newName = prompt("Edit Script Name:", oldName);
+            if(newName === null) return;
+            const newUrl = prompt("Edit Script URL / Loadstring:", oldUrl);
+            if(newUrl === null) return;
+
+            targetGame.scripts[scriptIdx] = { name: newName, url: newUrl };
+
+            await fetch('/api/scripts', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ adminKey, gameName: targetGame.gameName, scripts: targetGame.scripts })
+            });
+            fetchHubData();
+        }
+
         async function fetchKeys() {
             const tbody = document.getElementById('keysTableBody');
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Loading keys...</td></tr>';
-            // سننشئ إندبوينت خاص لجلب المفاتيح أو عرضها
-            // (تأكد من إنشاء API لجلب المفاتيح لو أردت عرضها هنا)
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center;">Loading...</td></tr>';
+            const res = await fetch('/api/keys');
+            const data = await res.json();
+            if(data.success) {
+                tbody.innerHTML = '';
+                data.keys.forEach(k => {
+                    const expiryDate = new Date(k.expiresAt).toLocaleString();
+                    tbody.innerHTML += `
+                        <tr>
+                            <td style="font-family:monospace; font-size:11px;">${k.key}</td>
+                            <td>${expiryDate}</td>
+                            <td><button class="btn-sm btn-delete" onclick="deleteKey('${k.key}')">Delete</button></td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        async function deleteKey(key) {
+            const adminKey = document.getElementById('adminKey').value;
+            if(!confirm("Delete this key?")) return;
+            await fetch('/api/keys', {
+                method: 'DELETE',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ key, adminKey })
+            });
+            fetchKeys();
         }
 
         async function generateCustomKey() {
@@ -306,7 +365,8 @@
             });
             const data = await res.json();
             if(data.success) {
-                alert("Key Generated Successfully: " + data.key);
+                alert("Key Generated: " + data.key);
+                fetchKeys();
             } else {
                 alert("Error: " + data.message);
             }
