@@ -251,9 +251,9 @@ local function loadScriptHub()
         return btn
     end
 
-    local HideBtn = createControlButton("◐")
-    local MinBtn = createControlButton("—")
-    local CloseBtn = createControlButton("✕")
+    local HideBtn = createControlButton("📴")
+    local MinBtn = createControlButton("⛔")
+    local CloseBtn = createControlButton("❌ ")
 
     -- ==========================================
     -- المحتوى (صغير)
