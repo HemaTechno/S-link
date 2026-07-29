@@ -10,7 +10,7 @@
     <style>
         :root {
             --bg-dark: #07090f;
-            --sidebar-bg: rgba(12, 14, 22, 0.92);
+            --sidebar-bg: rgba(12, 14, 22, 0.94);
             --glass-bg: rgba(18, 21, 31, 0.80);
             --glass-border: rgba(255, 215, 0, 0.15);
             --primary-gold: #ffd700;
@@ -20,7 +20,8 @@
             --text-muted: #9ca3af;
             --radius-card: 20px;
             --radius-sm: 14px;
-            --transition: 0.25s ease;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow: 0 30px 60px rgba(0,0,0,0.6);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
@@ -37,7 +38,7 @@
             color: var(--text-main);
         }
 
-        /* ----- SIDEBAR (responsive) ----- */
+        /* ===== SIDEBAR ===== */
         .sidebar {
             width: 270px;
             min-width: 200px;
@@ -53,6 +54,8 @@
             height: 100vh;
             position: sticky;
             top: 0;
+            transition: transform var(--transition), margin var(--transition);
+            z-index: 30;
         }
         .sidebar-brand {
             font-size: 22px;
@@ -84,7 +87,6 @@
             margin-bottom: 8px;
             text-align: left;
             line-height: 1.3;
-            word-break: break-word;
         }
         .nav-btn i { font-size: 18px; min-width: 22px; }
         .nav-btn:hover, .nav-btn.active {
@@ -94,7 +96,32 @@
             box-shadow: 0 4px 15px rgba(255, 215, 0, 0.04);
         }
 
-        /* ----- MAIN CONTENT (flexible) ----- */
+        /* toggle button for mobile */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 16px;
+            left: 16px;
+            z-index: 50;
+            background: rgba(12, 14, 22, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            font-size: 22px;
+            color: var(--primary-gold);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-toggle:hover { background: rgba(255, 215, 0, 0.15); }
+
+        /* ===== MAIN ===== */
         .main-content {
             flex: 1;
             padding: 24px 28px;
@@ -118,7 +145,7 @@
             border: 1px solid var(--glass-border);
             padding: 32px 30px;
             border-radius: var(--radius-card);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+            box-shadow: var(--shadow);
             margin: 0 auto;
         }
         .panel.active {
@@ -153,7 +180,6 @@
             color: var(--text-muted);
             margin-bottom: 6px;
             font-weight: 600;
-            letter-spacing: 0.3px;
         }
         .input-group input,
         .input-group select {
@@ -175,7 +201,6 @@
         .input-group select option {
             background: #1a1d27;
             color: #fff;
-            padding: 6px;
         }
 
         .btn-action {
@@ -200,7 +225,7 @@
             box-shadow: 0 8px 24px rgba(255, 215, 0, 0.25);
         }
 
-        /* ----- cards / manage ----- */
+        /* cards */
         .map-card {
             background: rgba(0, 0, 0, 0.40);
             border: 1px solid rgba(255, 255, 255, 0.06);
@@ -266,7 +291,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 100%;
-            display: block;
         }
         .script-actions {
             display: flex;
@@ -302,13 +326,11 @@
         }
         .btn-delete:hover { background: rgba(248, 113, 113, 0.25); }
 
-        /* ----- tables (keys) ----- */
+        /* table */
         .data-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 8px;
-            display: table;
-            table-layout: auto;
         }
         .data-table th, .data-table td {
             padding: 14px 16px;
@@ -324,7 +346,6 @@
         }
         .data-table td:last-child { text-align: right; }
 
-        /* auth box (responsive) */
         .auth-box {
             position: sticky;
             top: 20px;
@@ -356,53 +377,48 @@
             min-height: 26px;
         }
 
-        /* scroll */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.25); border-radius: 12px; }
 
-        /* ----- RESPONSIVE (ALL DEVICES) ----- */
+        /* ===== RESPONSIVE ===== */
         @media screen and (max-width: 820px) {
             body { flex-direction: column; height: auto; overflow-y: auto; }
+            
+            .sidebar-toggle {
+                display: flex !important;
+            }
+
             .sidebar {
-                width: 100%;
-                height: auto;
-                min-height: auto;
-                padding: 20px 16px;
-                flex-direction: row;
-                flex-wrap: wrap;
-                align-items: center;
-                justify-content: flex-start;
-                border-right: none;
-                border-bottom: 1px solid var(--glass-border);
-                position: sticky;
+                position: fixed;
                 top: 0;
-                z-index: 20;
+                left: 0;
+                width: 280px;
+                height: 100vh;
+                transform: translateX(-100%);
+                margin: 0;
+                border-right: 1px solid var(--glass-border);
+                border-radius: 0 20px 20px 0;
+                box-shadow: 0 0 60px rgba(0,0,0,0.8);
+                padding: 28px 18px;
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 40;
+                background: rgba(7, 9, 15, 0.96);
                 backdrop-filter: blur(30px);
                 -webkit-backdrop-filter: blur(30px);
-                gap: 8px;
             }
-            .sidebar-brand {
-                margin-bottom: 0;
-                width: 100%;
-                font-size: 20px;
-                justify-content: center;
+            .sidebar.open {
+                transform: translateX(0);
             }
-            .nav-btn {
-                width: auto;
-                flex: 1 0 auto;
-                padding: 12px 16px;
-                font-size: 14px;
-                justify-content: center;
-                margin-bottom: 0;
-                border-radius: 40px;
-            }
-            .nav-btn i { font-size: 16px; }
+            .sidebar-brand { margin-bottom: 30px; }
+            .nav-btn { padding: 14px 16px; font-size: 15px; }
+
             .main-content {
                 padding: 16px;
                 height: auto;
                 min-height: 100vh;
                 display: block;
+                padding-top: 80px;
             }
             .panel {
                 padding: 24px 18px;
@@ -423,10 +439,10 @@
         }
 
         @media screen and (max-width: 480px) {
-            .sidebar { padding: 14px 10px; }
-            .sidebar-brand { font-size: 18px; gap: 8px; }
-            .nav-btn { padding: 10px 12px; font-size: 13px; gap: 8px; }
-            .main-content { padding: 12px; }
+            .sidebar { width: 260px; padding: 20px 14px; }
+            .sidebar-brand { font-size: 20px; }
+            .nav-btn { padding: 12px 14px; font-size: 14px; gap: 12px; }
+            .main-content { padding: 12px; padding-top: 76px; }
             .panel { padding: 18px 12px; }
             h2 { font-size: 19px; }
             .input-group input, .input-group select { padding: 12px 14px; font-size: 14px; }
@@ -438,19 +454,41 @@
             .data-table td:last-child { text-align: left; }
             .data-table tr { display: block; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
             .data-table thead { display: none; }
+            .sidebar-toggle { width: 44px; height: 44px; font-size: 20px; top: 12px; left: 12px; }
+        }
+        @media screen and (max-width: 360px) {
+            .nav-btn { font-size: 13px; padding: 10px 12px; }
+            .sidebar-brand { font-size: 18px; }
         }
 
-        /* extra tiny */
-        @media screen and (max-width: 360px) {
-            .nav-btn { font-size: 12px; padding: 8px 10px; }
-            .sidebar-brand { font-size: 16px; }
+        /* overlay when sidebar open */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 35;
         }
+        .sidebar-overlay.active { display: block; }
     </style>
 </head>
 <body>
 
-    <!-- Sidebar Bar (fully responsive) -->
-    <div class="sidebar">
+    <!-- Toggle Button (visible on mobile) -->
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+        <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <!-- Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-brand"><i class="fa-solid fa-crown"></i> SubX Admin</div>
         <button class="nav-btn active" onclick="switchPanel('addPanel', this)"><i class="fa-solid fa-plus-circle"></i> Add Map / Script</button>
         <button class="nav-btn" onclick="switchPanel('managePanel', this); fetchHubData();"><i class="fa-solid fa-folder-open"></i> Manage Hub</button>
@@ -458,17 +496,15 @@
     </div>
 
     <div class="main-content">
-        
-        <!-- Admin Password Box (positioned fluid) -->
         <div style="width:100%; display:flex; flex-direction:column;">
+            <!-- Admin Password Box -->
             <div class="auth-box">
                 <input type="password" id="adminKey" placeholder="Admin Password..." aria-label="Admin Password">
             </div>
 
-            <!-- 1. Add Panel -->
+            <!-- Add Panel -->
             <div id="addPanel" class="panel active">
                 <h2><i class="fa-solid fa-circle-plus"></i> Add Map or Script</h2>
-                
                 <div class="input-group">
                     <label>Action Type</label>
                     <select id="addType" onchange="toggleAddType()">
@@ -476,14 +512,12 @@
                         <option value="script">Add Script to Map</option>
                     </select>
                 </div>
-
                 <div id="mapFields">
                     <div class="input-group">
                         <label>Map Name</label>
                         <input type="text" id="mapName" placeholder="e.g. Blox Fruits">
                     </div>
                 </div>
-
                 <div id="scriptFields" style="display:none;">
                     <div class="input-group">
                         <label>Select Target Map</label>
@@ -498,12 +532,11 @@
                         <input type="text" id="scriptUrl" placeholder="https://raw.githubusercontent.com/...">
                     </div>
                 </div>
-
                 <button class="btn-action" onclick="executeAdd()"><i class="fa-solid fa-save"></i> Save Data</button>
                 <p id="statusMsg"></p>
             </div>
 
-            <!-- 2. Manage Hub Panel (cards) -->
+            <!-- Manage Hub -->
             <div id="managePanel" class="panel">
                 <h2><i class="fa-solid fa-folder-tree"></i> Manage Maps & Scripts</h2>
                 <div style="max-height: 60vh; overflow-y: auto; padding-right: 4px;" id="mapsContainer">
@@ -511,10 +544,9 @@
                 </div>
             </div>
 
-            <!-- 3. Manage Keys Panel -->
+            <!-- Keys Panel -->
             <div id="keysPanel" class="panel">
                 <h2><i class="fa-solid fa-key"></i> Custom & Universal Keys</h2>
-                
                 <div style="background: rgba(0,0,0,0.30); padding: 20px; border-radius: 18px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05);">
                     <div class="input-group" style="margin-bottom: 12px;">
                         <label>Expiration Hours (e.g. 24 = 1 Day, 720 = 30 Days)</label>
@@ -522,12 +554,9 @@
                     </div>
                     <button class="btn-action" onclick="generateCustomKey()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Universal Key</button>
                 </div>
-
                 <div style="max-height: 350px; overflow-y: auto; width:100%;">
                     <table class="data-table">
-                        <thead>
-                            <tr><th>Key</th><th>Expires At</th><th>Action</th></tr>
-                        </thead>
+                        <thead><tr><th>Key</th><th>Expires At</th><th>Action</th></tr></thead>
                         <tbody id="keysTableBody">
                             <tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Loading keys...</td></tr>
                         </tbody>
@@ -538,6 +567,35 @@
     </div>
 
     <script>
+        // ===== SIDEBAR TOGGLE (mobile) =====
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('sidebarToggle');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+            const icon = toggleBtn.querySelector('i');
+            if(sidebar.classList.contains('open')) {
+                icon.className = 'fa-solid fa-xmark';
+            } else {
+                icon.className = 'fa-solid fa-bars';
+            }
+        }
+
+        toggleBtn.addEventListener('click', toggleSidebar);
+        overlay.addEventListener('click', toggleSidebar);
+
+        // close sidebar when a nav button is clicked (mobile)
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if(window.innerWidth <= 820 && sidebar.classList.contains('open')) {
+                    toggleSidebar();
+                }
+            });
+        });
+
+        // ===== EXISTING LOGIC (unchanged) =====
         let cachedHubs = [];
 
         function switchPanel(panelId, btn) {
@@ -603,7 +661,6 @@
                 const scriptUrl = document.getElementById('scriptUrl').value.trim();
                 const targetGame = cachedHubs.find(g => g.id === mapId);
                 if(!targetGame || !scriptName || !scriptUrl) return showStatus("Fill all fields!", "#ff4d4d");
-
                 const updatedScripts = [...(targetGame.scripts || []), { name: scriptName, url: scriptUrl }];
                 try {
                     const res = await fetch('/api/scripts', {
@@ -653,16 +710,13 @@
                         } else {
                             scriptsHtml = '<p style="font-size:13px; color:var(--text-muted); padding:6px 0;">No scripts added to this map yet.</p>';
                         }
-
                         container.innerHTML += `
                             <div class="map-card">
                                 <div class="map-header">
                                     <span class="map-title"><i class="fa-solid fa-gamepad"></i> ${g.gameName}</span>
                                     <button class="btn-sm btn-delete" onclick="deleteMap('${g.id}')"><i class="fa-solid fa-trash-can"></i> Delete Map</button>
                                 </div>
-                                <div class="script-list">
-                                    ${scriptsHtml}
-                                </div>
+                                <div class="script-list">${scriptsHtml}</div>
                             </div>
                         `;
                     });
@@ -795,7 +849,6 @@
             setTimeout(() => status.innerHTML = '', 4500);
         }
 
-        // initial load for dropdown if needed
         document.addEventListener('DOMContentLoaded', function() {
             if(document.getElementById('addType').value === 'script') loadMapDropdown();
         });
