@@ -291,7 +291,10 @@ export default async function handler(req, res) {
             const cookieHeader = req.headers.cookie || '';
             const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
 
-            if (adSettings.linkvertise !== false) {
+            // ✅ التعديل هنا: يظهر Linkvertise إذا كان مفعلاً من الإعدادات، أو إجبارياً إذا كان المستخدم قد استهلك Nitro Link
+            const shouldShowLinkvertise = (adSettings.linkvertise !== false) || hasNitroCooldown;
+
+            if (shouldShowLinkvertise) {
                 const base64Url = Buffer.from(linkvertiseCompletionUrl).toString('base64');
                 const randomString = Math.random().toString(36).substring(7);
                 urls.linkvertise = `https://link-to.net/${LINKVERTISE_USER_ID}/${randomString}/dynamic?r=${base64Url}`;
