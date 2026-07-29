@@ -1,79 +1,283 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <title>SubX Script Hub Manager 🎮</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubX Hub Manager 👑</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        body { background: #0c0d10; color: #fff; font-family: 'Tajawal', sans-serif; padding: 30px; display: flex; justify-content: center; }
-        .box { background: rgba(20,21,25,0.8); border: 1px solid rgba(255,255,255,0.1); padding: 30px; border-radius: 20px; width: 500px; }
-        h2 { color: #4ade80; margin-bottom: 20px; text-align: center; }
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.4); border: 1px solid #333; color: #fff; border-radius: 10px; }
-        button { width: 100%; padding: 14px; background: #4ade80; color: #000; border: none; font-weight: bold; border-radius: 10px; cursor: pointer; }
-        button:hover { background: #22c55e; }
-        .script-group { border: 1px dashed #444; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
+        :root {
+            --bg-dark: #0a0a0f;
+            --glass-bg: rgba(20, 21, 25, 0.7);
+            --glass-border: rgba(255, 215, 0, 0.15);
+            --primary-gold: #ffd700;
+            --success-green: #4ade80;
+            --text-main: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(255, 215, 0, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(74, 222, 128, 0.05) 0px, transparent 50%);
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            color: var(--text-main); padding: 20px;
+        }
+
+        .dashboard-card {
+            width: 550px; max-width: 100%; padding: 40px; border-radius: 24px;
+            background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+            position: relative; overflow: hidden;
+        }
+
+        .dashboard-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+            background: linear-gradient(90deg, var(--primary-gold), var(--success-green));
+        }
+
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { font-size: 24px; font-weight: 800; color: var(--primary-gold); display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .header p { color: #888; font-size: 14px; margin-top: 5px; }
+
+        .auth-section { margin-bottom: 25px; }
+        
+        .input-group { position: relative; margin-bottom: 20px; }
+        .input-group i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--primary-gold); font-size: 16px; }
+        .input-group input, .input-group select {
+            width: 100%; padding: 15px 15px 15px 45px;
+            background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px; color: #fff; font-size: 15px; font-weight: 500;
+            transition: all 0.3s ease; outline: none; appearance: none;
+        }
+        .input-group input:focus, .input-group select:focus {
+            border-color: var(--primary-gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); background: rgba(0, 0, 0, 0.6);
+        }
+        .input-group select option { background: #111; color: #fff; }
+
+        /* Tabs Styling */
+        .tabs { display: flex; gap: 10px; margin-bottom: 25px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 14px; }
+        .tab-btn {
+            flex: 1; padding: 12px; border: none; background: transparent; color: #888;
+            border-radius: 10px; cursor: pointer; font-size: 15px; font-weight: 700; transition: 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .tab-btn.active { background: rgba(255, 215, 0, 0.1); color: var(--primary-gold); border: 1px solid rgba(255, 215, 0, 0.2); }
+
+        .tab-content { display: none; animation: fadeIn 0.4s ease forwards; }
+        .tab-content.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .btn-submit {
+            width: 100%; padding: 16px; border-radius: 14px; border: none; cursor: pointer;
+            font-size: 16px; font-weight: 800; color: #000;
+            background: linear-gradient(135deg, var(--primary-gold) 0%, #b89b00 100%);
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: transform 0.3s, box-shadow 0.3s; margin-top: 10px;
+        }
+        .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(255, 215, 0, 0.2); }
+
+        #statusMsg { text-align: center; margin-top: 20px; font-weight: 700; font-size: 14px; min-height: 20px; }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2>🎮 Add / Edit Game Scripts</h2>
-        <input type="password" id="adminKey" placeholder="Admin Password">
-        <input type="text" id="gameName" placeholder="Game Name (e.g. Blox Fruits)">
-        
-        <div id="scriptsContainer">
-            <div class="script-group">
-                <input type="text" class="scriptName" placeholder="Script Name (e.g. Auto Farm Hub)">
-                <input type="text" class="scriptUrl" placeholder="Raw Script URL (https://raw.githubusercontent...)">
+
+    <div class="dashboard-card">
+        <div class="header">
+            <h1><i class="fa-solid fa-crown"></i> SubX Script Hub</h1>
+            <p>Manage Games and Scripts Professionally</p>
+        </div>
+
+        <div class="auth-section">
+            <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="adminKey" placeholder="Enter Admin Password...">
             </div>
         </div>
-        
-        <button type="button" onclick="addScriptInput()" style="background:#333; color:#fff; margin-bottom:15px;">+ Add Another Script</button>
-        <button type="button" onclick="saveGame()">💾 Save Game to Hub</button>
-        <p id="status" style="margin-top:15px; text-align:center;"></p>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('mapTab', this)"><i class="fa-solid fa-gamepad"></i> Add New Map</button>
+            <button class="tab-btn" onclick="switchTab('scriptTab', this)"><i class="fa-solid fa-code"></i> Add Script</button>
+        </div>
+
+        <!-- 🎮 قسم إضافة ماب جديد -->
+        <div id="mapTab" class="tab-content active">
+            <div class="input-group">
+                <i class="fa-solid fa-heading"></i>
+                <input type="text" id="mapName" placeholder="Game / Map Name (e.g. Blox Fruits)">
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-hashtag"></i>
+                <input type="text" id="placeId" placeholder="Roblox Place ID (Optional)">
+            </div>
+            <button class="btn-submit" onclick="addMap()">
+                <i class="fa-solid fa-folder-plus"></i> Create Map Folder
+            </button>
+        </div>
+
+        <!-- 💻 قسم إضافة سكربت لماب موجود -->
+        <div id="scriptTab" class="tab-content">
+            <div class="input-group">
+                <i class="fa-solid fa-list"></i>
+                <select id="mapSelect">
+                    <option value="" disabled selected>Loading Maps...</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-file-signature"></i>
+                <input type="text" id="scriptName" placeholder="Script Name (e.g. Auto Farm Hub)">
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-link"></i>
+                <input type="text" id="scriptUrl" placeholder="Raw Script URL (https://raw.github...)">
+            </div>
+            <button class="btn-submit" onclick="addScript()">
+                <i class="fa-solid fa-cloud-arrow-up"></i> Upload Script to Map
+            </button>
+        </div>
+
+        <div id="statusMsg"></div>
     </div>
 
     <script>
-        function addScriptInput() {
-            const div = document.createElement('div');
-            div.className = 'script-group';
-            div.innerHTML = `
-                <input type="text" class="scriptName" placeholder="Script Name">
-                <input type="text" class="scriptUrl" placeholder="Raw Script URL">
-            `;
-            document.getElementById('scriptsContainer').appendChild(div);
-        }
+        let allGamesData = []; // لحفظ بيانات المابات والسكربتات الحالية
 
-        async function saveGame() {
-            const adminKey = document.getElementById('adminKey').value;
-            const gameName = document.getElementById('gameName').value;
-            const names = document.querySelectorAll('.scriptName');
-            const urls = document.querySelectorAll('.scriptUrl');
+        // 1. التبديل بين التبويبات (Tabs)
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             
-            let scripts = [];
-            names.forEach((el, index) => {
-                if (el.value && urls[index].value) {
-                    scripts.push({ name: el.value, url: urls[index].value });
-                }
-            });
+            document.getElementById(tabId).classList.add('active');
+            btnElement.classList.add('active');
 
-            const status = document.getElementById('status');
-            status.innerText = "Saving...";
-
-            const res = await fetch('/api/scripts', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ adminKey, gameName, scripts })
-            });
-
-            const data = await res.json();
-            if(data.success) {
-                status.style.color = "#4ade80";
-                status.innerText = "Game & Scripts Saved Successfully!";
-            } else {
-                status.style.color = "#ff4d4d";
-                status.innerText = "Error: " + data.message;
+            if(tabId === 'scriptTab') {
+                fetchMaps(); // تحديث قائمة المابات عند فتح قسم السكربتات
             }
         }
+
+        // 2. جلب المابات من قاعدة البيانات لملء القائمة المنسدلة (Dropdown)
+        async function fetchMaps() {
+            const select = document.getElementById('mapSelect');
+            select.innerHTML = '<option value="" disabled selected>Loading Maps...</option>';
+            
+            try {
+                const response = await fetch('/api/scripts');
+                const data = await response.json();
+                
+                if (data.success && data.games.length > 0) {
+                    allGamesData = data.games; // حفظ الداتا محلياً
+                    select.innerHTML = '<option value="" disabled selected>-- Select Target Map --</option>';
+                    data.games.forEach(game => {
+                        select.innerHTML += `<option value="${game.id}">${game.gameName} (${game.scripts.length} Scripts)</option>`;
+                    });
+                } else {
+                    select.innerHTML = '<option value="" disabled selected>No Maps Found! Add a map first.</option>';
+                }
+            } catch (err) {
+                select.innerHTML = '<option value="" disabled selected>Error loading maps.</option>';
+            }
+        }
+
+        // 3. دالة إضافة ماب جديد
+        async function addMap() {
+            const adminKey = document.getElementById('adminKey').value;
+            const gameName = document.getElementById('mapName').value;
+            const placeId = document.getElementById('placeId').value;
+            const status = document.getElementById('statusMsg');
+
+            if (!adminKey || !gameName) {
+                showStatus("Please enter Admin Key and Map Name!", "#ff4d4d");
+                return;
+            }
+
+            showStatus('<i class="fa-solid fa-spinner fa-spin"></i> Creating Map...', "#ffd700");
+
+            // نرسل الماب بسكربتات فارغة (مجلد فاضي)
+            try {
+                const res = await fetch('/api/scripts', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ adminKey, gameName, placeId, scripts: [] })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showStatus('<i class="fa-solid fa-circle-check"></i> Map created successfully!', "#4ade80");
+                    document.getElementById('mapName').value = '';
+                    document.getElementById('placeId').value = '';
+                    fetchMaps(); // تحديث القائمة خلف الكواليس
+                } else {
+                    showStatus("Error: " + data.message, "#ff4d4d");
+                }
+            } catch (err) {
+                showStatus("Network Error!", "#ff4d4d");
+            }
+        }
+
+        // 4. دالة إضافة سكربت بداخل الماب المختار
+        async function addScript() {
+            const adminKey = document.getElementById('adminKey').value;
+            const selectedMapId = document.getElementById('mapSelect').value;
+            const scriptName = document.getElementById('scriptName').value;
+            const scriptUrl = document.getElementById('scriptUrl').value;
+            const status = document.getElementById('statusMsg');
+
+            if (!adminKey || !selectedMapId || !scriptName || !scriptUrl) {
+                showStatus("Please fill all fields!", "#ff4d4d");
+                return;
+            }
+
+            showStatus('<i class="fa-solid fa-spinner fa-spin"></i> Uploading Script...', "#ffd700");
+
+            // البحث عن الماب الذي تم اختياره وجلب السكربتات القديمة الخاصة به
+            const targetGame = allGamesData.find(g => g.id === selectedMapId);
+            if (!targetGame) return showStatus("Map data not found!", "#ff4d4d");
+
+            // إضافة السكربت الجديد للسكربتات القديمة
+            const updatedScripts = [...targetGame.scripts, { name: scriptName, url: scriptUrl }];
+
+            try {
+                const res = await fetch('/api/scripts', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        adminKey, 
+                        gameName: targetGame.gameName, 
+                        placeId: targetGame.placeId, 
+                        scripts: updatedScripts 
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    showStatus('<i class="fa-solid fa-circle-check"></i> Script added successfully!', "#4ade80");
+                    document.getElementById('scriptName').value = '';
+                    document.getElementById('scriptUrl').value = '';
+                    fetchMaps(); // تحديث عدد السكربتات في القائمة
+                } else {
+                    showStatus("Error: " + data.message, "#ff4d4d");
+                }
+            } catch (err) {
+                showStatus("Network Error!", "#ff4d4d");
+            }
+        }
+
+        // دالة مساعدة لإظهار الرسائل
+        function showStatus(text, color) {
+            const status = document.getElementById('statusMsg');
+            status.style.color = color;
+            status.innerHTML = text;
+            setTimeout(() => { status.innerHTML = ''; }, 4000);
+        }
+
+        // جلب المابات عند فتح الصفحة لأول مرة
+        window.onload = fetchMaps;
     </script>
 </body>
 </html>
