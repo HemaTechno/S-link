@@ -586,8 +586,8 @@
             filteredLinks.forEach(link => {
                 const inputId = `input-${link.id}`;
                 const safeContent = escapeHTML(link.url || "");
-                const currentDomain = window.location.origin;
-                const shareableLink = `${currentDomain}/?id=${link.id}`;
+                // Modified: Hardcoded base URL for copy links
+                const shareableLink = `https://www.subx.click/?id=${link.id}`;
                 
                 const linkItem = document.createElement('div');
                 linkItem.className = 'link-item';
@@ -643,7 +643,13 @@
             });
         }
 
-        window.onload = fetchAnalytics;
+        // Live updating
+        function startLiveUpdates() {
+            fetchAnalytics(); // Initial fetch
+            setInterval(fetchAnalytics, 15000); // Fetch every 15 seconds
+        }
+
+        window.onload = startLiveUpdates;
     </script>
 </body>
 </html>
