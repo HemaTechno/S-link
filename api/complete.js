@@ -293,7 +293,7 @@ export default async function handler(req, res) {
             } else if (network === 'linkvertise') {
                 networkName = 'Linkvertise';
                 embedColor = 45244;
-                thumbnailUrl = "https://publisher.linkvertise.com/assets/favicon/favicon.ico"; 
+                thumbnailUrl = "https://i.ibb.co/YFSmFQTL/linkvertise.png"; 
             } else if (network === 'nitrolink') {
                 networkName = 'Nitro Link';
                 embedColor = 16734002;
