@@ -3,11 +3,10 @@ import db from "./firebase.js";
 // ⚠️ تنبيه أمني: يرجى تغيير هذا الرابط فوراً من إعدادات سيرفر ديسكورد لأنك قمت بنشره للعامة!
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
-// نظام لمنع التكرار (Cooldown) لتجنب إرسال الإشعار أو زيادة العداد أكثر من مرة لنفس الشخص
+// نظام لمنع التكرار السريع في الذاكرة (كطبقة حماية أولى)
 const recentCompletions = new Map();
-const COOLDOWN_TIME = 5 * 60 * 1000; // 5 دقائق (لـ IP للشبكات الأخرى)
+const COOLDOWN_TIME = 5 * 60 * 1000; // 5 دقائق
 
-// دالة لحماية النصوص (تمنع الأكواد من إفساد تصميم الصفحة)
 const escapeHTML = (str) => {
     return str.replace(/[&<>'"]/g, 
         tag => ({
@@ -188,37 +187,38 @@ export default async function handler(req, res) {
         return res.status(400).send("Missing Link ID");
     }
 
-    // 1. استخراج الآي بي والدولة
     const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "Unknown";
     
     // ==========================================
-    // 🛡️ نظام الحماية من التكرار المزدوج (IP + Cookies)
+    // 🛡️ نظام الحماية الصارم من التكرار (Cookies + IP)
     // ==========================================
+    const cookieHeader = req.headers.cookie || '';
     
-    // أ- فحص التكرار السريع عبر الـ IP (لمدة 5 دقائق)
+    // 1. هل قام بعمل Refresh للصفحة (لديه كوكيز التخطي لهذا الرابط المحدد)؟
+    const isRefreshSpam = cookieHeader.includes(`cooldown_${id}=1`);
+
+    // 2. فحص التكرار عبر الـ IP (كحماية إضافية لو مسح الكوكيز)
     const cacheKey = `${ip}_${id}`;
     const lastCompleted = recentCompletions.get(cacheKey);
     const isIpDuplicate = lastCompleted && (Date.now() - lastCompleted < COOLDOWN_TIME);
 
-    // ب- فحص متصفح المستخدم للـ Nitro Link (لمدة 24 ساعة) متجاهلاً الـ VPN
-    const cookieHeader = req.headers.cookie || '';
+    // 3. فحص كوكيز النايترو (لمدة 24 ساعة)
     const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
-    
     let isNitroBlocked = false;
     let shouldSetNitroCookie = false;
 
     if (network === 'nitrolink') {
         if (hasNitroCooldown) {
-            isNitroBlocked = true; // المستخدم تخطى رابط نايترو لينك من نفس المتصفح خلال 24 ساعة
+            isNitroBlocked = true; // حاول يتخطى نايترو مرتين في نفس اليوم
         } else {
-            shouldSetNitroCookie = true; // المستخدم نظيف، سنسجل له كوكيز جديدة
+            shouldSetNitroCookie = true; 
         }
     }
 
-    // إذا كان هناك تكرار (سواء سريع بالآي بي، أو خلال 24 ساعة للنايترو عبر المتصفح) نعطيه المحتوى فقط ونتوقف
-    const isDuplicate = isIpDuplicate || isNitroBlocked;
+    // إذا تم رصد أي نوع من التكرار، نعطيه الصفحة مباشرة بدون تسجيل في الداتا
+    const isDuplicate = isRefreshSpam || isIpDuplicate || isNitroBlocked;
 
-    // تنظيف كاش الـ IP القديم لتجنب استهلاك الذاكرة
+    // تنظيف كاش الـ IP القديم
     if (recentCompletions.size > 500) {
         const now = Date.now();
         for (let [key, time] of recentCompletions.entries()) {
@@ -237,13 +237,13 @@ export default async function handler(req, res) {
 
         const data = doc.data();
 
-        // ⛔ إذا كان الطلب مكرراً، نظهر الصفحة ونتخطى باقي الكود (لا قواعد بيانات ولا ديسكورد)
+        // ⛔ إذا كان الطلب مكرراً، نظهر الصفحة فوراً ونتخطى باقي الكود
         if (isDuplicate) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             return res.status(200).send(generateSuccessPage(data.url));
         }
 
-        // تسجيل الطلب الجديد في كاش الـ IP
+        // تسجيل الطلب في كاش الـ IP
         recentCompletions.set(cacheKey, Date.now());
 
         // جلب الدولة
@@ -350,12 +350,21 @@ export default async function handler(req, res) {
             }).catch(err => console.error("Discord Webhook Error:", err));
         }
 
-        // ✅ زرع الكوكيز في متصفح المستخدم لمدة 24 ساعة (86400 ثانية) إذا كان التخطي من نايترو لينك
+        // ✅ تجهيز الكوكيز التي سيتم زرعها في متصفح المستخدم
+        const cookiesToSet = [];
+        
+        // كوكيز عامة تمنع المستخدم من عمل Refresh وتكرار نفس الرابط (لمدة 5 دقائق)
+        cookiesToSet.push(`cooldown_${id}=1; Max-Age=300; Path=/; SameSite=Lax`);
+        
+        // كوكيز مخصصة لشبكة نايترو (لمدة 24 ساعة)
         if (shouldSetNitroCookie) {
-            res.setHeader("Set-Cookie", "nitro_24h_cooldown=1; Max-Age=86400; Path=/; SameSite=Lax");
+            cookiesToSet.push(`nitro_24h_cooldown=1; Max-Age=86400; Path=/; SameSite=Lax`);
         }
 
+        // إرسال الكوكيز للمتصفح مع الصفحة
+        res.setHeader("Set-Cookie", cookiesToSet);
         res.setHeader("Content-Type", "text/html; charset=utf-8");
+        
         return res.status(200).send(generateSuccessPage(data.url));
 
     } catch (err) {
