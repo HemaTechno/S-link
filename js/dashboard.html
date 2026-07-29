@@ -204,7 +204,7 @@
         .badge-logo { height: 14px; width: auto; object-fit: contain; }
         .lootlabs-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); color: #ffd700; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
         .linkvertise-badge { background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-        .nitrolink-badge { background: rgba(255, 87, 34, 0.1); border: 1px solid rgba(255, 87, 34, 0.3); color: #ff5722; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .shortjambo-badge { background: rgba(255, 94, 94, 0.1); border: 1px solid rgba(255, 94, 94, 0.3); color: #ff5e5e; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
         .success-badge { padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(96, 165, 250, 0.3); background: rgba(96, 165, 250, 0.1); color: #60a5fa; }
         
         .toggle-icon { font-size: 12px; color: #ffd700; transition: transform 0.35s ease, background 0.3s ease; background: rgba(255, 255, 255, 0.05); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.1); margin-left: 10px;}
@@ -299,12 +299,12 @@
                         </label>
                     </div>
                     
-                    <!-- Modified: Using local image /nitrolink.png instead of external URL -->
+                    <!-- Modified to Short Jambo -->
                     <div class="switch-wrapper">
-                        <img src="/nitrolink.png" alt="Nitro Link" class="network-icon">
-                        <label>Nitro Link</label>
+                        <img src="/short-jambo.png" alt="Short Jambo" class="network-icon">
+                        <label>Short Jambo</label>
                         <label class="switch">
-                            <input type="checkbox" id="nitrolinkToggle" checked>
+                            <input type="checkbox" id="shortjamboToggle" checked>
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -334,10 +334,10 @@
                 <h3><img src="/linkvertise.png" alt="Linkvertise" class="network-icon"> Linkvertise</h3>
                 <div class="value" id="totalLinkvertise" style="color: #4ade80">0</div>
             </div>
-            <!-- Modified: Using local image /nitrolink.png here too -->
+            <!-- Modified to Short Jambo Stat Card -->
             <div class="stat-card">
-                <h3><img src="/nitrolink.png" alt="Nitro Link" class="network-icon"> Nitro Link</h3>
-                <div class="value" id="totalNitroLink" style="color: #ff5722">0</div>
+                <h3><img src="/short-jambo.png" alt="Short Jambo" class="network-icon"> Short Jambo</h3>
+                <div class="value" id="totalShortJambo" style="color: #ff5e5e">0</div>
             </div>
             <div class="stat-card">
                 <h3><i class="fa-solid fa-square-check" style="color: #60a5fa;"></i> Total Complete</h3>
@@ -368,8 +368,8 @@
         async function saveAdSettings() {
             const lootlabs = document.getElementById('lootlabsToggle').checked;
             const linkvertise = document.getElementById('linkvertiseToggle').checked;
-            // Get Nitro Link state
-            const nitrolink = document.getElementById('nitrolinkToggle').checked;
+            // Get Short Jambo state
+            const shortjambo = document.getElementById('shortjamboToggle').checked;
             const adminKey = document.getElementById('adminKey').value;
             const status = document.getElementById('settingsStatus');
 
@@ -389,7 +389,7 @@
                     body: JSON.stringify({
                         lootlabsEnabled: lootlabs,
                         linkvertiseEnabled: linkvertise,
-                        nitrolinkEnabled: nitrolink, // Added nitrolinkEnabled payload
+                        shortjamboEnabled: shortjambo, // Updated payload
                         adminKey: adminKey
                     })
                 });
@@ -433,9 +433,9 @@
             const totalLinkvertise = links.reduce((sum, link) => sum + (link.linkvertiseCompletions || 0), 0);
             document.getElementById('totalLinkvertise').innerText = totalLinkvertise;
 
-            // Added total Nitro Link calculation
-            const totalNitroLink = links.reduce((sum, link) => sum + (link.nitrolinkCompletions || 0), 0);
-            document.getElementById('totalNitroLink').innerText = totalNitroLink;
+            // Added total Short Jambo calculation
+            const totalShortJambo = links.reduce((sum, link) => sum + (link.shortjamboCompletions || 0), 0);
+            document.getElementById('totalShortJambo').innerText = totalShortJambo;
 
             const totalCompleted = links.reduce((sum, link) => sum + (link.completedTasksCount || 0), 0);
             document.getElementById('totalCompleted').innerText = totalCompleted;
@@ -611,10 +611,10 @@
                                 <img src="/linkvertise.png" class="badge-logo" alt="Linkvertise"> 
                                 ${link.linkvertiseCompletions || 0}
                             </span>
-                            <!-- Modified: Using local image /nitrolink.png in the badge -->
-                            <span class="nitrolink-badge">
-                                <img src="/nitrolink.png" class="badge-logo" alt="Nitro Link"> 
-                                ${link.nitrolinkCompletions || 0}
+                            <!-- Modified to Short Jambo Badge -->
+                            <span class="shortjambo-badge">
+                                <img src="/short-jambo.png" class="badge-logo" alt="Short Jambo"> 
+                                ${link.shortjamboCompletions || 0}
                             </span>
                             <span class="success-badge"><i class="fa-solid fa-circle-check"></i> ${link.completedTasksCount || 0} Total</span>
                             <span class="toggle-icon"><i class="fa-solid fa-chevron-down"></i></span>
