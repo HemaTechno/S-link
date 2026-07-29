@@ -1,7 +1,6 @@
 import db from "./firebase.js";
 
 export default async function handler(req, res) {
-    // جلب قائمة المابات والسكربتات مع تنظيف الروابط تلقائياً
     if (req.method === "GET") {
         try {
             const snapshot = await db.collection("hubs").get();
@@ -9,8 +8,6 @@ export default async function handler(req, res) {
 
             snapshot.forEach(doc => {
                 const data = doc.data();
-                
-                // تنظيف واستخراج الرابط الصافي سواء كان رابط مباشر أو داخل loadstring
                 const processedScripts = (data.scripts || []).map(script => {
                     let value = (script.url || "").trim();
                     const match = value.match(/https?:\/\/[^")']+/);
@@ -36,7 +33,6 @@ export default async function handler(req, res) {
         }
     }
 
-    // إضافة أو تعديل ماب وسكربتات (من لوحة التحكم)
     if (req.method === "POST") {
         try {
             const { gameName, placeId, scripts, adminKey } = req.body;
@@ -62,7 +58,7 @@ export default async function handler(req, res) {
         }
     }
 
-    // حذف ماب
+    // تأكد من وجود هذا الجزء الخاص بالحذف (DELETE)
     if (req.method === "DELETE") {
         try {
             const { id, adminKey } = req.body;
