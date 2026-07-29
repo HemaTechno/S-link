@@ -1,7 +1,7 @@
 import db from "./firebase.js";
 
 export default async function handler(req, res) {
-    // جلب قائمة المابات والسكربتات
+    // جلب قائمة المابات والسكربتات مع تنظيف الروابط تلقائياً
     if (req.method === "GET") {
         try {
             const snapshot = await db.collection("hubs").get();
@@ -9,11 +9,24 @@ export default async function handler(req, res) {
 
             snapshot.forEach(doc => {
                 const data = doc.data();
+                
+                // تنظيف واستخراج الرابط الصافي سواء كان رابط مباشر أو داخل loadstring
+                const processedScripts = (data.scripts || []).map(script => {
+                    let value = (script.url || "").trim();
+                    const match = value.match(/https?:\/\/[^")']+/);
+
+                    return {
+                        name: script.name || "Unnamed Script",
+                        type: match ? "loadstring" : "url",
+                        url: match ? match[0] : value
+                    };
+                });
+
                 gamesData.push({
                     id: doc.id,
                     gameName: data.gameName || "Unknown Game",
-                    placeId: data.placeId || "", // اختياري للتعرف التلقائي
-                    scripts: data.scripts || [] // قائمة تحتوي على [{ name: "Script 1", url: "https://..." }]
+                    placeId: data.placeId || "",
+                    scripts: processedScripts
                 });
             });
 
@@ -39,7 +52,7 @@ export default async function handler(req, res) {
             await db.collection("hubs").doc(docId).set({
                 gameName,
                 placeId: placeId || "",
-                scripts: scripts, // array of { name, url }
+                scripts: scripts, 
                 updatedAt: Date.now()
             });
 
