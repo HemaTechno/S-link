@@ -29,7 +29,7 @@ local KEY_FILE_NAME = "SubX_SavedKey.txt"
 -- ==========================================
 -- 3. رابط الصورة للزر العائم
 -- ==========================================
-local FLOATING_ICON_IMAGE = "https://raw.githubusercontent.com/HemaTechno/S-link/refs/heads/main/logo.png" -- ضع هنا ID الصورة التي تريدها
+local FLOATING_ICON_IMAGE = "rbxassetid://132987126413753" -- ضع هنا ID الصورة التي تريدها
 
 -- دالة التحقق من السيرفر
 local function checkKeyWithServer(keyToVerify)
@@ -86,14 +86,14 @@ local function loadScriptHub()
     SubXHub.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
     -- ==========================================
-    -- الأيقونة العائمة للاسترجاع (قابلة للتحريك)
+    -- الأيقونة العائمة للاسترجاع (قابلة للتحريك بسهولة)
     -- ==========================================
     local FloatingIcon = Instance.new("ImageButton", SubXHub)
     FloatingIcon.Name = "FloatingIcon"
     FloatingIcon.BackgroundColor3 = Color3.fromRGB(10, 12, 25)
     FloatingIcon.BackgroundTransparency = 0.05
     FloatingIcon.Position = UDim2.new(0.02, 0, 0.85, 0)
-    FloatingIcon.Size = UDim2.new(0, 60, 0, 60)
+    FloatingIcon.Size = UDim2.new(0, 50, 0, 50) -- تصغير الحجم
     FloatingIcon.Image = FLOATING_ICON_IMAGE
     FloatingIcon.Visible = false
     FloatingIcon.ScaleType = Enum.ScaleType.Fit
@@ -116,13 +116,15 @@ local function loadScriptHub()
     -- حد الأيقونة
     local FloatStroke = Instance.new("UIStroke", FloatingIcon)
     FloatStroke.Color = Color3.fromRGB(100, 150, 255)
-    FloatStroke.Thickness = 2
+    FloatStroke.Thickness = 1.5
     FloatStroke.Transparency = 0.3
     
     Instance.new("UICorner", FloatingIcon).CornerRadius = UDim.new(1, 0)
 
-    -- نظام تحريك الأيقونة العائمة
-    local iconDragging, iconDragInput, iconDragStart, iconStartPos
+    -- نظام تحريك الأيقونة العائمة (سهل وسلس)
+    local iconDragging = false
+    local iconDragStart = nil
+    local iconStartPos = nil
     
     FloatingIcon.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -135,18 +137,14 @@ local function loadScriptHub()
     FloatingIcon.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             iconDragging = false
+            iconDragStart = nil
+            iconStartPos = nil
         end
     end)
     
     UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            iconDragInput = input
-        end
-    end)
-    
-    game:GetService("RunService").Heartbeat:Connect(function()
-        if iconDragging and iconDragInput then
-            local delta = iconDragInput.Position - iconDragStart
+        if iconDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - iconDragStart
             FloatingIcon.Position = UDim2.new(
                 iconStartPos.X.Scale, 
                 iconStartPos.X.Offset + delta.X, 
@@ -157,14 +155,14 @@ local function loadScriptHub()
     end)
 
     -- ==========================================
-    -- النافذة الرئيسية
+    -- النافذة الرئيسية (مصغرة)
     -- ==========================================
     local MainFrame = Instance.new("Frame", SubXHub)
     MainFrame.Name = "MainFrame"
     MainFrame.BackgroundColor3 = Color3.fromRGB(8, 10, 22)
     MainFrame.BackgroundTransparency = 0.05
-    MainFrame.Position = UDim2.new(0.5, -280, 0.5, -200)
-    MainFrame.Size = UDim2.new(0, 560, 0, 400)
+    MainFrame.Position = UDim2.new(0.5, -230, 0.5, -160) -- تصغير الحجم
+    MainFrame.Size = UDim2.new(0, 460, 0, 320) -- تصغير الحجم
     MainFrame.ClipsDescendants = false
 
     -- خلفية زجاجية
@@ -172,25 +170,25 @@ local function loadScriptHub()
     GlassBg.BackgroundColor3 = Color3.fromRGB(20, 25, 45)
     GlassBg.BackgroundTransparency = 0.85
     GlassBg.Size = UDim2.new(1, 0, 1, 0)
-    Instance.new("UICorner", GlassBg).CornerRadius = UDim.new(0, 16)
+    Instance.new("UICorner", GlassBg).CornerRadius = UDim.new(0, 14)
 
     -- تأثير التوهج الخارجي
     local OuterGlow = createGlowEffect(MainFrame, Color3.fromRGB(100, 150, 255))
     OuterGlow.BackgroundTransparency = 0.88
     
-    Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 16)
+    Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 14)
     local MainStroke = Instance.new("UIStroke", MainFrame)
     MainStroke.Color = Color3.fromRGB(100, 150, 255)
     MainStroke.Transparency = 0.3
     MainStroke.Thickness = 1.5
 
     -- ==========================================
-    -- الشريط العلوي
+    -- الشريط العلوي (مصغر)
     -- ==========================================
     local TopBar = Instance.new("Frame", MainFrame)
     TopBar.BackgroundColor3 = Color3.fromRGB(15, 18, 35)
     TopBar.BackgroundTransparency = 0.3
-    TopBar.Size = UDim2.new(1, 0, 0, 45)
+    TopBar.Size = UDim2.new(1, 0, 0, 38) -- تصغير الارتفاع
     TopBar.BorderSizePixel = 0
 
     Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 12)
@@ -203,66 +201,66 @@ local function loadScriptHub()
 
     local IconLabel = Instance.new("TextLabel", TopBar)
     IconLabel.BackgroundTransparency = 1
-    IconLabel.Position = UDim2.new(0, 10, 0, 2)
-    IconLabel.Size = UDim2.new(0, 30, 0, 40)
+    IconLabel.Position = UDim2.new(0, 8, 0, 2)
+    IconLabel.Size = UDim2.new(0, 25, 0, 35)
     IconLabel.Font = Enum.Font.GothamBold
     IconLabel.Text = "✦"
     IconLabel.TextColor3 = Color3.fromRGB(100, 150, 255)
-    IconLabel.TextSize = 20
+    IconLabel.TextSize = 16
 
     local Title = Instance.new("TextLabel", TopBar)
     Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0, 45, 0, 0)
-    Title.Size = UDim2.new(0.25, 0, 1, 0)
+    Title.Position = UDim2.new(0, 38, 0, 0)
+    Title.Size = UDim2.new(0.2, 0, 1, 0)
     Title.Font = Enum.Font.GothamBold
-    Title.Text = "SUBX HUB"
+    Title.Text = "SUBX"
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.TextSize = 16
+    Title.TextSize = 14
     Title.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- زر الديسكورد
+    -- زر الديسكورد (مصغر)
     local DiscordBtn = Instance.new("TextButton", TopBar)
     DiscordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242)
     DiscordBtn.BackgroundTransparency = 0.15
-    DiscordBtn.Position = UDim2.new(1, -230, 0.5, -13)
-    DiscordBtn.Size = UDim2.new(0, 150, 0, 26)
+    DiscordBtn.Position = UDim2.new(1, -195, 0.5, -11)
+    DiscordBtn.Size = UDim2.new(0, 130, 0, 22)
     DiscordBtn.Font = Enum.Font.GothamBold
-    DiscordBtn.Text = "💬 Join Discord"
+    DiscordBtn.Text = "💬 Discord"
     DiscordBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    DiscordBtn.TextSize = 11
-    Instance.new("UICorner", DiscordBtn).CornerRadius = UDim.new(0, 6)
+    DiscordBtn.TextSize = 10
+    Instance.new("UICorner", DiscordBtn).CornerRadius = UDim.new(0, 5)
 
     DiscordBtn.MouseButton1Click:Connect(function()
         if setclipboard then
             setclipboard(DISCORD_INVITE)
             DiscordBtn.Text = "✅ Copied!"
             task.wait(1.5)
-            DiscordBtn.Text = "💬 Join Discord"
+            DiscordBtn.Text = "💬 Discord"
         end
     end)
 
-    -- أزرار التحكم
+    -- أزرار التحكم (مصغرة)
     local ControlButtons = Instance.new("Frame", TopBar)
     ControlButtons.BackgroundTransparency = 1
-    ControlButtons.Position = UDim2.new(1, -80, 0, 0)
-    ControlButtons.Size = UDim2.new(0, 75, 1, 0)
+    ControlButtons.Position = UDim2.new(1, -70, 0, 0)
+    ControlButtons.Size = UDim2.new(0, 65, 1, 0)
 
     local UIListLayout = Instance.new("UIListLayout", ControlButtons)
     UIListLayout.FillDirection = Enum.FillDirection.Horizontal
     UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Right
     UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    UIListLayout.Padding = UDim.new(0, 3)
+    UIListLayout.Padding = UDim.new(0, 2)
 
     local function createControlButton(text, hoverColor)
         local btn = Instance.new("TextButton", ControlButtons)
         btn.BackgroundColor3 = Color3.fromRGB(25, 30, 50)
         btn.BackgroundTransparency = 0.5
-        btn.Size = UDim2.new(0, 24, 0, 24)
+        btn.Size = UDim2.new(0, 20, 0, 20)
         btn.Font = Enum.Font.GothamBold
         btn.Text = text
         btn.TextColor3 = Color3.fromRGB(200, 200, 220)
-        btn.TextSize = 12
-        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 5)
+        btn.TextSize = 10
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 4)
         return btn
     end
 
@@ -271,12 +269,12 @@ local function loadScriptHub()
     local CloseBtn = createControlButton("✕", Color3.fromRGB(180, 40, 40))
 
     -- ==========================================
-    -- المحتوى
+    -- المحتوى (مصغر)
     -- ==========================================
     local ContentContainer = Instance.new("Frame", MainFrame)
     ContentContainer.BackgroundTransparency = 1
-    ContentContainer.Position = UDim2.new(0, 10, 0, 55)
-    ContentContainer.Size = UDim2.new(1, -20, 1, -65)
+    ContentContainer.Position = UDim2.new(0, 8, 0, 46)
+    ContentContainer.Size = UDim2.new(1, -16, 1, -54)
 
     -- إشعار التحميل
     local LoadingFrame = Instance.new("Frame", ContentContainer)
@@ -286,12 +284,12 @@ local function loadScriptHub()
 
     local LoadSpinner = Instance.new("TextLabel", LoadingFrame)
     LoadSpinner.BackgroundTransparency = 1
-    LoadSpinner.Position = UDim2.new(0.5, -80, 0.4, -20)
-    LoadSpinner.Size = UDim2.new(0, 160, 0, 40)
+    LoadSpinner.Position = UDim2.new(0.5, -60, 0.4, -15)
+    LoadSpinner.Size = UDim2.new(0, 120, 0, 30)
     LoadSpinner.Font = Enum.Font.GothamBold
     LoadSpinner.Text = "⟳ Loading..."
     LoadSpinner.TextColor3 = Color3.fromRGB(100, 150, 255)
-    LoadSpinner.TextSize = 16
+    LoadSpinner.TextSize = 14
 
     task.spawn(function()
         local dots = ""
@@ -306,30 +304,30 @@ local function loadScriptHub()
     end)
 
     -- ==========================================
-    -- قائمة الألعاب مع شريط علوي
+    -- قائمة الألعاب (مصغرة)
     -- ==========================================
     local GamesContainer = Instance.new("Frame", ContentContainer)
     GamesContainer.BackgroundColor3 = Color3.fromRGB(15, 18, 35)
     GamesContainer.BackgroundTransparency = 0.3
     GamesContainer.Position = UDim2.new(0, 0, 0, 0)
     GamesContainer.Size = UDim2.new(0.33, 0, 1, 0)
-    Instance.new("UICorner", GamesContainer).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", GamesContainer).CornerRadius = UDim.new(0, 8)
 
     -- الشريط العلوي لقائمة الألعاب
     local GamesHeader = Instance.new("Frame", GamesContainer)
     GamesHeader.BackgroundColor3 = Color3.fromRGB(20, 25, 45)
     GamesHeader.BackgroundTransparency = 0.2
-    GamesHeader.Size = UDim2.new(1, 0, 0, 35)
-    Instance.new("UICorner", GamesHeader).CornerRadius = UDim.new(0, 8)
+    GamesHeader.Size = UDim2.new(1, 0, 0, 30)
+    Instance.new("UICorner", GamesHeader).CornerRadius = UDim.new(0, 6)
 
     local GamesTitle = Instance.new("TextLabel", GamesHeader)
     GamesTitle.BackgroundTransparency = 1
-    GamesTitle.Position = UDim2.new(0, 10, 0, 0)
+    GamesTitle.Position = UDim2.new(0, 8, 0, 0)
     GamesTitle.Size = UDim2.new(0.8, 0, 1, 0)
     GamesTitle.Font = Enum.Font.GothamBold
     GamesTitle.Text = "🎮 GAMES"
     GamesTitle.TextColor3 = Color3.fromRGB(150, 180, 255)
-    GamesTitle.TextSize = 12
+    GamesTitle.TextSize = 10
     GamesTitle.TextXAlignment = Enum.TextXAlignment.Left
 
     local ScrollGames = Instance.new("ScrollingFrame", GamesContainer)
@@ -338,38 +336,38 @@ local function loadScriptHub()
     ScrollGames.BorderSizePixel = 0
     ScrollGames.Position = UDim2.new(0.02, 0, 0.1, 0)
     ScrollGames.Size = UDim2.new(0.96, 0, 0.88, 0)
-    ScrollGames.ScrollBarThickness = 3
+    ScrollGames.ScrollBarThickness = 2
     ScrollGames.ScrollBarImageColor3 = Color3.fromRGB(100, 150, 255)
     
     local UIListGames = Instance.new("UIListLayout", ScrollGames)
-    UIListGames.Padding = UDim.new(0, 5)
+    UIListGames.Padding = UDim.new(0, 4)
     UIListGames.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
     -- ==========================================
-    -- قائمة السكربتات مع شريط علوي
+    -- قائمة السكربتات (مصغرة)
     -- ==========================================
     local ScriptsContainer = Instance.new("Frame", ContentContainer)
     ScriptsContainer.BackgroundColor3 = Color3.fromRGB(15, 18, 35)
     ScriptsContainer.BackgroundTransparency = 0.3
     ScriptsContainer.Position = UDim2.new(0.35, 0, 0, 0)
     ScriptsContainer.Size = UDim2.new(0.63, 0, 1, 0)
-    Instance.new("UICorner", ScriptsContainer).CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", ScriptsContainer).CornerRadius = UDim.new(0, 8)
 
     -- الشريط العلوي لقائمة السكربتات
     local ScriptsHeader = Instance.new("Frame", ScriptsContainer)
     ScriptsHeader.BackgroundColor3 = Color3.fromRGB(20, 25, 45)
     ScriptsHeader.BackgroundTransparency = 0.2
-    ScriptsHeader.Size = UDim2.new(1, 0, 0, 35)
-    Instance.new("UICorner", ScriptsHeader).CornerRadius = UDim.new(0, 8)
+    ScriptsHeader.Size = UDim2.new(1, 0, 0, 30)
+    Instance.new("UICorner", ScriptsHeader).CornerRadius = UDim.new(0, 6)
 
     local ScriptsTitle = Instance.new("TextLabel", ScriptsHeader)
     ScriptsTitle.BackgroundTransparency = 1
-    ScriptsTitle.Position = UDim2.new(0, 10, 0, 0)
+    ScriptsTitle.Position = UDim2.new(0, 8, 0, 0)
     ScriptsTitle.Size = UDim2.new(0.8, 0, 1, 0)
     ScriptsTitle.Font = Enum.Font.GothamBold
-    ScriptsTitle.Text = "🔎 SCRIPTS"
+    ScriptsTitle.Text = "📜 SCRIPTS"
     ScriptsTitle.TextColor3 = Color3.fromRGB(150, 180, 255)
-    ScriptsTitle.TextSize = 12
+    ScriptsTitle.TextSize = 10
     ScriptsTitle.TextXAlignment = Enum.TextXAlignment.Left
 
     local ScrollScripts = Instance.new("ScrollingFrame", ScriptsContainer)
@@ -378,11 +376,11 @@ local function loadScriptHub()
     ScrollScripts.BorderSizePixel = 0
     ScrollScripts.Position = UDim2.new(0.02, 0, 0.1, 0)
     ScrollScripts.Size = UDim2.new(0.96, 0, 0.88, 0)
-    ScrollScripts.ScrollBarThickness = 3
+    ScrollScripts.ScrollBarThickness = 2
     ScrollScripts.ScrollBarImageColor3 = Color3.fromRGB(100, 150, 255)
     
     local UIListScripts = Instance.new("UIListLayout", ScrollScripts)
-    UIListScripts.Padding = UDim.new(0, 5)
+    UIListScripts.Padding = UDim.new(0, 4)
     UIListScripts.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
     -- رسالة ترحيب
@@ -390,14 +388,16 @@ local function loadScriptHub()
     WelcomeMsg.Size = UDim2.new(1, 0, 1, 0)
     WelcomeMsg.BackgroundTransparency = 1
     WelcomeMsg.Font = Enum.Font.Gotham
-    WelcomeMsg.Text = "⬇️ Select a game"
+    WelcomeMsg.Text = "👈 Select a game"
     WelcomeMsg.TextColor3 = Color3.fromRGB(100, 120, 180)
-    WelcomeMsg.TextSize = 13
+    WelcomeMsg.TextSize = 11
 
     -- ==========================================
     -- نظام التحريك السلس للواجهة الرئيسية
     -- ==========================================
-    local dragging, dragInput, dragStart, startPos
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
     
     TopBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -410,19 +410,14 @@ local function loadScriptHub()
     TopBar.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = false
+            dragStart = nil
+            startPos = nil
         end
     end)
     
     UserInputService.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-            dragInput = input
-        end
-    end)
-    
-    -- استخدام RenderStepped للتحريك السلس
-    game:GetService("RunService").RenderStepped:Connect(function()
-        if dragging and dragInput then
-            local delta = dragInput.Position - dragStart
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
             MainFrame.Position = UDim2.new(
                 startPos.X.Scale, 
                 startPos.X.Offset + delta.X, 
@@ -436,10 +431,10 @@ local function loadScriptHub()
     -- أزرار التحكم مع أنيميشن سلس
     -- ==========================================
     CloseBtn.MouseButton1Click:Connect(function()
-        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             Size = UDim2.new(0, 0, 0, 0)
         }):Play()
-        task.wait(0.3)
+        task.wait(0.25)
         SubXHub:Destroy() 
     end)
     
@@ -447,40 +442,35 @@ local function loadScriptHub()
     MinBtn.MouseButton1Click:Connect(function()
         minimized = not minimized
         ContentContainer.Visible = not minimized
-        local targetSize = minimized and UDim2.new(0, 560, 0, 45) or UDim2.new(0, 560, 0, 400)
-        TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        local targetSize = minimized and UDim2.new(0, 460, 0, 38) or UDim2.new(0, 460, 0, 320)
+        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             Size = targetSize
         }):Play()
     end)
 
     HideBtn.MouseButton1Click:Connect(function()
-        -- أنيميشن إخفاء الواجهة
-        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        TweenService:Create(MainFrame, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             Size = UDim2.new(0, 0, 0, 0)
         }):Play()
-        task.wait(0.3)
+        task.wait(0.25)
         MainFrame.Visible = false
         FloatingIcon.Visible = true
-        -- أنيميشن ظهور الأيقونة
-        FloatingIcon.BackgroundTransparency = 0.05
         FloatingIcon.Size = UDim2.new(0, 0, 0, 0)
-        TweenService:Create(FloatingIcon, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 60, 0, 60)
+        TweenService:Create(FloatingIcon, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = UDim2.new(0, 50, 0, 50)
         }):Play()
     end)
     
     FloatingIcon.MouseButton1Click:Connect(function()
-        -- أنيميشن إخفاء الأيقونة
-        TweenService:Create(FloatingIcon, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        TweenService:Create(FloatingIcon, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
             Size = UDim2.new(0, 0, 0, 0)
         }):Play()
-        task.wait(0.3)
+        task.wait(0.25)
         FloatingIcon.Visible = false
         MainFrame.Visible = true
-        -- أنيميشن ظهور الواجهة
         MainFrame.Size = UDim2.new(0, 0, 0, 0)
-        TweenService:Create(MainFrame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-            Size = UDim2.new(0, 560, 0, 400)
+        TweenService:Create(MainFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            Size = UDim2.new(0, 460, 0, 320)
         }):Play()
     end)
 
@@ -494,8 +484,8 @@ local function loadScriptHub()
         NotifFrame.BackgroundColor3 = Color3.fromRGB(10, 12, 25)
         NotifFrame.BackgroundTransparency = 0.1
         NotifFrame.Position = UDim2.new(0.5, 0, 0.12, 0)
-        NotifFrame.Size = UDim2.new(0, 200, 0, 55)
-        Instance.new("UICorner", NotifFrame).CornerRadius = UDim.new(0, 12)
+        NotifFrame.Size = UDim2.new(0, 180, 0, 45)
+        Instance.new("UICorner", NotifFrame).CornerRadius = UDim.new(0, 10)
         
         local NotifGlow = createGlowEffect(NotifFrame, Color3.fromRGB(100, 150, 255))
         NotifGlow.BackgroundTransparency = 0.9
@@ -507,16 +497,16 @@ local function loadScriptHub()
         NotifLabel.Font = Enum.Font.GothamBold
         NotifLabel.Text = "⚡ SUBX PREMIUM"
         NotifLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        NotifLabel.TextSize = 18
+        NotifLabel.TextSize = 16
         
         local SubLabel = Instance.new("TextLabel", NotifFrame)
         SubLabel.BackgroundTransparency = 1
         SubLabel.Position = UDim2.new(0, 0, 0.6, 0)
-        SubLabel.Size = UDim2.new(1, 0, 0, 20)
+        SubLabel.Size = UDim2.new(1, 0, 0, 18)
         SubLabel.Font = Enum.Font.Gotham
         SubLabel.Text = "Premium Scripts Loaded"
         SubLabel.TextColor3 = Color3.fromRGB(100, 150, 255)
-        SubLabel.TextSize = 10
+        SubLabel.TextSize = 9
         
         task.spawn(function()
             task.wait(2.5)
@@ -538,13 +528,13 @@ local function loadScriptHub()
                     local mapBtn = Instance.new("TextButton", ScrollGames)
                     mapBtn.BackgroundColor3 = Color3.fromRGB(25, 30, 55)
                     mapBtn.BackgroundTransparency = 0.2
-                    mapBtn.Size = UDim2.new(0.94, 0, 0, 38)
+                    mapBtn.Size = UDim2.new(0.94, 0, 0, 32)
                     mapBtn.Font = Enum.Font.GothamBold
                     mapBtn.Text = "▸ " .. gameData.gameName
                     mapBtn.TextColor3 = Color3.fromRGB(200, 210, 230)
-                    mapBtn.TextSize = 12
+                    mapBtn.TextSize = 10
                     mapBtn.TextXAlignment = Enum.TextXAlignment.Left
-                    Instance.new("UICorner", mapBtn).CornerRadius = UDim.new(0, 6)
+                    Instance.new("UICorner", mapBtn).CornerRadius = UDim.new(0, 5)
 
                     mapBtn.MouseButton1Click:Connect(function()
                         for _, child in pairs(ScrollScripts:GetChildren()) do 
@@ -558,13 +548,13 @@ local function loadScriptHub()
                             local scriptBtn = Instance.new("TextButton", ScrollScripts)
                             scriptBtn.BackgroundColor3 = Color3.fromRGB(25, 30, 55)
                             scriptBtn.BackgroundTransparency = 0.2
-                            scriptBtn.Size = UDim2.new(0.96, 0, 0, 42)
+                            scriptBtn.Size = UDim2.new(0.96, 0, 0, 35)
                             scriptBtn.Font = Enum.Font.GothamBold
                             scriptBtn.Text = "◆ " .. scriptData.name
                             scriptBtn.TextColor3 = Color3.fromRGB(220, 225, 240)
-                            scriptBtn.TextSize = 12
+                            scriptBtn.TextSize = 10
                             scriptBtn.TextXAlignment = Enum.TextXAlignment.Left
-                            Instance.new("UICorner", scriptBtn).CornerRadius = UDim.new(0, 6)
+                            Instance.new("UICorner", scriptBtn).CornerRadius = UDim.new(0, 5)
 
                             scriptBtn.MouseButton1Click:Connect(function()
                                 scriptBtn.Text = "⏳ Executing..."
@@ -618,7 +608,7 @@ if savedKey ~= "" then
 end
 
 -- ==========================================
--- واجهة إدخال المفتاح (فخمة)
+-- واجهة إدخال المفتاح (مصغرة)
 -- ==========================================
 local KeySystemUI = Instance.new("ScreenGui", CoreGui)
 KeySystemUI.Name = "KeySystemUI"
@@ -626,24 +616,24 @@ KeySystemUI.Name = "KeySystemUI"
 local MainFrame = Instance.new("Frame", KeySystemUI)
 MainFrame.BackgroundColor3 = Color3.fromRGB(8, 10, 22)
 MainFrame.BackgroundTransparency = 0.05
-MainFrame.Position = UDim2.new(0.5, -180, 0.5, -120)
-MainFrame.Size = UDim2.new(0, 360, 0, 240)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -100)
+MainFrame.Size = UDim2.new(0, 300, 0, 200)
 MainFrame.ClipsDescendants = false
 
 local GlassFrame = Instance.new("Frame", MainFrame)
 GlassFrame.BackgroundColor3 = Color3.fromRGB(20, 25, 45)
 GlassFrame.BackgroundTransparency = 0.85
 GlassFrame.Size = UDim2.new(1, 0, 1, 0)
-Instance.new("UICorner", GlassFrame).CornerRadius = UDim.new(0, 16)
+Instance.new("UICorner", GlassFrame).CornerRadius = UDim.new(0, 14)
 
 local KeyGlow = Instance.new("Frame", MainFrame)
 KeyGlow.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
 KeyGlow.BackgroundTransparency = 0.88
 KeyGlow.Size = UDim2.new(1.1, 0, 1.1, 0)
 KeyGlow.Position = UDim2.new(-0.05, 0, -0.05, 0)
-Instance.new("UICorner", KeyGlow).CornerRadius = UDim.new(0, 18)
+Instance.new("UICorner", KeyGlow).CornerRadius = UDim.new(0, 16)
 
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 16)
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 14)
 local MainStroke = Instance.new("UIStroke", MainFrame)
 MainStroke.Color = Color3.fromRGB(100, 150, 255)
 MainStroke.Transparency = 0.3
@@ -651,43 +641,43 @@ MainStroke.Thickness = 1.5
 
 local LockIcon = Instance.new("TextLabel", MainFrame)
 LockIcon.BackgroundTransparency = 1
-LockIcon.Position = UDim2.new(0.5, -20, 0.05, 0)
-LockIcon.Size = UDim2.new(0, 40, 0, 40)
+LockIcon.Position = UDim2.new(0.5, -15, 0.05, 0)
+LockIcon.Size = UDim2.new(0, 30, 0, 30)
 LockIcon.Font = Enum.Font.GothamBold
 LockIcon.Text = "🔒"
 LockIcon.TextColor3 = Color3.fromRGB(100, 150, 255)
-LockIcon.TextSize = 30
+LockIcon.TextSize = 24
 
 local Title = Instance.new("TextLabel", MainFrame)
 Title.BackgroundTransparency = 1
 Title.Position = UDim2.new(0, 0, 0.2, 0)
-Title.Size = UDim2.new(1, 0, 0, 35)
+Title.Size = UDim2.new(1, 0, 0, 30)
 Title.Font = Enum.Font.GothamBold
 Title.Text = "SubX Premium"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 20
+Title.TextSize = 17
 
 local SubTitle = Instance.new("TextLabel", MainFrame)
 SubTitle.BackgroundTransparency = 1
 SubTitle.Position = UDim2.new(0, 0, 0.32, 0)
-SubTitle.Size = UDim2.new(1, 0, 0, 20)
+SubTitle.Size = UDim2.new(1, 0, 0, 18)
 SubTitle.Font = Enum.Font.Gotham
 SubTitle.Text = "Enter your license key to continue"
 SubTitle.TextColor3 = Color3.fromRGB(150, 170, 220)
-SubTitle.TextSize = 11
+SubTitle.TextSize = 10
 
 local KeyInput = Instance.new("TextBox", MainFrame)
 KeyInput.BackgroundColor3 = Color3.fromRGB(25, 30, 55)
 KeyInput.BackgroundTransparency = 0.3
 KeyInput.Position = UDim2.new(0.1, 0, 0.42, 0)
-KeyInput.Size = UDim2.new(0.8, 0, 0, 40)
+KeyInput.Size = UDim2.new(0.8, 0, 0, 35)
 KeyInput.Font = Enum.Font.Gotham
 KeyInput.PlaceholderText = "Enter your key..."
 KeyInput.PlaceholderColor3 = Color3.fromRGB(100, 120, 180)
 KeyInput.Text = ""
 KeyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
-KeyInput.TextSize = 14
-Instance.new("UICorner", KeyInput).CornerRadius = UDim.new(0, 8)
+KeyInput.TextSize = 13
+Instance.new("UICorner", KeyInput).CornerRadius = UDim.new(0, 7)
 
 local InputLine = Instance.new("Frame", MainFrame)
 InputLine.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
@@ -698,7 +688,7 @@ InputLine.Size = UDim2.new(0.8, 0, 0, 1.5)
 local ButtonsFrame = Instance.new("Frame", MainFrame)
 ButtonsFrame.BackgroundTransparency = 1
 ButtonsFrame.Position = UDim2.new(0.1, 0, 0.65, 0)
-ButtonsFrame.Size = UDim2.new(0.8, 0, 0, 40)
+ButtonsFrame.Size = UDim2.new(0.8, 0, 0, 35)
 
 local VerifyBtn = Instance.new("TextButton", ButtonsFrame)
 VerifyBtn.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
@@ -707,15 +697,15 @@ VerifyBtn.Size = UDim2.new(0.47, 0, 1, 0)
 VerifyBtn.Font = Enum.Font.GothamBold
 VerifyBtn.Text = "VERIFY"
 VerifyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-VerifyBtn.TextSize = 13
-Instance.new("UICorner", VerifyBtn).CornerRadius = UDim.new(0, 8)
+VerifyBtn.TextSize = 12
+Instance.new("UICorner", VerifyBtn).CornerRadius = UDim.new(0, 7)
 
 local BtnGlow = Instance.new("Frame", VerifyBtn)
 BtnGlow.BackgroundColor3 = Color3.fromRGB(100, 150, 255)
 BtnGlow.BackgroundTransparency = 0.8
 BtnGlow.Size = UDim2.new(1.1, 0, 1.3, 0)
 BtnGlow.Position = UDim2.new(-0.05, 0, -0.15, 0)
-Instance.new("UICorner", BtnGlow).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", BtnGlow).CornerRadius = UDim.new(0, 9)
 
 local GetKeyBtn = Instance.new("TextButton", ButtonsFrame)
 GetKeyBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -725,8 +715,8 @@ GetKeyBtn.Size = UDim2.new(0.47, 0, 1, 0)
 GetKeyBtn.Font = Enum.Font.GothamBold
 GetKeyBtn.Text = "GET KEY"
 GetKeyBtn.TextColor3 = Color3.fromRGB(200, 210, 230)
-GetKeyBtn.TextSize = 13
-Instance.new("UICorner", GetKeyBtn).CornerRadius = UDim.new(0, 8)
+GetKeyBtn.TextSize = 12
+Instance.new("UICorner", GetKeyBtn).CornerRadius = UDim.new(0, 7)
 local GetStroke = Instance.new("UIStroke", GetKeyBtn)
 GetStroke.Color = Color3.fromRGB(100, 150, 255)
 GetStroke.Transparency = 0.3
@@ -735,11 +725,11 @@ GetStroke.Thickness = 1
 local StatusText = Instance.new("TextLabel", MainFrame)
 StatusText.BackgroundTransparency = 1
 StatusText.Position = UDim2.new(0, 0, 0.88, 0)
-StatusText.Size = UDim2.new(1, 0, 0, 20)
+StatusText.Size = UDim2.new(1, 0, 0, 18)
 StatusText.Font = Enum.Font.Gotham
 StatusText.Text = "⚡ Ready"
 StatusText.TextColor3 = Color3.fromRGB(100, 150, 255)
-StatusText.TextSize = 11
+StatusText.TextSize = 10
 
 -- أنيميشن
 task.spawn(function()
@@ -756,7 +746,7 @@ end)
 GetKeyBtn.MouseButton1Click:Connect(function()
     if setclipboard then
         setclipboard(GET_KEY_LINK)
-        StatusText.Text = "✅ Link copied to clipboard!"
+        StatusText.Text = "✅ Link copied!"
         StatusText.TextColor3 = Color3.fromRGB(100, 255, 150)
         task.wait(2)
         StatusText.Text = "⚡ Ready"
@@ -777,7 +767,7 @@ VerifyBtn.MouseButton1Click:Connect(function()
     local result = checkKeyWithServer(inputtedKey)
 
     if result.success then
-        StatusText.Text = "✅ Verified successfully!"
+        StatusText.Text = "✅ Verified!"
         StatusText.TextColor3 = Color3.fromRGB(100, 255, 150)
         pcall(function() writefile(KEY_FILE_NAME, inputtedKey) end)
         task.wait(0.8)
