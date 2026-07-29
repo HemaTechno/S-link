@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SubX Script Hub Manager 🎮</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #0c0d10; color: #fff; font-family: 'Tajawal', sans-serif; padding: 30px; display: flex; justify-content: center; }
+        .box { background: rgba(20,21,25,0.8); border: 1px solid rgba(255,255,255,0.1); padding: 30px; border-radius: 20px; width: 500px; }
+        h2 { color: #4ade80; margin-bottom: 20px; text-align: center; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0,0,0,0.4); border: 1px solid #333; color: #fff; border-radius: 10px; }
+        button { width: 100%; padding: 14px; background: #4ade80; color: #000; border: none; font-weight: bold; border-radius: 10px; cursor: pointer; }
+        button:hover { background: #22c55e; }
+        .script-group { border: 1px dashed #444; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>🎮 Add / Edit Game Scripts</h2>
+        <input type="password" id="adminKey" placeholder="Admin Password">
+        <input type="text" id="gameName" placeholder="Game Name (e.g. Blox Fruits)">
+        
+        <div id="scriptsContainer">
+            <div class="script-group">
+                <input type="text" class="scriptName" placeholder="Script Name (e.g. Auto Farm Hub)">
+                <input type="text" class="scriptUrl" placeholder="Raw Script URL (https://raw.githubusercontent...)">
+            </div>
+        </div>
+        
+        <button type="button" onclick="addScriptInput()" style="background:#333; color:#fff; margin-bottom:15px;">+ Add Another Script</button>
+        <button type="button" onclick="saveGame()">💾 Save Game to Hub</button>
+        <p id="status" style="margin-top:15px; text-align:center;"></p>
+    </div>
+
+    <script>
+        function addScriptInput() {
+            const div = document.createElement('div');
+            div.className = 'script-group';
+            div.innerHTML = `
+                <input type="text" class="scriptName" placeholder="Script Name">
+                <input type="text" class="scriptUrl" placeholder="Raw Script URL">
+            `;
+            document.getElementById('scriptsContainer').appendChild(div);
+        }
+
+        async function saveGame() {
+            const adminKey = document.getElementById('adminKey').value;
+            const gameName = document.getElementById('gameName').value;
+            const names = document.querySelectorAll('.scriptName');
+            const urls = document.querySelectorAll('.scriptUrl');
+            
+            let scripts = [];
+            names.forEach((el, index) => {
+                if (el.value && urls[index].value) {
+                    scripts.push({ name: el.value, url: urls[index].value });
+                }
+            });
+
+            const status = document.getElementById('status');
+            status.innerText = "Saving...";
+
+            const res = await fetch('/api/scripts', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ adminKey, gameName, scripts })
+            });
+
+            const data = await res.json();
+            if(data.success) {
+                status.style.color = "#4ade80";
+                status.innerText = "Game & Scripts Saved Successfully!";
+            } else {
+                status.style.color = "#ff4d4d";
+                status.innerText = "Error: " + data.message;
+            }
+        }
+    </script>
+</body>
+</html>
