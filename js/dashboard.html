@@ -165,7 +165,7 @@
         /* Stats Enhancements */
         .stats-overview {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 20px;
             margin-bottom: 24px;
         }
@@ -188,15 +188,15 @@
         .links-list { display: flex; flex-direction: column; gap: 16px; }
         .link-item { border-radius: 20px; overflow: hidden; transition: all 0.3s ease; }
         .link-item:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 215, 0, 0.3); transform: translateY(-2px); }
-        .link-header { padding: 22px 24px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
-        .link-info { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow: hidden; }
+        .link-header { padding: 22px 24px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; flex-wrap: wrap; gap: 15px; }
+        .link-info { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 200px; overflow: hidden; }
         
         .link-slug { font-size: 18px; font-weight: 800; color: #ffd700; display: flex; align-items: center; gap: 12px; }
 
         .copy-short-btn { background: rgba(255, 255, 255, 0.1); border: none; color: #fff; cursor: pointer; padding: 6px 10px; border-radius: 8px; font-size: 12px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
         .copy-short-btn:hover { background: #ffd700; color: #000; transform: scale(1.05); }
 
-        .link-url { font-size: 13px; color: #a0a0a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90%; font-weight: 500; }
+        .link-url { font-size: 13px; color: #a0a0a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; font-weight: 500; }
         
         .link-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end;}
         
@@ -204,6 +204,7 @@
         .badge-logo { height: 14px; width: auto; object-fit: contain; }
         .lootlabs-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); color: #ffd700; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
         .linkvertise-badge { background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .nitrolink-badge { background: rgba(255, 87, 34, 0.1); border: 1px solid rgba(255, 87, 34, 0.3); color: #ff5722; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
         .success-badge { padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(96, 165, 250, 0.3); background: rgba(96, 165, 250, 0.1); color: #60a5fa; }
         
         .toggle-icon { font-size: 12px; color: #ffd700; transition: transform 0.35s ease, background 0.3s ease; background: rgba(255, 255, 255, 0.05); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.1); margin-left: 10px;}
@@ -297,6 +298,16 @@
                             <span class="slider"></span>
                         </label>
                     </div>
+                    
+                    <!-- Added Nitro Link Toggle -->
+                    <div class="switch-wrapper">
+                        <img src="https://nitro-link.com/favicon.ico" alt="Nitro Link" class="network-icon">
+                        <label>Nitro Link</label>
+                        <label class="switch">
+                            <input type="checkbox" id="nitrolinkToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
 
                 </div>
 
@@ -322,6 +333,11 @@
             <div class="stat-card">
                 <h3><img src="/linkvertise.png" alt="Linkvertise" class="network-icon"> Linkvertise</h3>
                 <div class="value" id="totalLinkvertise" style="color: #4ade80">0</div>
+            </div>
+            <!-- Added Nitro Link Stat Card -->
+            <div class="stat-card">
+                <h3><img src="https://nitro-link.com/favicon.ico" alt="Nitro Link" class="network-icon"> Nitro Link</h3>
+                <div class="value" id="totalNitroLink" style="color: #ff5722">0</div>
             </div>
             <div class="stat-card">
                 <h3><i class="fa-solid fa-square-check" style="color: #60a5fa;"></i> Total Complete</h3>
@@ -352,6 +368,8 @@
         async function saveAdSettings() {
             const lootlabs = document.getElementById('lootlabsToggle').checked;
             const linkvertise = document.getElementById('linkvertiseToggle').checked;
+            // Get Nitro Link state
+            const nitrolink = document.getElementById('nitrolinkToggle').checked;
             const adminKey = document.getElementById('adminKey').value;
             const status = document.getElementById('settingsStatus');
 
@@ -371,6 +389,7 @@
                     body: JSON.stringify({
                         lootlabsEnabled: lootlabs,
                         linkvertiseEnabled: linkvertise,
+                        nitrolinkEnabled: nitrolink, // Added nitrolinkEnabled payload
                         adminKey: adminKey
                     })
                 });
@@ -413,6 +432,10 @@
             
             const totalLinkvertise = links.reduce((sum, link) => sum + (link.linkvertiseCompletions || 0), 0);
             document.getElementById('totalLinkvertise').innerText = totalLinkvertise;
+
+            // Added total Nitro Link calculation
+            const totalNitroLink = links.reduce((sum, link) => sum + (link.nitrolinkCompletions || 0), 0);
+            document.getElementById('totalNitroLink').innerText = totalNitroLink;
 
             const totalCompleted = links.reduce((sum, link) => sum + (link.completedTasksCount || 0), 0);
             document.getElementById('totalCompleted').innerText = totalCompleted;
@@ -587,6 +610,11 @@
                             <span class="linkvertise-badge">
                                 <img src="/linkvertise.png" class="badge-logo" alt="Linkvertise"> 
                                 ${link.linkvertiseCompletions || 0}
+                            </span>
+                            <!-- Added Nitro Link Badge -->
+                            <span class="nitrolink-badge">
+                                <img src="https://nitro-link.com/favicon.ico" class="badge-logo" alt="Nitro Link"> 
+                                ${link.nitrolinkCompletions || 0}
                             </span>
                             <span class="success-badge"><i class="fa-solid fa-circle-check"></i> ${link.completedTasksCount || 0} Total</span>
                             <span class="toggle-icon"><i class="fa-solid fa-chevron-down"></i></span>
