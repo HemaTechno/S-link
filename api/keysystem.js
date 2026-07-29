@@ -2,6 +2,7 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 
 const LINKVERTISE_USER_ID = "1322389"; // الـ ID الخاص بك في لينك فيرتيس
+const DISCORD_WEBHOOK_URL = "ضع_رابط_الويب_هوك_هنا"; // 🔴 ضع رابط ويب هوك الديسكورد الخاص بك هنا
 
 // 🚫 واجهة الخطأ إذا دخل الشخص بدون بصمة (HWID)
 const invalidLinkUI = `
@@ -249,9 +250,8 @@ export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
     let isVPN = false;
     
-    if (clientIp) {
+    if (clientIp && clientIp !== "::1" && clientIp !== "127.0.0.1") {
         try {
-            // استخدام خدمة مجانية وسريعة لفحص الآي بي
             const response = await fetch(`https://blackbox.ipinfo.app/lookup/${clientIp}`);
             const text = await response.text();
             if (text.trim() === 'Y') {
@@ -276,7 +276,7 @@ export default async function handler(req, res) {
         if (hwidMatch) userHwid = hwidMatch[1];
     }
 
-    // 🔴 نظام الحماية (Anti-Bypass): إذا لم يكن هناك بصمة نهائياً، امنع الدخول وأظهر رسالة الخطأ
+    // 🔴 نظام الحماية (Anti-Bypass)
     if (!userHwid) {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         return res.status(403).send(invalidLinkUI);
@@ -323,11 +323,10 @@ export default async function handler(req, res) {
         
         res.setHeader('Set-Cookie', cookies);
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        // إظهار شاشة الـ Loading بدلاً من التحويل المباشر
         return res.status(200).send(verifyingTaskUI);
     }
 
-    // 5. إنشاء المفتاح بعد تخطي الـ 3 مهام
+    // 5. إنشاء المفتاح بعد تخطي الـ 3 مهام وإرسال إشعار للديسكورد
     if (req.method === "POST" && req.body.action === "generate") {
         if (keyStep < 3) return res.status(403).json({ success: false, message: "You must complete all tasks first!" });
 
@@ -335,13 +334,39 @@ export default async function handler(req, res) {
         const expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24 ساعة
 
         try {
+            // حفظ المفتاح في قاعدة البيانات
             await db.collection("keys").doc(uniqueKey).set({
                 key: uniqueKey,
                 createdAt: Date.now(),
                 expiresAt: expiresAt,
-                hwid: userHwid, // ربط المفتاح ببصمة اللاعب إجبارياً
+                hwid: userHwid,
                 ip: clientIp || "Unknown"
             });
+
+            // إرسال إشعار إلى الديسكورد (Discord Webhook)
+            if (DISCORD_WEBHOOK_URL !== "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W") {
+                try {
+                    await fetch(DISCORD_WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            embeds: [{
+                                title: "🎉 New Key Generated!",
+                                color: 4906624, // أخضر فخم
+                                fields: [
+                                    { name: "🔑 Key", value: `\`${uniqueKey}\``, inline: false },
+                                    { name: "💻 HWID", value: `\`${userHwid}\``, inline: false },
+                                    { name: "🌐 IP Address", value: `\`${clientIp || "Unknown"}\``, inline: false }
+                                ],
+                                footer: { text: "SubX Premium System" },
+                                timestamp: new Date().toISOString()
+                            }]
+                        })
+                    });
+                } catch (webhookErr) {
+                    console.error("Discord Webhook Error:", webhookErr);
+                }
+            }
 
             res.setHeader('Set-Cookie', [
                 `key_step=0; Max-Age=0; Path=/`, 
