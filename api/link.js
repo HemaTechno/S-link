@@ -12,6 +12,37 @@ const spamCache = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000; 
 const MAX_REQUESTS = 5;
 
+// 🛡️ واجهة الخطأ إذا كان الـ VPN مفعلاً
+const vpnBlockUI = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN Detected 🛡️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #0c0d10; --glass-bg: rgba(20, 21, 25, 0.6); --text-main: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
+        .container { width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255, 165, 0, 0.4); text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.7); }
+        h1 { color: #ffa500; margin-bottom: 15px; font-size: 1.8rem; font-weight: 800; }
+        p { color: #aaa; font-size: 1.1rem; margin-bottom: 20px; line-height: 1.6; }
+        .error-icon { font-size: 70px; color: #ffa500; margin-bottom: 25px; text-shadow: 0 0 20px rgba(255, 165, 0, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h1>VPN / Proxy Detected!</h1>
+        <p>We detected that you are using a VPN or Proxy connection.</p>
+        <p style="color:#fff; font-weight:bold;">Please turn off your VPN and refresh the page to continue.</p>
+    </div>
+</body>
+</html>
+`;
+
 // Glassmorphism UI Generation with Custom Network Buttons
 const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
     const host = req.headers.host || "";
@@ -266,6 +297,28 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "GET") {
+        // 🛡️ فحص الـ VPN / Proxy أولاً لحماية الوصول للروابط
+        const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
+        let isVPN = false;
+        
+        if (clientIp && clientIp !== "::1" && clientIp !== "127.0.0.1") {
+            try {
+                // نستخدم axios بما أنه مستورد بالفعل في الكود للتحقق من الآي بي
+                const response = await axios.get(`https://blackbox.ipinfo.app/lookup/${clientIp}`);
+                if (typeof response.data === 'string' && response.data.trim() === 'Y') {
+                    isVPN = true;
+                }
+            } catch (error) {
+                console.error("VPN check failed");
+            }
+        }
+
+        // إذا كان يمتلك VPN، امنعه من الدخول واعرض رسالة الخطأ
+        if (isVPN) {
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            return res.status(403).send(vpnBlockUI);
+        }
+
         const id = req.query.id;
         try {
             if (!id) return res.status(404).send("Not Found");
@@ -287,11 +340,9 @@ export default async function handler(req, res) {
             const lootlabsCompletionUrl = `https://subx.click/api/complete?id=${id}&network=lootlabs&tc=[tc]`;
             const nitroLinkCompletionUrl = `https://subx.click/api/complete?id=${id}&network=nitrolink`;
 
-            // ✅ فحص الكوكيز لمعرفة ما إذا كان المستخدم قد تخطى نايترو لينك خلال الـ 24 ساعة الماضية
             const cookieHeader = req.headers.cookie || '';
             const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
 
-            // ✅ التعديل هنا: يظهر Linkvertise إذا كان مفعلاً من الإعدادات، أو إجبارياً إذا كان المستخدم قد استهلك Nitro Link
             const shouldShowLinkvertise = (adSettings.linkvertise !== false) || hasNitroCooldown;
 
             if (shouldShowLinkvertise) {
@@ -314,7 +365,6 @@ export default async function handler(req, res) {
                 }
             }
 
-            // ✅ تفعيل نايترو لينك فقط إذا كان مفعلاً من الإعدادات + لم يتم تخطيه مؤخراً من قبل هذا المتصفح
             if (adSettings.nitrolink !== false && !hasNitroCooldown) {
                 try {
                     const reqUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API}&url=${encodeURIComponent(nitroLinkCompletionUrl)}`;
@@ -327,7 +377,6 @@ export default async function handler(req, res) {
                 }
             }
 
-            // إذا كانت جميع الشبكات الإعلانية معطلة في الإعدادات، يتم إظهار المحتوى المباشر
             if (!urls.lootlabs && !urls.linkvertise && !urls.nitroLink) {
                 const isUrlCheck = data.url.trim().startsWith("http");
                 if (!isUrlCheck) {
