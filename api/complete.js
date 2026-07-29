@@ -5,7 +5,7 @@ const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/153131315360065137
 
 // نظام لمنع التكرار (Cooldown) لتجنب إرسال الإشعار أو زيادة العداد أكثر من مرة لنفس الشخص
 const recentCompletions = new Map();
-const COOLDOWN_TIME = 5 * 60 * 1000; // 5 دقائق
+const COOLDOWN_TIME = 5 * 60 * 1000; // 5 دقائق (لـ IP للشبكات الأخرى)
 
 // دالة لحماية النصوص (تمنع الأكواد من إفساد تصميم الصفحة)
 const escapeHTML = (str) => {
@@ -191,12 +191,34 @@ export default async function handler(req, res) {
     // 1. استخراج الآي بي والدولة
     const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "Unknown";
     
-    // التحقق من الـ Cooldown (منع التكرار)
+    // ==========================================
+    // 🛡️ نظام الحماية من التكرار المزدوج (IP + Cookies)
+    // ==========================================
+    
+    // أ- فحص التكرار السريع عبر الـ IP (لمدة 5 دقائق)
     const cacheKey = `${ip}_${id}`;
     const lastCompleted = recentCompletions.get(cacheKey);
-    const isDuplicate = lastCompleted && (Date.now() - lastCompleted < COOLDOWN_TIME);
+    const isIpDuplicate = lastCompleted && (Date.now() - lastCompleted < COOLDOWN_TIME);
 
-    // تنظيف الكاش القديم لتجنب استهلاك الذاكرة
+    // ب- فحص متصفح المستخدم للـ Nitro Link (لمدة 24 ساعة) متجاهلاً الـ VPN
+    const cookieHeader = req.headers.cookie || '';
+    const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
+    
+    let isNitroBlocked = false;
+    let shouldSetNitroCookie = false;
+
+    if (network === 'nitrolink') {
+        if (hasNitroCooldown) {
+            isNitroBlocked = true; // المستخدم تخطى رابط نايترو لينك من نفس المتصفح خلال 24 ساعة
+        } else {
+            shouldSetNitroCookie = true; // المستخدم نظيف، سنسجل له كوكيز جديدة
+        }
+    }
+
+    // إذا كان هناك تكرار (سواء سريع بالآي بي، أو خلال 24 ساعة للنايترو عبر المتصفح) نعطيه المحتوى فقط ونتوقف
+    const isDuplicate = isIpDuplicate || isNitroBlocked;
+
+    // تنظيف كاش الـ IP القديم لتجنب استهلاك الذاكرة
     if (recentCompletions.size > 500) {
         const now = Date.now();
         for (let [key, time] of recentCompletions.entries()) {
@@ -215,13 +237,13 @@ export default async function handler(req, res) {
 
         const data = doc.data();
 
-        // إذا كان الطلب مكرراً، نظهر الصفحة فقط بدون زيادة العداد أو إرسال إشعار الديسكورد
+        // ⛔ إذا كان الطلب مكرراً، نظهر الصفحة ونتخطى باقي الكود (لا قواعد بيانات ولا ديسكورد)
         if (isDuplicate) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             return res.status(200).send(generateSuccessPage(data.url));
         }
 
-        // تسجيل الطلب الجديد في الكاش
+        // تسجيل الطلب الجديد في كاش الـ IP
         recentCompletions.set(cacheKey, Date.now());
 
         // جلب الدولة
@@ -247,7 +269,6 @@ export default async function handler(req, res) {
             lastCompletedAt: Date.now()
         };
 
-        // دعم إضافة Nitro Link
         if (network === 'lootlabs') {
             updateData.lootlabsCompletions = (data.lootlabsCompletions || 0) + 1;
         } else if (network === 'linkvertise') {
@@ -258,28 +279,27 @@ export default async function handler(req, res) {
 
         await doc.ref.update(updateData);
 
-        // 2. إرسال إشعار الديسكورد بتصميم احترافي (عصري) مع زر حقيقي
+        // 2. إرسال إشعار الديسكورد
         if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL !== "YOUR_DISCORD_WEBHOOK_URL_HERE") {
             
             let networkName = 'Direct Access';
-            let embedColor = 2829617; // أزرق مودرن
+            let embedColor = 2829617; 
             let thumbnailUrl = "https://cdn-icons-png.flaticon.com/512/8451/8451122.png";
 
             if (network === 'lootlabs') {
                 networkName = 'LootLabs';
-                embedColor = 16766720; // ذهبي
+                embedColor = 16766720;
                 thumbnailUrl = "https://lootlabs.gg/favicon.ico";
             } else if (network === 'linkvertise') {
                 networkName = 'Linkvertise';
-                embedColor = 45244; // أخضر
+                embedColor = 45244;
                 thumbnailUrl = "https://publisher.linkvertise.com/assets/favicon/favicon.ico"; 
             } else if (network === 'nitrolink') {
                 networkName = 'Nitro Link';
-                embedColor = 16734002; // برتقالي
-                thumbnailUrl = "https://nitro-link.com/favicon.ico"; // شعار Nitro Link
+                embedColor = 16734002;
+                thumbnailUrl = "https://nitro-link.com/favicon.ico";
             }
 
-            // رابط التخطي الأساسي
             const shareableLink = `https://www.subx.click/?id=${id}`;
 
             const payload = {
@@ -308,14 +328,13 @@ export default async function handler(req, res) {
                         timestamp: new Date().toISOString()
                     }
                 ],
-                // إضافة زر (Button) للديسكورد لفتح الرابط
                 components: [
                     {
-                        type: 1, // Action Row
+                        type: 1, 
                         components: [
                             {
-                                type: 2, // Button
-                                style: 5, // Link Button Style
+                                type: 2, 
+                                style: 5, 
                                 label: "🔗 Open SubX Link",
                                 url: shareableLink
                             }
@@ -324,12 +343,16 @@ export default async function handler(req, res) {
                 ]
             };
 
-            // التعديل هنا: تم إضافة await قبل fetch لحل مشكلة الإغلاق المبكر
             await fetch(DISCORD_WEBHOOK_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             }).catch(err => console.error("Discord Webhook Error:", err));
+        }
+
+        // ✅ زرع الكوكيز في متصفح المستخدم لمدة 24 ساعة (86400 ثانية) إذا كان التخطي من نايترو لينك
+        if (shouldSetNitroCookie) {
+            res.setHeader("Set-Cookie", "nitro_24h_cooldown=1; Max-Age=86400; Path=/; SameSite=Lax");
         }
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
