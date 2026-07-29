@@ -3,7 +3,8 @@ import { nanoid } from "nanoid";
 import axios from "axios";
 
 const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
-const LINKVERTISE_USER_ID = "1322389"; // ضع الـ ID الخاص بك هنا
+const LINKVERTISE_USER_ID = "1322389"; 
+const SHORT_JAMBO_API = "544ab4310ccbe2d74d8acc62f73208c25a1e07ad"; // التوكن الخاص بـ Short-Jambo
 
 const cache = new Map();
 const spamCache = new Map(); 
@@ -20,31 +21,36 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 
     let actionHtml = '';
 
-    // HTML & CSS الخاص بالأزرار (LootLabs & Linkvertise)
-    const getNetworkButtons = (lootlabsUrl, linkvertiseUrl) => {
-        let buttons = '';
+    // HTML & CSS الخاص بالأزرار (تم إضافة Short-Jambo)
+    const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, shortjamboUrl) => {
+        let buttonsArray = [];
         
         if (lootlabsUrl) {
-            buttons += `
+            buttonsArray.push(`
             <a href="${lootlabsUrl}" class="network-btn lootlabs-btn">
                 <span class="btn-text"><i class="fa-solid fa-gem"></i> Unlock via LootLabs</span>
                 <img src="/LootLabs.png" alt="LootLabs Logo" class="network-logo">
-            </a>`;
-        }
-
-        if (lootlabsUrl && linkvertiseUrl) {
-            buttons += `<div class="or-divider"><span>OR</span></div>`;
+            </a>`);
         }
 
         if (linkvertiseUrl) {
-            buttons += `
+            buttonsArray.push(`
             <a href="${linkvertiseUrl}" class="network-btn linkvertise-btn">
                 <span class="btn-text"><i class="fa-solid fa-link"></i> Unlock via Linkvertise</span>
                 <img src="/linkvertise.png" alt="Linkvertise Logo" class="network-logo link-logo">
-            </a>`;
+            </a>`);
         }
         
-        return `<div class="networks-container">${buttons}</div>`;
+        if (shortjamboUrl) {
+            buttonsArray.push(`
+            <a href="${shortjamboUrl}" class="network-btn shortjambo-btn">
+                <span class="btn-text"><i class="fa-solid fa-bolt"></i> Unlock via Short-Jambo</span>
+                <span class="network-logo text-logo">Short-Jambo</span>
+            </a>`);
+        }
+
+        // دمج الأزرار بفاصل OR بشكل ذكي
+        return `<div class="networks-container">${buttonsArray.join(`<div class="or-divider"><span>OR</span></div>`)}</div>`;
     };
 
     // في حالة تعطيل الإعلانات من لوحة التحكم، نعرض المحتوى المباشر
@@ -67,9 +73,9 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             }
         </script>`;
     } 
-    else if (urls.lootlabs || urls.linkvertise) {
-        // عرض أزرار التخطي (في الوضع الطبيعي)
-        actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise);
+    else if (urls.lootlabs || urls.linkvertise || urls.shortjambo) {
+        // عرض أزرار التخطي
+        actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise, urls.shortjambo);
     } 
     else if (urls.direct) {
         actionHtml = `
@@ -155,6 +161,16 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             background: rgba(74, 222, 128, 0.05);
         }
 
+        /* Short-Jambo Button Styling */
+        .shortjambo-btn { color: #ff5e5e; border-color: rgba(255, 94, 94, 0.15); }
+        .shortjambo-btn:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 94, 94, 0.5);
+            box-shadow: 0 8px 25px rgba(255, 94, 94, 0.15);
+            background: rgba(255, 94, 94, 0.05);
+        }
+        .text-logo { font-weight: 900; font-size: 16px; color: #ff5e5e; font-style: italic; }
+
         /* OR Divider */
         .or-divider { text-align: center; margin: 10px 0; position: relative; }
         .or-divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.1); z-index: 1; }
@@ -194,10 +210,14 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 export default async function handler(req, res) {
     if (req.method === "PATCH") {
         try {
-            const { lootlabsEnabled, linkvertiseEnabled, adminKey } = req.body;
+            const { lootlabsEnabled, linkvertiseEnabled, shortjamboEnabled, adminKey } = req.body;
             if (adminKey !== "MY_SECRET_ADMIN_PASSWORD") return res.status(401).json({ success: false, message: "Unauthorized" });
 
-            const settings = { lootlabs: Boolean(lootlabsEnabled), linkvertise: Boolean(linkvertiseEnabled) };
+            const settings = { 
+                lootlabs: Boolean(lootlabsEnabled), 
+                linkvertise: Boolean(linkvertiseEnabled),
+                shortjambo: Boolean(shortjamboEnabled)
+            };
             await db.collection("settings").doc("adNetworks").set(settings);
             cache.set("adSettings", settings);
             return res.status(200).json({ success: true, message: "Settings updated successfully", settings });
@@ -234,6 +254,7 @@ export default async function handler(req, res) {
                 completedTasksCount: 0, 
                 lootlabsCompletions: 0, 
                 linkvertiseCompletions: 0, 
+                shortjamboCompletions: 0,
                 createdAt: Date.now(),
                 tier: tier ? parseInt(tier) : 1,       
                 tasks: tasks ? parseInt(tasks) : 3      
@@ -257,22 +278,24 @@ export default async function handler(req, res) {
             let adSettings = cache.get("adSettings");
             if (!adSettings) {
                 const settingsDoc = await db.collection("settings").doc("adNetworks").get();
-                adSettings = settingsDoc.exists ? settingsDoc.data() : { lootlabs: true, linkvertise: true }; 
+                // نفترض تفعيل الجميع كإعداد افتراضي في حال لم يتم تعيينهم مسبقاً
+                adSettings = settingsDoc.exists ? settingsDoc.data() : { lootlabs: true, linkvertise: true, shortjambo: true }; 
                 cache.set("adSettings", adSettings);
             }
 
-            let urls = { lootlabs: null, linkvertise: null };
+            let urls = { lootlabs: null, linkvertise: null, shortjambo: null };
             
             const linkvertiseCompletionUrl = `https://subx.click/api/complete?id=${id}&network=linkvertise&tc=[tc]`;
             const lootlabsCompletionUrl = `https://subx.click/api/complete?id=${id}&network=lootlabs&tc=[tc]`;
+            const shortjamboCompletionUrl = `https://subx.click/api/complete?id=${id}&network=shortjambo&tc=[tc]`;
 
-            if (adSettings.linkvertise) {
+            if (adSettings.linkvertise !== false) {
                 const base64Url = Buffer.from(linkvertiseCompletionUrl).toString('base64');
                 const randomString = Math.random().toString(36).substring(7);
                 urls.linkvertise = `https://link-to.net/${LINKVERTISE_USER_ID}/${randomString}/dynamic?r=${base64Url}`;
             }
 
-            if (adSettings.lootlabs) {
+            if (adSettings.lootlabs !== false) {
                 try {
                     const response = await axios.post(
                         "https://creators.lootlabs.gg/api/public/content_locker",
@@ -286,8 +309,23 @@ export default async function handler(req, res) {
                 }
             }
 
-            // إذا كانت جميع الشبكات الإعلانية معطلة في الإعدادات، يتم إظهار المحتوى المباشر
-            if (!urls.lootlabs && !urls.linkvertise) {
+            if (adSettings.shortjambo !== false) {
+                try {
+                    const sjRes = await axios.get(`https://short-jambo.com/api?api=${SHORT_JAMBO_API}&url=${encodeURIComponent(shortjamboCompletionUrl)}`);
+                    if (sjRes.data && sjRes.data.status === 'success') {
+                        urls.shortjambo = sjRes.data.shortenedUrl;
+                    } else {
+                        // كود احتياطي في حال تأخر الاستجابة
+                        urls.shortjambo = `https://short-jambo.com/st?api=${SHORT_JAMBO_API}&url=${encodeURIComponent(shortjamboCompletionUrl)}`;
+                    }
+                } catch (err) {
+                    console.error("Short-Jambo API Error", err.message);
+                    urls.shortjambo = `https://short-jambo.com/st?api=${SHORT_JAMBO_API}&url=${encodeURIComponent(shortjamboCompletionUrl)}`;
+                }
+            }
+
+            // إذا كانت جميع الشبكات الإعلانية معطلة، يتم إظهار المحتوى المباشر
+            if (!urls.lootlabs && !urls.linkvertise && !urls.shortjambo) {
                 const isUrlCheck = data.url.trim().startsWith("http");
                 if (!isUrlCheck) {
                     urls.text = data.url; 
@@ -307,4 +345,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).send("Method Not Allowed");
-        }
+}
