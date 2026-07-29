@@ -21,7 +21,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 
     let actionHtml = '';
 
-    // HTML & CSS الخاص بالأزرار (تمت إضافة صورة Nitro Link)
+    // HTML & CSS الخاص بالأزرار
     const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, nitroLinkUrl) => {
         let buttonsArray = [];
         
@@ -74,7 +74,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         </script>`;
     } 
     else if (urls.lootlabs || urls.linkvertise || urls.nitroLink) {
-        // عرض أزرار التخطي
+        // عرض أزرار التخطي المتاحة
         actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise, urls.nitroLink);
     } 
     else if (urls.direct) {
@@ -287,6 +287,10 @@ export default async function handler(req, res) {
             const lootlabsCompletionUrl = `https://subx.click/api/complete?id=${id}&network=lootlabs&tc=[tc]`;
             const nitroLinkCompletionUrl = `https://subx.click/api/complete?id=${id}&network=nitrolink`;
 
+            // ✅ فحص الكوكيز لمعرفة ما إذا كان المستخدم قد تخطى نايترو لينك خلال الـ 24 ساعة الماضية
+            const cookieHeader = req.headers.cookie || '';
+            const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
+
             if (adSettings.linkvertise !== false) {
                 const base64Url = Buffer.from(linkvertiseCompletionUrl).toString('base64');
                 const randomString = Math.random().toString(36).substring(7);
@@ -307,7 +311,8 @@ export default async function handler(req, res) {
                 }
             }
 
-            if (adSettings.nitrolink !== false) {
+            // ✅ تفعيل نايترو لينك فقط إذا كان مفعلاً من الإعدادات + لم يتم تخطيه مؤخراً من قبل هذا المتصفح
+            if (adSettings.nitrolink !== false && !hasNitroCooldown) {
                 try {
                     const reqUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API}&url=${encodeURIComponent(nitroLinkCompletionUrl)}`;
                     const response = await axios.get(reqUrl);
