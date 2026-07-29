@@ -4,7 +4,7 @@ import axios from "axios";
 
 const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
 const LINKVERTISE_USER_ID = "1322389"; // ضع الـ ID الخاص بك هنا
-const NITRO_LINK_API = "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9"; // توكن Nitro Link الخاص بك
+const SHORT_JAMBO_API = "544ab4310ccbe2d74d8acc62f73208c25a1e07ad"; // توكن Short Jambo الخاص بك
 
 const cache = new Map();
 const spamCache = new Map(); 
@@ -21,8 +21,8 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 
     let actionHtml = '';
 
-    // HTML & CSS الخاص بالأزرار
-    const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, nitroLinkUrl) => {
+    // HTML & CSS الخاص بالأزرار (تم التعديل إلى Short Jambo)
+    const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, shortjamboUrl) => {
         let buttonsArray = [];
         
         if (lootlabsUrl) {
@@ -41,11 +41,11 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             </a>`);
         }
         
-        if (nitroLinkUrl) {
+        if (shortjamboUrl) {
             buttonsArray.push(`
-            <a href="${nitroLinkUrl}" class="network-btn nitrolink-btn">
-                <span class="btn-text"><i class="fa-solid fa-rocket"></i> Unlock via Nitro Link</span>
-                <img src="/nitrolink.png" alt="Nitro Link Logo" class="network-logo">
+            <a href="${shortjamboUrl}" class="network-btn shortjambo-btn">
+                <span class="btn-text"><i class="fa-solid fa-bolt"></i> Unlock via Short Jambo</span>
+                <img src="/short-jambo.png" alt="Short Jambo Logo" class="network-logo">
             </a>`);
         }
 
@@ -73,9 +73,9 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             }
         </script>`;
     } 
-    else if (urls.lootlabs || urls.linkvertise || urls.nitroLink) {
+    else if (urls.lootlabs || urls.linkvertise || urls.shortjambo) {
         // عرض أزرار التخطي المتاحة
-        actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise, urls.nitroLink);
+        actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise, urls.shortjambo);
     } 
     else if (urls.direct) {
         actionHtml = `
@@ -161,13 +161,13 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             background: rgba(74, 222, 128, 0.05);
         }
 
-        /* Nitro Link Button Styling */
-        .nitrolink-btn { color: #ff5722; border-color: rgba(255, 87, 34, 0.15); }
-        .nitrolink-btn:hover {
+        /* Short Jambo Button Styling */
+        .shortjambo-btn { color: #ff5e5e; border-color: rgba(255, 94, 94, 0.15); }
+        .shortjambo-btn:hover {
             transform: translateY(-4px);
-            border-color: rgba(255, 87, 34, 0.5);
-            box-shadow: 0 8px 25px rgba(255, 87, 34, 0.15);
-            background: rgba(255, 87, 34, 0.05);
+            border-color: rgba(255, 94, 94, 0.5);
+            box-shadow: 0 8px 25px rgba(255, 94, 94, 0.15);
+            background: rgba(255, 94, 94, 0.05);
         }
 
         /* OR Divider */
@@ -209,13 +209,13 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 export default async function handler(req, res) {
     if (req.method === "PATCH") {
         try {
-            const { lootlabsEnabled, linkvertiseEnabled, nitrolinkEnabled, adminKey } = req.body;
+            const { lootlabsEnabled, linkvertiseEnabled, shortjamboEnabled, adminKey } = req.body;
             if (adminKey !== "MY_SECRET_ADMIN_PASSWORD") return res.status(401).json({ success: false, message: "Unauthorized" });
 
             const settings = { 
                 lootlabs: Boolean(lootlabsEnabled), 
                 linkvertise: Boolean(linkvertiseEnabled),
-                nitrolink: Boolean(nitrolinkEnabled)
+                shortjambo: Boolean(shortjamboEnabled)
             };
             await db.collection("settings").doc("adNetworks").set(settings);
             cache.set("adSettings", settings);
@@ -253,7 +253,7 @@ export default async function handler(req, res) {
                 completedTasksCount: 0, 
                 lootlabsCompletions: 0, 
                 linkvertiseCompletions: 0, 
-                nitrolinkCompletions: 0,
+                shortjamboCompletions: 0,
                 createdAt: Date.now(),
                 tier: tier ? parseInt(tier) : 1,       
                 tasks: tasks ? parseInt(tasks) : 3      
@@ -277,22 +277,23 @@ export default async function handler(req, res) {
             let adSettings = cache.get("adSettings");
             if (!adSettings) {
                 const settingsDoc = await db.collection("settings").doc("adNetworks").get();
-                adSettings = settingsDoc.exists ? settingsDoc.data() : { lootlabs: true, linkvertise: true, nitrolink: true }; 
+                adSettings = settingsDoc.exists ? settingsDoc.data() : { lootlabs: true, linkvertise: true, shortjambo: true }; 
                 cache.set("adSettings", adSettings);
             }
 
-            let urls = { lootlabs: null, linkvertise: null, nitroLink: null };
+            let urls = { lootlabs: null, linkvertise: null, shortjambo: null };
             
             const linkvertiseCompletionUrl = `https://subx.click/api/complete?id=${id}&network=linkvertise&tc=[tc]`;
             const lootlabsCompletionUrl = `https://subx.click/api/complete?id=${id}&network=lootlabs&tc=[tc]`;
-            const nitroLinkCompletionUrl = `https://subx.click/api/complete?id=${id}&network=nitrolink`;
+            // التعديل الهام هنا للشبكة الجديدة 
+            const shortjamboCompletionUrl = `https://subx.click/api/complete?id=${id}&network=shortjambo`;
 
-            // ✅ فحص الكوكيز لمعرفة ما إذا كان المستخدم قد تخطى نايترو لينك خلال الـ 24 ساعة الماضية
+            // ✅ فحص الكوكيز لمعرفة ما إذا كان المستخدم قد تخطى Short Jambo خلال الـ 24 ساعة الماضية
             const cookieHeader = req.headers.cookie || '';
-            const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
+            const hasShortjamboCooldown = cookieHeader.includes('shortjambo_24h_cooldown=1');
 
-            // ✅ التعديل هنا: يظهر Linkvertise إذا كان مفعلاً من الإعدادات، أو إجبارياً إذا كان المستخدم قد استهلك Nitro Link
-            const shouldShowLinkvertise = (adSettings.linkvertise !== false) || hasNitroCooldown;
+            // ✅ يظهر Linkvertise إذا كان مفعلاً من الإعدادات، أو إجبارياً إذا كان المستخدم قد استهلك Short Jambo
+            const shouldShowLinkvertise = (adSettings.linkvertise !== false) || hasShortjamboCooldown;
 
             if (shouldShowLinkvertise) {
                 const base64Url = Buffer.from(linkvertiseCompletionUrl).toString('base64');
@@ -314,21 +315,21 @@ export default async function handler(req, res) {
                 }
             }
 
-            // ✅ تفعيل نايترو لينك فقط إذا كان مفعلاً من الإعدادات + لم يتم تخطيه مؤخراً من قبل هذا المتصفح
-            if (adSettings.nitrolink !== false && !hasNitroCooldown) {
+            // ✅ تفعيل Short Jambo فقط إذا كان مفعلاً من الإعدادات + لم يتم تخطيه مؤخراً من قبل هذا المتصفح
+            if (adSettings.shortjambo !== false && !hasShortjamboCooldown) {
                 try {
-                    const reqUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API}&url=${encodeURIComponent(nitroLinkCompletionUrl)}`;
+                    const reqUrl = `https://short-jambo.com/api?api=${SHORT_JAMBO_API}&url=${encodeURIComponent(shortjamboCompletionUrl)}`;
                     const response = await axios.get(reqUrl);
                     if (response.data && response.data.status === 'success') {
-                        urls.nitroLink = response.data.shortenedUrl;
+                        urls.shortjambo = response.data.shortenedUrl;
                     }
                 } catch (err) {
-                    console.error("Nitro Link API Error", err.message);
+                    console.error("Short Jambo API Error", err.message);
                 }
             }
 
             // إذا كانت جميع الشبكات الإعلانية معطلة في الإعدادات، يتم إظهار المحتوى المباشر
-            if (!urls.lootlabs && !urls.linkvertise && !urls.nitroLink) {
+            if (!urls.lootlabs && !urls.linkvertise && !urls.shortjambo) {
                 const isUrlCheck = data.url.trim().startsWith("http");
                 if (!isUrlCheck) {
                     urls.text = data.url; 
