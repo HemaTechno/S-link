@@ -121,7 +121,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey) => {
                 
                 const data = await response.json();
                 if(data.success) {
-                    window.location.reload(); // سيقوم بتحديث الصفحة وإظهار المفتاح فوراً
+                    window.location.reload(); 
                 } else {
                     alert(data.message);
                     btn.innerHTML = '<i class="fa-solid fa-key"></i> Create Key';
@@ -139,56 +139,58 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey) => {
 };
 
 export default async function handler(req, res) {
-    // 1. قراءة الـ Cookies لمعرفة أي خطوة وصل لها المستخدم
     const cookieHeader = req.headers.cookie || '';
-    let keyStep = 0;
-    const stepMatch = cookieHeader.match(/key_step=(\d+)/);
-    if (stepMatch) {
-        keyStep = parseInt(stepMatch[1]);
+    
+    // التقاط بصمة اللاعب من الرابط وحفظها في الكوكيز
+    let userHwid = req.query.hwid || null;
+    if (!userHwid) {
+        const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
+        if (hwidMatch) userHwid = hwidMatch[1];
     }
 
-    // 2. التحقق مما إذا كان لديه مفتاح نشط بالفعل (لمدة 24 ساعة)
+    let keyStep = 0;
+    const stepMatch = cookieHeader.match(/key_step=(\d+)/);
+    if (stepMatch) keyStep = parseInt(stepMatch[1]);
+
     const keyMatch = cookieHeader.match(/active_key=([^;]+)/);
     let activeKey = keyMatch ? keyMatch[1] : null;
 
-    // 3. معالجة عودة المستخدم من Linkvertise بعد تخطي الخطوة
+    // معالجة عودة المستخدم من Linkvertise بعد تخطي الخطوة
     if (req.method === "GET" && req.query.complete_step) {
         const completedStep = parseInt(req.query.complete_step);
-        
-        // التحقق من أن المستخدم يمر بالخطوات بالترتيب (1 ثم 2 ثم 3)
         if (completedStep === keyStep + 1 && completedStep <= 3) {
             keyStep = completedStep;
-            res.setHeader('Set-Cookie', `key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`);
         }
         
-        // توجيهه للصفحة الرئيسية لنظام المفاتيح لإزالة الـ Query من الرابط
+        let cookies = [`key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`];
+        if (userHwid) cookies.push(`user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`);
+        
+        res.setHeader('Set-Cookie', cookies);
         res.writeHead(302, { Location: '/api/keysystem' });
         return res.end();
     }
 
-    // 4. معالجة طلب إنشاء المفتاح بعد إنهاء الـ 3 مهام
+    // معالجة طلب إنشاء المفتاح بعد إنهاء المهام
     if (req.method === "POST" && req.body.action === "generate") {
-        if (keyStep < 3) {
-            return res.status(403).json({ success: false, message: "You must complete all tasks first!" });
-        }
+        if (keyStep < 3) return res.status(403).json({ success: false, message: "You must complete all tasks first!" });
 
-        // توليد مفتاح عشوائي فريد وحفظه في Firebase
         const uniqueKey = "SUBX-" + nanoid(10).toUpperCase();
-        const expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24 ساعة
+        const expiresAt = Date.now() + (24 * 60 * 60 * 1000);
 
         try {
             await db.collection("keys").doc(uniqueKey).set({
                 key: uniqueKey,
                 createdAt: Date.now(),
                 expiresAt: expiresAt,
+                hwid: userHwid || "Unknown_HWID", // ربط المفتاح ببصمة اللاعب
                 ip: req.headers["x-forwarded-for"]?.split(",")[0] || "Unknown"
             });
 
-            // تصفير الخطوات وحفظ المفتاح الجديد في الـ Cookies لمدة 24 ساعة
             res.setHeader('Set-Cookie', [
                 `key_step=0; Max-Age=0; Path=/`, 
-                `active_key=${uniqueKey}; Max-Age=86400; Path=/; SameSite=Lax` 
-            ]);
+                `active_key=${uniqueKey}; Max-Age=86400; Path=/; SameSite=Lax`,
+                userHwid ? `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax` : ''
+            ].filter(Boolean));
 
             return res.status(200).json({ success: true, key: uniqueKey });
         } catch (err) {
@@ -196,21 +198,24 @@ export default async function handler(req, res) {
         }
     }
 
-    // 5. عرض الصفحة الرئيسية (UI)
+    // عرض الصفحة الرئيسية للـ UI
     if (req.method === "GET") {
         let currentTaskUrl = "#";
-        
-        // تجهيز رابط لينك فيرتيس الديناميكي للخطوة القادمة
         if (keyStep < 3 && !activeKey) {
             const host = req.headers.host;
             const protocol = host.includes("localhost") ? "http" : "https";
-            // الرابط الذي سيعود إليه بعد إتمام التخطي في Linkvertise
             const targetUrl = `${protocol}://${host}/api/keysystem?complete_step=${keyStep + 1}`;
-            
             const base64Url = Buffer.from(targetUrl).toString('base64');
             const randomString = Math.random().toString(36).substring(7);
-            
             currentTaskUrl = `https://link-to.net/${LINKVERTISE_USER_ID}/${randomString}/dynamic?r=${base64Url}`;
+        }
+
+        // حفظ الـ HWID في الكوكيز عند أول زيارة للموقع من خلال سكربت روبلوكس
+        if (req.query.hwid && !cookieHeader.includes(`user_hwid=${req.query.hwid}`)) {
+            let existingCookies = res.getHeader('Set-Cookie') || [];
+            if (!Array.isArray(existingCookies)) existingCookies = [existingCookies];
+            existingCookies.push(`user_hwid=${req.query.hwid}; Max-Age=86400; Path=/; SameSite=Lax`);
+            res.setHeader('Set-Cookie', existingCookies);
         }
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
