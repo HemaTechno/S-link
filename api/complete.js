@@ -247,10 +247,13 @@ export default async function handler(req, res) {
             lastCompletedAt: Date.now()
         };
 
+        // دعم إضافة Nitro Link
         if (network === 'lootlabs') {
             updateData.lootlabsCompletions = (data.lootlabsCompletions || 0) + 1;
         } else if (network === 'linkvertise') {
             updateData.linkvertiseCompletions = (data.linkvertiseCompletions || 0) + 1;
+        } else if (network === 'nitrolink') {
+            updateData.nitrolinkCompletions = (data.nitrolinkCompletions || 0) + 1;
         }
 
         await doc.ref.update(updateData);
@@ -265,13 +268,15 @@ export default async function handler(req, res) {
             if (network === 'lootlabs') {
                 networkName = 'LootLabs';
                 embedColor = 16766720; // ذهبي
-                // ⚠️ التعديل هنا: يجب استخدام رابط خارجي (Absolute) للصورة حتى تظهر في الديسكورد
                 thumbnailUrl = "https://lootlabs.gg/favicon.ico";
             } else if (network === 'linkvertise') {
                 networkName = 'Linkvertise';
                 embedColor = 45244; // أخضر
-                // ⚠️ التعديل هنا: يجب استخدام رابط خارجي (Absolute) للصورة حتى تظهر في الديسكورد
                 thumbnailUrl = "https://publisher.linkvertise.com/assets/favicon/favicon.ico"; 
+            } else if (network === 'nitrolink') {
+                networkName = 'Nitro Link';
+                embedColor = 16734002; // برتقالي
+                thumbnailUrl = "https://nitro-link.com/favicon.ico"; // شعار Nitro Link
             }
 
             // رابط التخطي الأساسي
@@ -319,7 +324,7 @@ export default async function handler(req, res) {
                 ]
             };
 
-            // التعديل هنا: تم إضافة await قبل fetch لحل مشكلة الإغلاق المبكر (كما طلبت)
+            // التعديل هنا: تم إضافة await قبل fetch لحل مشكلة الإغلاق المبكر
             await fetch(DISCORD_WEBHOOK_URL, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
