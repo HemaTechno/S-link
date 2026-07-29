@@ -29,7 +29,7 @@ local KEY_FILE_NAME = "SubX_SavedKey.txt"
 -- ==========================================
 -- 3. رابط الصورة للزر العائم
 -- ==========================================
-local FLOATING_ICON_IMAGE = "rbxassetid://1234567890" -- ضع هنا ID الصورة التي تريدها
+local FLOATING_ICON_IMAGE = "https://raw.githubusercontent.com/HemaTechno/S-link/refs/heads/main/logo.png" -- ضع هنا ID الصورة التي تريدها
 
 -- دالة التحقق من السيرفر
 local function checkKeyWithServer(keyToVerify)
