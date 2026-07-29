@@ -3,8 +3,8 @@ import { nanoid } from "nanoid";
 import axios from "axios";
 
 const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
-const LINKVERTISE_USER_ID = "1322389"; 
-const SHORT_JAMBO_API = "544ab4310ccbe2d74d8acc62f73208c25a1e07ad"; // التوكن الخاص بـ Short-Jambo
+const LINKVERTISE_USER_ID = "1322389"; // ضع الـ ID الخاص بك هنا
+const NITRO_LINK_API = "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9"; // توكن Nitro Link الخاص بك
 
 const cache = new Map();
 const spamCache = new Map(); 
@@ -21,8 +21,8 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 
     let actionHtml = '';
 
-    // HTML & CSS الخاص بالأزرار (تم إضافة Short-Jambo)
-    const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, shortjamboUrl) => {
+    // HTML & CSS الخاص بالأزرار (تمت إضافة Nitro Link)
+    const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, nitroLinkUrl) => {
         let buttonsArray = [];
         
         if (lootlabsUrl) {
@@ -41,11 +41,11 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             </a>`);
         }
         
-        if (shortjamboUrl) {
+        if (nitroLinkUrl) {
             buttonsArray.push(`
-            <a href="${shortjamboUrl}" class="network-btn shortjambo-btn">
-                <span class="btn-text"><i class="fa-solid fa-bolt"></i> Unlock via Short-Jambo</span>
-                <span class="network-logo text-logo">Short-Jambo</span>
+            <a href="${nitroLinkUrl}" class="network-btn nitrolink-btn">
+                <span class="btn-text"><i class="fa-solid fa-rocket"></i> Unlock via Nitro Link</span>
+                <span class="network-logo text-logo">NitroLink</span>
             </a>`);
         }
 
@@ -73,9 +73,9 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             }
         </script>`;
     } 
-    else if (urls.lootlabs || urls.linkvertise || urls.shortjambo) {
+    else if (urls.lootlabs || urls.linkvertise || urls.nitroLink) {
         // عرض أزرار التخطي
-        actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise, urls.shortjambo);
+        actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise, urls.nitroLink);
     } 
     else if (urls.direct) {
         actionHtml = `
@@ -161,15 +161,15 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             background: rgba(74, 222, 128, 0.05);
         }
 
-        /* Short-Jambo Button Styling */
-        .shortjambo-btn { color: #ff5e5e; border-color: rgba(255, 94, 94, 0.15); }
-        .shortjambo-btn:hover {
+        /* Nitro Link Button Styling */
+        .nitrolink-btn { color: #ff5722; border-color: rgba(255, 87, 34, 0.15); }
+        .nitrolink-btn:hover {
             transform: translateY(-4px);
-            border-color: rgba(255, 94, 94, 0.5);
-            box-shadow: 0 8px 25px rgba(255, 94, 94, 0.15);
-            background: rgba(255, 94, 94, 0.05);
+            border-color: rgba(255, 87, 34, 0.5);
+            box-shadow: 0 8px 25px rgba(255, 87, 34, 0.15);
+            background: rgba(255, 87, 34, 0.05);
         }
-        .text-logo { font-weight: 900; font-size: 16px; color: #ff5e5e; font-style: italic; }
+        .text-logo { font-weight: 900; font-size: 16px; color: inherit; font-style: italic; }
 
         /* OR Divider */
         .or-divider { text-align: center; margin: 10px 0; position: relative; }
@@ -210,13 +210,13 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 export default async function handler(req, res) {
     if (req.method === "PATCH") {
         try {
-            const { lootlabsEnabled, linkvertiseEnabled, shortjamboEnabled, adminKey } = req.body;
+            const { lootlabsEnabled, linkvertiseEnabled, nitrolinkEnabled, adminKey } = req.body;
             if (adminKey !== "MY_SECRET_ADMIN_PASSWORD") return res.status(401).json({ success: false, message: "Unauthorized" });
 
             const settings = { 
                 lootlabs: Boolean(lootlabsEnabled), 
                 linkvertise: Boolean(linkvertiseEnabled),
-                shortjambo: Boolean(shortjamboEnabled)
+                nitrolink: Boolean(nitrolinkEnabled)
             };
             await db.collection("settings").doc("adNetworks").set(settings);
             cache.set("adSettings", settings);
@@ -254,7 +254,7 @@ export default async function handler(req, res) {
                 completedTasksCount: 0, 
                 lootlabsCompletions: 0, 
                 linkvertiseCompletions: 0, 
-                shortjamboCompletions: 0,
+                nitrolinkCompletions: 0,
                 createdAt: Date.now(),
                 tier: tier ? parseInt(tier) : 1,       
                 tasks: tasks ? parseInt(tasks) : 3      
@@ -278,16 +278,15 @@ export default async function handler(req, res) {
             let adSettings = cache.get("adSettings");
             if (!adSettings) {
                 const settingsDoc = await db.collection("settings").doc("adNetworks").get();
-                // نفترض تفعيل الجميع كإعداد افتراضي في حال لم يتم تعيينهم مسبقاً
-                adSettings = settingsDoc.exists ? settingsDoc.data() : { lootlabs: true, linkvertise: true, shortjambo: true }; 
+                adSettings = settingsDoc.exists ? settingsDoc.data() : { lootlabs: true, linkvertise: true, nitrolink: true }; 
                 cache.set("adSettings", adSettings);
             }
 
-            let urls = { lootlabs: null, linkvertise: null, shortjambo: null };
+            let urls = { lootlabs: null, linkvertise: null, nitroLink: null };
             
             const linkvertiseCompletionUrl = `https://subx.click/api/complete?id=${id}&network=linkvertise&tc=[tc]`;
             const lootlabsCompletionUrl = `https://subx.click/api/complete?id=${id}&network=lootlabs&tc=[tc]`;
-            const shortjamboCompletionUrl = `https://subx.click/api/complete?id=${id}&network=shortjambo&tc=[tc]`;
+            const nitroLinkCompletionUrl = `https://subx.click/api/complete?id=${id}&network=nitrolink`;
 
             if (adSettings.linkvertise !== false) {
                 const base64Url = Buffer.from(linkvertiseCompletionUrl).toString('base64');
@@ -309,23 +308,20 @@ export default async function handler(req, res) {
                 }
             }
 
-            if (adSettings.shortjambo !== false) {
+            if (adSettings.nitrolink !== false) {
                 try {
-                    const sjRes = await axios.get(`https://short-jambo.com/api?api=${SHORT_JAMBO_API}&url=${encodeURIComponent(shortjamboCompletionUrl)}`);
-                    if (sjRes.data && sjRes.data.status === 'success') {
-                        urls.shortjambo = sjRes.data.shortenedUrl;
-                    } else {
-                        // كود احتياطي في حال تأخر الاستجابة
-                        urls.shortjambo = `https://short-jambo.com/st?api=${SHORT_JAMBO_API}&url=${encodeURIComponent(shortjamboCompletionUrl)}`;
+                    const reqUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API}&url=${encodeURIComponent(nitroLinkCompletionUrl)}`;
+                    const response = await axios.get(reqUrl);
+                    if (response.data && response.data.status === 'success') {
+                        urls.nitroLink = response.data.shortenedUrl;
                     }
                 } catch (err) {
-                    console.error("Short-Jambo API Error", err.message);
-                    urls.shortjambo = `https://short-jambo.com/st?api=${SHORT_JAMBO_API}&url=${encodeURIComponent(shortjamboCompletionUrl)}`;
+                    console.error("Nitro Link API Error", err.message);
                 }
             }
 
-            // إذا كانت جميع الشبكات الإعلانية معطلة، يتم إظهار المحتوى المباشر
-            if (!urls.lootlabs && !urls.linkvertise && !urls.shortjambo) {
+            // إذا كانت جميع الشبكات الإعلانية معطلة في الإعدادات، يتم إظهار المحتوى المباشر
+            if (!urls.lootlabs && !urls.linkvertise && !urls.nitroLink) {
                 const isUrlCheck = data.url.trim().startsWith("http");
                 if (!isUrlCheck) {
                     urls.text = data.url; 
