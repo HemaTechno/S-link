@@ -21,7 +21,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 
     let actionHtml = '';
 
-    // HTML & CSS الخاص بالأزرار (تمت إضافة Nitro Link)
+    // HTML & CSS الخاص بالأزرار (تمت إضافة صورة Nitro Link)
     const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, nitroLinkUrl) => {
         let buttonsArray = [];
         
@@ -45,7 +45,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             buttonsArray.push(`
             <a href="${nitroLinkUrl}" class="network-btn nitrolink-btn">
                 <span class="btn-text"><i class="fa-solid fa-rocket"></i> Unlock via Nitro Link</span>
-                <span class="network-logo text-logo">NitroLink</span>
+                <img src="/nitrolink.png" alt="Nitro Link Logo" class="network-logo">
             </a>`);
         }
 
@@ -169,7 +169,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             box-shadow: 0 8px 25px rgba(255, 87, 34, 0.15);
             background: rgba(255, 87, 34, 0.05);
         }
-        .text-logo { font-weight: 900; font-size: 16px; color: inherit; font-style: italic; }
 
         /* OR Divider */
         .or-divider { text-align: center; margin: 10px 0; position: relative; }
