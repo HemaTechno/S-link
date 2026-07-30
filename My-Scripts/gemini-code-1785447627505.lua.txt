@@ -1,0 +1,667 @@
+-- ==========================================
+-- 1. استدعاء الخدمات الأساسية
+-- ==========================================
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
+local TweenService = game:GetService("TweenService")
+local TeleportService = game:GetService("TeleportService")
+local RunService = game:GetService("RunService")
+local MarketplaceService = game:GetService("MarketplaceService")
+
+local requestFunc = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
+
+-- ==========================================
+-- 2. جلب البصمة وإعدادات الروابط والويب هوك
+-- ==========================================
+local playerHWID = ""
+pcall(function() playerHWID = game:GetService("RbxAnalyticsService"):GetClientId() end)
+if playerHWID == "" then playerHWID = tostring(Players.LocalPlayer.UserId) end
+
+local GET_KEY_LINK = "https://www.subx.click/api/keysystem?hwid=" .. playerHWID
+local VERIFY_API_URL = "https://www.subx.click/api/verify-key" 
+local GET_SCRIPTS_URL = "https://www.subx.click/api/scripts"
+local DISCORD_INVITE = "https://discord.gg/hematech-1135848445471629393"
+local YOUTUBE_LINK = "https://youtube.com/@hema_tech1?si=jEjx8Ns9MFkfbGQr"
+local KEY_FILE_NAME = "SubX_SavedKey.txt"
+local AUTO_EXEC_CONFIG_FILE = "SubX_AutoExecConfig.json"
+
+local EXECUTION_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W"
+
+-- ==========================================
+-- 3. دالة إرسال الويب هوك (مع اسم الماب وصورته)
+-- ==========================================
+local function sendExecutionWebhook(keyUsed)
+    if not requestFunc then return end
+    task.spawn(function()
+        pcall(function()
+            local plr = Players.LocalPlayer
+            
+            local thumbUrl = string.format("https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=%d&size=420x420&format=Png&isCircular=false", plr.UserId)
+            local thumbReq = requestFunc({Url = thumbUrl, Method = "GET"})
+            local avatarImg = "https://www.roblox.com"
+            
+            if thumbReq and thumbReq.Body then
+                local data = HttpService:JSONDecode(thumbReq.Body)
+                if data and data.data and data.data[1] then
+                    avatarImg = data.data[1].imageUrl
+                end
+            end
+
+            local gameName = "Unknown Game"
+            local gameIcon = "https://www.roblox.com"
+            pcall(function()
+                local info = MarketplaceService:GetProductInfo(game.PlaceId)
+                if info and info.Name then
+                    gameName = info.Name
+                end
+                
+                local iconUrl = string.format("https://thumbnails.roblox.com/v1/games/icons?universeIds=%d&format=Png&isCircular=false&size=512x512", game.GameId)
+                local iconReq = requestFunc({Url = iconUrl, Method = "GET"})
+                if iconReq and iconReq.Body then
+                    local iconData = HttpService:JSONDecode(iconReq.Body)
+                    if iconData and iconData.data and iconData.data[1] then
+                        gameIcon = iconData.data[1].imageUrl
+                    end
+                end
+            end)
+
+            local payload = {
+                embeds = {{
+                    title = "SubX Hub Executed Successfully!",
+                    color = 4906624,
+                    fields = {
+                        { name = "Player Name", value = string.format("`%s` (@%s)", plr.DisplayName, plr.Name), inline = false },
+                        { name = "User ID", value = string.format("`%d`", plr.UserId), inline = true },
+                        { name = "Game Name", value = string.format("`%s`", gameName), inline = false },
+                        { name = "Key Used", value = string.format("`%s`", keyUsed), inline = true },
+                        { name = "HWID", value = string.format("`%s`", playerHWID), inline = false }
+                    },
+                    thumbnail = { url = avatarImg },
+                    image = { url = gameIcon },
+                    footer = { text = "SubX Execution Logger" },
+                    timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+                }}
+            }
+
+            requestFunc({
+                Url = EXECUTION_WEBHOOK_URL,
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = HttpService:JSONEncode(payload)
+            })
+        end)
+    end)
+end
+
+-- ==========================================
+-- 4. تحميل مكتبة WindUI
+-- ==========================================
+local WindUI_SRC = nil
+local uiSuccess, _ = pcall(function()
+    WindUI_SRC = game:HttpGet("https://github.com/Footagesus/WindUI/releases/latest/download/main.lua")
+end)
+
+if not uiSuccess or not WindUI_SRC then
+    warn("[SubX Error] Failed to load WindUI Source!")
+    return 
+end
+
+-- ==========================================
+-- 5. الأنيميشن السينمائي والتنظيف
+-- ==========================================
+local function playCinematicTransition(oldWindow, callback)
+    local transitionGui = Instance.new("ScreenGui")
+    transitionGui.Name = "SubXCinematic"
+    transitionGui.DisplayOrder = 999999
+    transitionGui.IgnoreGuiInset = true
+    
+    local target = CoreGui
+    if not pcall(function() transitionGui.Parent = target end) then
+        transitionGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+    end
+    
+    local fadeFrame = Instance.new("Frame", transitionGui)
+    fadeFrame.Size = UDim2.new(1, 0, 1, 0)
+    fadeFrame.BackgroundColor3 = Color3.fromRGB(16, 16, 20)
+    fadeFrame.BackgroundTransparency = 1
+    fadeFrame.BorderSizePixel = 0
+    
+    local subxText = Instance.new("TextLabel", fadeFrame)
+    subxText.Size = UDim2.new(1, 0, 1, 0)
+    subxText.BackgroundTransparency = 1
+    subxText.Text = "SubX Premium"
+    subxText.TextColor3 = Color3.fromRGB(255, 215, 0) 
+    subxText.Font = Enum.Font.GothamBold
+    subxText.TextSize = 45
+    subxText.TextTransparency = 1
+    
+    local textGlow = Instance.new("UIStroke", subxText)
+    textGlow.Color = Color3.fromRGB(255, 215, 0) 
+    textGlow.Transparency = 1
+    textGlow.Thickness = 2
+    
+    TweenService:Create(fadeFrame, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {BackgroundTransparency = 0}):Play()
+    local textTween = TweenService:Create(subxText, TweenInfo.new(0.8, Enum.EasingStyle.Sine), {TextTransparency = 0, TextSize = 55})
+    TweenService:Create(textGlow, TweenInfo.new(0.8, Enum.EasingStyle.Sine), {Transparency = 0.6}):Play()
+    textTween:Play()
+    
+    textTween.Completed:Wait()
+    task.wait(0.5)
+    
+    if oldWindow and oldWindow.Destroy then
+        pcall(function() oldWindow:Destroy() end)
+    end
+    
+    callback()
+    task.wait(0.8) 
+    
+    TweenService:Create(subxText, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {TextTransparency = 1, TextSize = 65}):Play()
+    TweenService:Create(textGlow, TweenInfo.new(0.5, Enum.EasingStyle.Sine), {Transparency = 1}):Play()
+    local fadeOut = TweenService:Create(fadeFrame, TweenInfo.new(0.6, Enum.EasingStyle.Sine), {BackgroundTransparency = 1})
+    fadeOut:Play()
+    fadeOut.Completed:Wait()
+    
+    transitionGui:Destroy()
+end
+
+local function destroyOldUI()
+    local target1 = CoreGui
+    local target2 = Players.LocalPlayer:FindFirstChild("PlayerGui")
+    local function sweep(parent)
+        if not parent then return end
+        for _, v in pairs(parent:GetChildren()) do 
+            if v:IsA("ScreenGui") and (v.Name == "WindUI" or v.Name == "SubXKey" or v.Name == "SubXConfig") then 
+                pcall(function() v:Destroy() end)
+            end 
+        end
+    end
+    sweep(target1)
+    sweep(target2)
+end
+
+-- ==========================================
+-- 6. الثيم
+-- ==========================================
+local function applySubXTheme(Wind)
+    Wind:AddTheme({
+        Name = "SubXTheme",
+        Primary = Color3.fromHex("#FFD700"), 
+        White = Color3.new(1,1,1),
+        Black = Color3.new(0,0,0),
+        Dialog = Color3.fromHex("#18181b"), 
+        Background = Color3.fromHex("#101010"), 
+        BackgroundTransparency = 0,
+        Hover = Color3.fromHex("#FFFFFF"), 
+        PanelBackground = Color3.new(1,1,1), 
+        PanelBackgroundTransparency = .95,
+        WindowBackground = Color3.fromHex("#101010"), 
+        WindowShadow = Color3.new(0,0,0), 
+        WindowTopbarTitle = Color3.fromHex("#FFFFFF"),
+        WindowTopbarAuthor = Color3.fromHex("#a1a1aa"), 
+        WindowTopbarIcon = Color3.fromHex("#FFD700"), 
+        WindowTopbarButtonIcon = Color3.fromHex("#FFD700"), 
+        WindowSearchBarBackground = Color3.fromHex("#18181b"), 
+        TabBackground = Color3.fromHex("#FFFFFF"), 
+        TabBackgroundHover = Color3.fromHex("#FFFFFF"), 
+        TabBackgroundHoverTransparency = .97,
+        TabBackgroundActive = Color3.fromHex("#FFFFFF"), 
+        TabBackgroundActiveTransparency = 0.93,
+        TabText = Color3.fromHex("#FFFFFF"), 
+        TabTextTransparency = 0.3,
+        TabTextTransparencyActive = 0,
+        TabTitle = Color3.fromHex("#FFFFFF"), 
+        TabIcon = Color3.fromHex("#FFD700"), 
+        TabIconTransparency = 0.2,
+        TabIconTransparencyActive = 0,
+        TabBorderTransparency = 1,
+        TabBorderTransparencyActive = 0.75,
+        TabBorder = Color3.new(1,1,1), 
+        ElementBackground = Color3.fromHex("#FFFFFF"), 
+        ElementBackgroundTransparency = .93,
+        ElementBackgroundHover = Color3.fromHex("#1f1f22"),
+        ElementTitle = Color3.fromHex("#FFFFFF"), 
+        ElementDesc = Color3.fromHex("#a1a1aa"), 
+        ElementIcon = Color3.fromHex("#FFD700"), 
+        PopupBackground = Color3.fromHex("#18181b"), 
+        PopupBackgroundTransparency = 0,
+        PopupTitle = Color3.fromHex("#FFFFFF"), 
+        PopupContent = Color3.fromHex("#a1a1aa"), 
+        PopupIcon = Color3.fromHex("#FFD700"), 
+        DialogBackground = Color3.fromHex("#18181b"), 
+        DialogBackgroundTransparency = 0,
+        DialogTitle = Color3.fromHex("#FFFFFF"), 
+        DialogContent = Color3.fromHex("#a1a1aa"), 
+        DialogIcon = Color3.fromHex("#FFD700"), 
+        Toggle = Color3.fromHex("#52525b"), 
+        ToggleBar = Color3.new(1,1,1), 
+        Checkbox = Color3.fromHex("#FFD700"), 
+        CheckboxIcon = Color3.new(0,0,0), 
+        CheckboxBorder = Color3.new(1,1,1), 
+        CheckboxBorderTransparency = .75,
+        SliderIcon = Color3.fromHex("#FFD700"), 
+        Slider = Color3.fromHex("#FFD700"), 
+        SliderThumb = Color3.new(1,1,1), 
+        SliderIconFrom = Color3.fromHex("#FFD700"), 
+        SliderIconTo = Color3.fromHex("#FFD700"), 
+        Tooltip = Color3.fromHex("#1f1f22"),
+        TooltipText = Color3.new(1,1,1), 
+        TooltipSecondary = Color3.fromHex("#FFD700"), 
+        TooltipSecondaryText = Color3.new(0,0,0), 
+        TabSectionIcon = Color3.fromHex("#FFD700"), 
+        SectionIcon = Color3.fromHex("#FFD700"), 
+        SectionExpandIcon = Color3.new(1,1,1), 
+        SectionExpandIconTransparency = .4,
+        SectionBox = Color3.new(1,1,1), 
+        SectionBoxTransparency = .95,
+        SectionBoxBorder = Color3.new(1,1,1), 
+        SectionBoxBorderTransparency = .75,
+        SectionBoxBackground = Color3.new(1,1,1), 
+        SectionBoxBackgroundTransparency = .95,
+        SearchBarBorder = Color3.new(1,1,1), 
+        SearchBarBorderTransparency = .75,
+        Notification = Color3.fromHex("#18181b"), 
+        NotificationTitle = Color3.fromHex("#FFFFFF"), 
+        NotificationTitleTransparency = 0,
+        NotificationContent = Color3.fromHex("#a1a1aa"), 
+        NotificationContentTransparency = 0,
+        NotificationDuration = Color3.fromHex("#FFD700"), 
+        NotificationDurationTransparency = 0.5,
+        NotificationBorder = Color3.new(1,1,1), 
+        NotificationBorderTransparency = .85,
+    })
+end
+
+-- ==========================================
+-- 7. التحقق والتشغيل
+-- ==========================================
+local function checkKeyWithServer(keyToVerify)
+    if requestFunc then
+        local success, response = pcall(function()
+            return requestFunc({
+                Url = VERIFY_API_URL,
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = HttpService:JSONEncode({ key = keyToVerify, hwid = playerHWID })
+            })
+        end)
+        if success and response and response.Body then
+            local decSuccess, decoded = pcall(function() return HttpService:JSONDecode(response.Body) end)
+            if decSuccess then return decoded end
+        end
+    end
+    return {success = false, message = "Connection error!"}
+end
+
+local function executeScriptSafe(scriptName, scriptData, Wind)
+    Wind:Notify({Title = "Executing", Content = "Injecting " .. scriptName .. "...", Duration = 3})
+    task.spawn(function()
+        local s, err = pcall(function()
+            if scriptData:match("^https?://") and not scriptData:match("[%s%(%)]") then
+                local scriptContent = requestFunc and requestFunc({Url = scriptData, Method = "GET"}).Body or game:HttpGet(scriptData)
+                loadstring(scriptContent)()
+            else
+                local executeFunc, loadErr = loadstring(scriptData)
+                if executeFunc then
+                    executeFunc()
+                else
+                    error("Syntax Error: " .. tostring(loadErr))
+                end
+            end
+        end)
+        
+        if not s then
+            Wind:Notify({Title = "Injection Failed", Content = tostring(err), Duration = 5})
+        end
+    end)
+end
+
+-- ==========================================
+-- 8. لوحة الهاب الرئيسية
+-- ==========================================
+local function loadScriptHub(keyData)
+    local WindUI = loadstring(WindUI_SRC)()
+    applySubXTheme(WindUI)
+
+    local Window = WindUI:CreateWindow({
+        Title = "SubX Premium Hub",
+        Icon = "crown", 
+        Author = "by SubX",
+        Folder = "SubXConfig",
+        Size = UDim2.new(0, 580, 0, 380),
+        Transparent = true,
+        Theme = "SubXTheme", 
+        SideBarWidth = 170
+    })
+
+    Window:Tag({
+        Title = "v1.0.0 Premium",
+        Color = Color3.fromRGB(60, 60, 65)
+    })
+    
+    local FPSTag = Window:Tag({
+        Title = "FPS: 0",
+        Color = Color3.fromRGB(100, 150, 255),
+    })
+
+    local lastUpdate = tick()
+    local frameCount = 0
+
+    RunService.RenderStepped:Connect(function()
+        frameCount = frameCount + 1
+        local now = tick()
+        
+        if now - lastUpdate >= 1 then
+            local fps = math.floor(frameCount / (now - lastUpdate))
+            FPSTag:SetTitle("FPS: " .. fps)
+            
+            if fps >= 50 then
+                FPSTag:SetColor(Color3.fromRGB(74, 222, 128)) 
+            elseif fps >= 30 then
+                FPSTag:SetColor(Color3.fromRGB(250, 204, 21)) 
+            else
+                FPSTag:SetColor(Color3.fromRGB(248, 113, 113)) 
+            end
+            
+            frameCount = 0
+            lastUpdate = now
+        end
+    end)
+
+    WindUI:Notify({
+        Title = "Welcome to SubX Premium",
+        Content = "Hello, " .. Players.LocalPlayer.DisplayName,
+        Duration = 5
+    })
+
+    local HomeTab = Window:Tab({ Title = "Main", Icon = "layout-dashboard" })
+    HomeTab:Select()
+    
+    local LocalPlayer = Players.LocalPlayer
+    
+    HomeTab:Section({ Title = "My Profile", Icon = "user" })
+    HomeTab:Paragraph({
+        Title = LocalPlayer.DisplayName .. " (@" .. LocalPlayer.Name .. ")",
+        Desc = "User ID: " .. tostring(LocalPlayer.UserId) .. "\nAccount Age: " .. tostring(LocalPlayer.AccountAge) .. " Days",
+        Icon = "circle-user"
+    })
+    
+    HomeTab:Section({ Title = "Community", Icon = "globe" })
+    
+    HomeTab:Button({
+        Title = "Join Discord Server",
+        Desc = "Click to copy our Discord invite link",
+        Icon = "message-square",
+        Callback = function()
+            if setclipboard then
+                setclipboard(DISCORD_INVITE)
+                WindUI:Notify({Title = "Success!", Content = "Discord link copied to clipboard.", Duration = 3})
+            end
+        end
+    })
+    
+    HomeTab:Button({
+        Title = "Subscribe to YouTube",
+        Desc = "Click to copy our YouTube channel link",
+        Icon = "youtube",
+        Callback = function()
+            if setclipboard then
+                setclipboard(YOUTUBE_LINK)
+                WindUI:Notify({Title = "Success!", Content = "YouTube link copied to clipboard.", Duration = 3})
+            end
+        end
+    })
+
+    task.spawn(function()
+        local success, response = pcall(function() return requestFunc({Url = GET_SCRIPTS_URL, Method = "GET"}) end)
+        if success and response and response.Body then
+            local decSuccess, data = pcall(function() return HttpService:JSONDecode(response.Body) end)
+            if decSuccess and data.success and data.games then
+                for _, gameData in pairs(data.games) do
+                    local GameTab = Window:Tab({ Title = gameData.gameName, Icon = "gamepad-2" })
+                    GameTab:Section({ Title = "Available Scripts", Icon = "list" })
+                    
+                    for _, scriptData in pairs(gameData.scripts) do
+                        GameTab:Button({
+                            Title = scriptData.name,
+                            Desc = "Click to execute this script safely",
+                            Icon = "rocket",
+                            Callback = function()
+                                local dialogSuccess = pcall(function()
+                                    Window:Dialog({
+                                        Title = "Execute Script?",
+                                        Content = "Are you sure you want to execute this script?",
+                                        Icon = "shield-alert",
+                                        Buttons = {
+                                            {
+                                                Title = "Execute", 
+                                                Callback = function() executeScriptSafe(scriptData.name, scriptData.url, WindUI) end
+                                            },
+                                            {
+                                                Title = "Cancel", 
+                                                Callback = function() WindUI:Notify({Title = "Cancelled", Content = "Action aborted.", Duration = 2}) end
+                                            }
+                                        }
+                                    })
+                                end)
+                                
+                                if not dialogSuccess then
+                                    executeScriptSafe(scriptData.name, scriptData.url, WindUI)
+                                end
+                            end
+                        })
+                    end
+                end
+            end
+        else
+            HomeTab:Section({ Title = "Error Loading Scripts", Icon = "triangle-alert" })
+        end
+
+        local SettingsTab = Window:Tab({ Title = "Info & Settings", Icon = "settings" })
+        
+        SettingsTab:Section({ Title = "Automation", Icon = "cpu" })
+        
+        local isAutoExecEnabled = false
+        pcall(function()
+            if isfile and isfile(AUTO_EXEC_CONFIG_FILE) then
+                local content = readfile(AUTO_EXEC_CONFIG_FILE)
+                local data = HttpService:JSONDecode(content)
+                isAutoExecEnabled = data.autoExec or false
+            end
+        end)
+
+        SettingsTab:Toggle({
+            Title = "Auto Execute",
+            Desc = "Automatically verify and load hub on every game teleport",
+            Value = isAutoExecEnabled,
+            Callback = function(state)
+                pcall(function()
+                    local configData = HttpService:JSONEncode({autoExec = state})
+                    writefile(AUTO_EXEC_CONFIG_FILE, configData)
+                end)
+                WindUI:Notify({Title = "Settings Saved", Content = "Auto-Execute updated successfully.", Duration = 2})
+            end
+        })
+
+        SettingsTab:Section({ Title = "Key Status", Icon = "clock" })
+        
+        local expiresAt = (keyData and keyData.expiresAt) or (tick() + 86400) * 1000
+        
+        local statusParagraph = SettingsTab:Paragraph({
+            Title = "Status: Active",
+            Desc = "Loading Countdown...",
+            Icon = "hourglass"
+        })
+
+        task.spawn(function()
+            while true do
+                local now = os.time() * 1000
+                local distance = expiresAt - now
+                if distance > 0 then
+                    local hours = math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+                    local minutes = math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
+                    local seconds = math.floor((distance % (1000 * 60)) / 1000)
+                    statusParagraph:SetDesc(string.format("Time Left: %02dh %02dm %02ds", hours, minutes, seconds))
+                else
+                    statusParagraph:SetDesc("Key Expired!")
+                end
+                task.wait(1)
+            end
+        end)
+
+        SettingsTab:Section({ Title = "Hub Management", Icon = "sliders-horizontal" })
+        SettingsTab:Button({
+            Title = "Copy HWID",
+            Desc = "Copy your unique hardware ID for support",
+            Icon = "copy",
+            Callback = function()
+                if setclipboard then
+                    setclipboard(playerHWID)
+                    WindUI:Notify({Title = "Copied!", Content = "HWID copied to clipboard.", Duration = 3})
+                end
+            end
+        })
+        
+        SettingsTab:Button({
+            Title = "Unload UI",
+            Desc = "Completely remove the script UI",
+            Icon = "trash-2",
+            Callback = function()
+                destroyOldUI()
+            end
+        })
+
+        SettingsTab:Section({ Title = "Server Management", Icon = "server" })
+        SettingsTab:Button({
+            Title = "Rejoin Place",
+            Desc = "Reconnect to this exact server",
+            Icon = "refresh-ccw",
+            Callback = function()
+                TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+            end
+        })
+        
+        SettingsTab:Button({
+            Title = "Server Hop",
+            Desc = "Find and join a different server",
+            Icon = "globe",
+            Callback = function()
+                WindUI:Notify({Title = "Searching...", Content = "Finding a new server...", Duration = 3})
+                task.spawn(function()
+                    local sfUrl = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+                    local req = requestFunc({Url = sfUrl})
+                    if req and req.Body then
+                        local body = HttpService:JSONDecode(req.Body)
+                        if body and body.data then
+                            for _, v in ipairs(body.data) do
+                                if type(v) == "table" and v.playing < v.maxPlayers and v.id ~= game.JobId then
+                                    TeleportService:TeleportToPlaceInstance(game.PlaceId, v.id, LocalPlayer)
+                                    return
+                                end
+                            end
+                        end
+                    end
+                end)
+            end
+        })
+    end)
+end
+
+-- ==========================================
+-- 9. واجهة إدخال المفتاح
+-- ==========================================
+local function loadKeySystem()
+    local WindUI = loadstring(WindUI_SRC)()
+    applySubXTheme(WindUI)
+
+    local Window = WindUI:CreateWindow({
+        Title = "SubX Key System",
+        Icon = "key",
+        Author = "by SubX",
+        Folder = "SubXKey",
+        Size = UDim2.new(0, 420, 0, 280),
+        Transparent = true,
+        Theme = "SubXTheme"
+    })
+    
+    Window:Tag({
+        Title = "v1.0.0 Premium",
+        Color = Color3.fromRGB(60, 60, 65)
+    })
+
+    local AuthTab = Window:Tab({ Title = "Authentication", Icon = "shield-check" })
+    AuthTab:Select()
+    AuthTab:Section({ Title = "License Verification", Icon = "lock" })
+
+    local keyInput = ""
+    AuthTab:Input({
+        Title = "Enter Key",
+        Desc = "Paste your SUBX-XXXX key here",
+        PlaceholderText = "Paste key...",
+        Icon = "key",
+        ClearTextOnFocus = false,
+        Callback = function(text) keyInput = text end
+    })
+
+    AuthTab:Button({
+        Title = "Verify Key",
+        Icon = "circle-check",
+        Callback = function()
+            if keyInput == "" then
+                WindUI:Notify({Title = "Error", Content = "Please enter a key first!", Duration = 2})
+                return
+            end
+            
+            WindUI:Notify({Title = "Checking", Content = "Verifying key with server...", Duration = 2})
+            task.spawn(function()
+                local result = checkKeyWithServer(keyInput)
+                if result.success then
+                    pcall(function() writefile(KEY_FILE_NAME, keyInput) end)
+                    sendExecutionWebhook(keyInput)
+                    
+                    playCinematicTransition(Window, function()
+                        loadScriptHub(result)
+                    end)
+                else
+                    WindUI:Notify({Title = "Failed", Content = result.message or "Invalid Key", Duration = 3})
+                end
+            end)
+        end
+    })
+
+    AuthTab:Section({ Title = "Need a Key?", Icon = "circle-help" })
+    AuthTab:Button({
+        Title = "Get Key Link",
+        Desc = "Click to copy the key generation link",
+        Icon = "link",
+        Callback = function()
+            if setclipboard then
+                setclipboard(GET_KEY_LINK)
+                WindUI:Notify({Title = "Copied!", Content = "Link copied! Paste it in your browser.", Duration = 3})
+            end
+        end
+    })
+end
+
+-- ==========================================
+-- 10. نقطة البداية وتشغيل النظام
+-- ==========================================
+local function init()
+    local savedKey = ""
+    pcall(function() if isfile and isfile(KEY_FILE_NAME) then savedKey = readfile(KEY_FILE_NAME) end end)
+
+    if savedKey ~= "" then
+        local verifyResult = checkKeyWithServer(savedKey)
+        if verifyResult.success then
+            sendExecutionWebhook(savedKey)
+            loadScriptHub(verifyResult)
+        else
+            pcall(function() delfile(KEY_FILE_NAME) end)
+            loadKeySystem()
+        end
+    else
+        loadKeySystem()
+    end
+end
+
+init()
