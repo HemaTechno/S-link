@@ -20,7 +20,7 @@ export default async function handler(req, res) {
                 });
             });
 
-            // يمكنك ترتيب المفاتيح من الأحدث للأقدم هنا إذا أردت
+            // ترتيب المفاتيح من الأحدث للأقدم
             keysList.sort((a, b) => b.expiresAt - a.expiresAt);
 
             return res.status(200).json({ success: true, keys: keysList });
@@ -33,7 +33,17 @@ export default async function handler(req, res) {
     // 2. حذف مفتاح محدد
     if (req.method === "DELETE") {
         try {
-            const { key, adminKey } = req.body;
+            // 🟢 [التصليح هنا]: حماية الكود من الانهيار إذا لم يتعرف السيرفر على الـ Body في طلبات DELETE
+            let body = req.body || {};
+            if (typeof body === "string") {
+                try { 
+                    body = JSON.parse(body); 
+                } catch (e) {
+                    console.error("Failed to parse DELETE body:", e);
+                }
+            }
+
+            const { key, adminKey } = body;
             
             // ✅ استخدام الباسورد الموحد
             if (adminKey !== ADMIN_PASSWORD) {
