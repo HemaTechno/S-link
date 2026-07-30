@@ -7,7 +7,6 @@ const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/153131315360065137
 
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
 
-// 🔴 مفاتيح جوجل كابتشا
 const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkXp0_d1132x_fP2GnuorVPs0";
 const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY || "6Lc31mwtAAAAALgsx7eKJwIIK-2uJkCp7-ERc__1";
 
@@ -177,22 +176,29 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
-const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
+const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage) => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
 
     if (activeKey) {
+        // 🟢 عداد تنازلي مباشر وحي للمفتاح الفعال
         actionHtml = `
             <div class="success-box">
-                <i class="fa-solid fa-circle-check"></i> Your Key is Active!
+                <i class="fa-solid fa-circle-check"></i> Your Key is Active! (${streakCount} Day(s) Streak 🔥)
             </div>
             <div class="key-display">
                 <input type="text" id="finalKey" value="${activeKey}" readonly>
                 <button onclick="copyKey()"><i class="fa-solid fa-copy"></i></button>
             </div>
-            <p class="timer-text">Valid for 24 hours.</p>
+            <div class="countdown-box">
+                <i class="fa-solid fa-hourglass-half"></i> Time Remaining: <span id="liveTimer" style="color: #ffd700; font-weight: bold;">Calculated...</span>
+            </div>
         `;
     } else if (keyStep >= 3) {
+        let streakBonusText = streakCount === 6 
+            ? `<div class="streak-badge" style="color: #ffd700;"><i class="fa-solid fa-fire"></i> This is your 7th Day! You will get a FREE 3-Day Key!</div>` 
+            : `<div class="streak-badge"><i class="fa-solid fa-fire" style="color: #f97316;"></i> Current Streak: ${streakCount + 1}/7 Days</div>`;
+
         actionHtml = `
             <div class="steps-container">
                 <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 1 Completed</div>
@@ -200,6 +206,8 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
                 <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 3 Completed</div>
             </div>
             
+            ${streakBonusText}
+
             <div style="display: flex; justify-content: center; margin-bottom: 20px;">
                 <div class="g-recaptcha" data-sitekey="${RECAPTCHA_SITE_KEY}" data-theme="dark"></div>
             </div>
@@ -211,7 +219,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
     } else {
         const step1Class = keyStep > 0 ? 'done' : (keyStep === 0 ? 'active' : 'locked');
         const step2Class = keyStep > 1 ? 'done' : (keyStep === 1 ? 'active' : 'locked');
-        const step3Class = keyStep > 2 ? 'done' : (keyStep === 2 ? 'active' : 'locked');
+        const step3Class = keyStep > 2 ? 'done' : (keyStep === 2 ? 'error' : 'locked');
 
         const step1Icon = keyStep > 0 ? 'fa-check' : (keyStep === 0 ? 'fa-spinner fa-spin' : 'fa-lock');
         const step2Icon = keyStep > 1 ? 'fa-check' : (keyStep === 1 ? 'fa-spinner fa-spin' : 'fa-lock');
@@ -227,7 +235,37 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
                 <span><i class="fa-solid fa-link" style="color:#00e676; margin-right:6px;"></i> Continue with Linkvertise</span> 
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
-            <p class="timer-text">Complete Linkvertise checkpoints to unlock your key.</p>
+            <p class="timer-text"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Streak Progress: ${streakCount}/7 Days (Keep it up!)</p>
+        `;
+    }
+
+    // كتابة الكود الخاص بالتايمر الحي (Live Countdown JS) إذا كان المفتاح فعالاً
+    let countdownScript = '';
+    if (activeKey && expiresAt) {
+        countdownScript = `
+            <script>
+                const expiresAt = ${expiresAt};
+                function updateTimer() {
+                    const now = new Date().getTime();
+                    const distance = expiresAt - now;
+
+                    if (distance < 0) {
+                        document.getElementById("liveTimer").innerHTML = "EXPIRED";
+                        return;
+                    }
+
+                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    document.getElementById("liveTimer").innerHTML = 
+                        (hours < 10 ? "0" + hours : hours) + "h " + 
+                        (minutes < 10 ? "0" + minutes : minutes) + "m " + 
+                        (seconds < 10 ? "0" + seconds : seconds) + "s";
+                }
+                setInterval(updateTimer, 1000);
+                updateTimer();
+            </script>
         `;
     }
 
@@ -252,7 +290,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
         .logo-container img { max-width: 130px; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(255,215,0,0.2)); }
         h1 { color: #fff; margin-bottom: 20px; font-size: 1.6rem; font-weight: 800; }
         
-        .steps-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; text-align: left; }
+        .steps-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left; }
         .step { padding: 15px 18px; border-radius: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; font-size: 14px; transition: 0.3s; }
         .step.locked { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.04); color: #555; }
         .step.active { background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80; box-shadow: 0 0 15px rgba(74, 222, 128, 0.08); }
@@ -265,13 +303,16 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
         .generate-btn { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%); color: #000; justify-content: center; gap: 10px; }
         .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(74,222,128,0.35); }
         
-        .timer-text { margin-top: 18px; font-size: 12px; color: #888; font-weight: 600; }
-        .key-display { display: flex; gap: 10px; margin-bottom: 15px; }
+        .timer-text { margin-top: 15px; font-size: 12px; color: #aaa; font-weight: 600; }
+        .streak-badge { background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); color: #f97316; padding: 10px; border-radius: 10px; margin-bottom: 20px; font-size: 13px; font-weight: bold; }
+        .countdown-box { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 12px; font-size: 13px; color: #ccc; margin-bottom: 15px; }
+
+        .key-display { display: flex; gap: 10px; margin-bottom: 12px; }
         .key-display input { flex: 1; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.6); border: 1px solid var(--primary); color: var(--primary); font-family: monospace; font-size: 15px; font-weight: bold; text-align: center; outline: none; }
         .key-display button { padding: 0 20px; border-radius: 12px; background: var(--primary); color: #000; border: none; cursor: pointer; font-size: 16px; transition: 0.3s; }
         .key-display button:hover { transform: scale(1.05); }
         
-        .success-box { background: rgba(74, 222, 128, 0.1); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.2); padding: 12px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; font-size: 14px; }
+        .success-box { background: rgba(74, 222, 128, 0.1); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.2); padding: 12px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; font-size: 13px; }
         .error-box { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 12px; font-weight: 600; }
     </style>
 </head>
@@ -327,6 +368,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
             }
         }
     </script>
+    ${countdownScript}
 </body>
 </html>
     `;
@@ -379,12 +421,28 @@ export default async function handler(req, res) {
         console.error("Ban check failed:", err);
     }
 
+    // 🟢 جلب أو إنشاء بيانات السلسلة (Streak) لهذا الـ HWID من فايربيس
+    let streakCount = 0;
+    let lastKeyDate = 0;
+    const streakDocRef = db.collection("user_streaks").doc(userHwid);
+    try {
+        const streakDoc = await streakDocRef.get();
+        if (streakDoc.exists) {
+            const data = streakDoc.data();
+            streakCount = data.streakCount || 0;
+            lastKeyDate = data.lastKeyDate || 0;
+        }
+    } catch (e) {
+        console.error("Streak fetch error:", e);
+    }
+
     let keyStep = 0;
     const stepMatch = cookieHeader.match(/key_step=(\d+)/);
     if (stepMatch) keyStep = parseInt(stepMatch[1]);
 
     const keyMatch = cookieHeader.match(/active_key=([^;]+)/);
     let activeKey = keyMatch ? keyMatch[1] : null;
+    let activeKeyExpiresAt = null;
     let errorMessage = null;
 
     if (activeKey) {
@@ -398,6 +456,8 @@ export default async function handler(req, res) {
                     `key_step=0; Max-Age=0; Path=/`,
                     `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
                 ]);
+            } else {
+                activeKeyExpiresAt = keyDoc.data().expiresAt;
             }
         } catch (err) {
             console.error("Database check error:", err);
@@ -448,13 +508,48 @@ export default async function handler(req, res) {
             return res.status(500).json({ success: false, message: "Captcha validation server error." });
         }
 
+        // 🟢 حساب السلسلة ومنح المكافأة (لو كمل 7 أيام، اليوم السابع ياخد 3 أيام مجاناً = 72 ساعة)
+        const nowTime = Date.now();
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        let newStreak = streakCount;
+
+        if (lastKeyDate === 0) {
+            newStreak = 1;
+        } else {
+            const diffDays = (nowTime - lastKeyDate) / oneDayMs;
+            if (diffDays >= 1 && diffDays <= 2.5) {
+                // سجل دخول خلال يومين متتاليين، تزيد السلسلة
+                newStreak += 1;
+            } else if (diffDays > 2.5) {
+                // فاته وقت طويل، تعود السلسلة من جديد
+                newStreak = 1;
+            }
+            // لو دخل في نفس اليوم لا تتغير السلسلة لتجنب التلاعب
+        }
+
+        let keyDuration = 24 * 60 * 60 * 1000; // افتراضي 24 ساعة
+        let isBonusKey = false;
+
+        if (newStreak >= 7) {
+            keyDuration = 3 * 24 * 60 * 60 * 1000; // 3 أيام مجاناً (72 ساعة)
+            newStreak = 0; // تصفير السلسلة لتبدأ دورة جديدة
+            isBonusKey = true;
+        }
+
+        try {
+            await streakDocRef.set({
+                streakCount: newStreak,
+                lastKeyDate: nowTime
+            }, { merge: true });
+        } catch (e) {}
+
         const uniqueKey = "SUBX-" + nanoid(10).toUpperCase();
-        const expiresAt = Date.now() + (24 * 60 * 60 * 1000); 
+        const expiresAt = nowTime + keyDuration; 
 
         try {
             await db.collection("keys").doc(uniqueKey).set({
                 key: uniqueKey,
-                createdAt: Date.now(),
+                createdAt: nowTime,
                 expiresAt: expiresAt,
                 hwid: userHwid,
                 ip: clientIp || "Unknown"
@@ -467,10 +562,11 @@ export default async function handler(req, res) {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             embeds: [{
-                                title: "🎉 New Key Generated (reCAPTCHA Verified)!",
-                                color: 4906624, 
+                                title: isBonusKey ? "🎁 7-Day Streak Bonus! 3-Day Key Generated!" : "🎉 New Key Generated (Streak Checked)!",
+                                color: isBonusKey ? 16766720 : 4906624, 
                                 fields: [
                                     { name: "🔑 Key", value: `\`${uniqueKey}\``, inline: false },
+                                    { name: "🔥 Streak Status", value: isBonusKey ? "Completed 7 Days! (Rewarded 3 Days Free)" : `Day ${newStreak} of 7`, inline: false },
                                     { name: "💻 HWID", value: `\`${userHwid}\``, inline: false },
                                     { name: "🌐 IP Address", value: `\`${clientIp || "Unknown"}\``, inline: false }
                                 ],
@@ -520,7 +616,7 @@ export default async function handler(req, res) {
         }
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, errorMessage));
+        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage));
     }
 
     return res.status(405).send("Method Not Allowed");
