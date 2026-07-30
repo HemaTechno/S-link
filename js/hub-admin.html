@@ -9,19 +9,21 @@
     
     <style>
         :root {
-            --bg-dark: #07090f;
-            --sidebar-bg: rgba(12, 14, 22, 0.94);
-            --glass-bg: rgba(18, 21, 31, 0.80);
-            --glass-border: rgba(255, 215, 0, 0.15);
+            --bg-dark: #050608;
+            --sidebar-bg: rgba(10, 12, 18, 0.65);
+            --glass-bg: rgba(15, 18, 25, 0.55);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-highlight: rgba(255, 215, 0, 0.25);
             --primary-gold: #ffd700;
+            --primary-glow: 0 0 20px rgba(255, 215, 0, 0.15);
             --success-green: #4ade80;
             --danger-red: #f87171;
             --text-main: #ffffff;
             --text-muted: #9ca3af;
-            --radius-card: 20px;
+            --radius-card: 24px;
             --radius-sm: 14px;
             --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --shadow: 0 30px 60px rgba(0,0,0,0.6);
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
@@ -29,8 +31,8 @@
         body {
             background-color: var(--bg-dark);
             background-image: 
-                radial-gradient(at 0% 0%, rgba(255, 215, 0, 0.06) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(74, 222, 128, 0.05) 0px, transparent 50%);
+                radial-gradient(circle at 15% 50%, rgba(255, 215, 0, 0.04), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(74, 222, 128, 0.04), transparent 25%);
             display: flex;
             min-height: 100vh;
             height: 100vh;
@@ -40,41 +42,42 @@
 
         /* ===== SIDEBAR ===== */
         .sidebar {
-            width: 270px;
-            min-width: 200px;
+            width: 280px;
+            min-width: 220px;
             background: var(--sidebar-bg);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
             border-right: 1px solid var(--glass-border);
             display: flex;
             flex-direction: column;
-            padding: 28px 16px;
+            padding: 30px 20px;
             overflow-y: auto;
             flex-shrink: 0;
             height: 100vh;
             position: sticky;
             top: 0;
-            transition: transform var(--transition), margin var(--transition);
+            transition: transform var(--transition);
             z-index: 30;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.3);
         }
         .sidebar-brand {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 800;
             color: var(--primary-gold);
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 40px;
+            margin-bottom: 45px;
             padding: 0 4px;
-            flex-wrap: wrap;
+            text-shadow: var(--primary-glow);
         }
-        .sidebar-brand i { font-size: 26px; }
+        .sidebar-brand i { font-size: 28px; }
 
         .nav-btn {
             width: 100%;
-            padding: 14px 16px;
+            padding: 15px 18px;
             background: transparent;
-            border: none;
+            border: 1px solid transparent;
             color: var(--text-muted);
             font-size: 15px;
             font-weight: 700;
@@ -84,16 +87,16 @@
             align-items: center;
             gap: 14px;
             transition: var(--transition);
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             text-align: left;
-            line-height: 1.3;
         }
         .nav-btn i { font-size: 18px; min-width: 22px; }
         .nav-btn:hover, .nav-btn.active {
-            background: rgba(255, 215, 0, 0.10);
+            background: rgba(255, 215, 0, 0.08);
             color: var(--primary-gold);
-            border: 1px solid rgba(255, 215, 0, 0.20);
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.04);
+            border: 1px solid var(--glass-highlight);
+            box-shadow: var(--primary-glow);
+            transform: translateX(5px);
         }
 
         /* toggle button for mobile */
@@ -103,10 +106,10 @@
             top: 16px;
             left: 16px;
             z-index: 50;
-            background: rgba(12, 14, 22, 0.9);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
+            background: rgba(15, 18, 25, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-highlight);
             border-radius: 50%;
             width: 48px;
             height: 48px;
@@ -114,17 +117,16 @@
             color: var(--primary-gold);
             cursor: pointer;
             transition: var(--transition);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-            display: none;
+            box-shadow: var(--shadow);
             align-items: center;
             justify-content: center;
         }
-        .sidebar-toggle:hover { background: rgba(255, 215, 0, 0.15); }
+        .sidebar-toggle:hover { background: rgba(255, 215, 0, 0.15); transform: scale(1.05); }
 
         /* ===== MAIN ===== */
         .main-content {
             flex: 1;
-            padding: 24px 28px;
+            padding: 30px 40px;
             overflow-y: auto;
             display: flex;
             justify-content: center;
@@ -138,55 +140,52 @@
         .panel {
             display: none;
             width: 100%;
-            max-width: 950px;
+            max-width: 900px;
             background: var(--glass-bg);
             backdrop-filter: blur(25px);
             -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--glass-border);
-            padding: 32px 30px;
+            padding: 35px 40px;
             border-radius: var(--radius-card);
             box-shadow: var(--shadow);
             margin: 0 auto;
         }
         .panel.active {
             display: block;
-            animation: fadeIn 0.3s ease;
+            animation: fadeIn 0.4s ease;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         h2 {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 800;
             color: var(--primary-gold);
-            margin-bottom: 24px;
+            margin-bottom: 25px;
             display: flex;
             align-items: center;
             gap: 12px;
-            flex-wrap: wrap;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
         }
-        h2 i { font-size: 24px; }
 
-        .input-group {
-            position: relative;
-            margin-bottom: 18px;
-        }
+        .input-group { position: relative; margin-bottom: 20px; }
         .input-group label {
             display: block;
             font-size: 14px;
             color: var(--text-muted);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-weight: 600;
+            padding-left: 4px;
         }
         .input-group input,
         .input-group select {
             width: 100%;
-            padding: 14px 16px;
-            background: rgba(0,0,0,0.55);
-            border: 1px solid rgba(255,255,255,0.08);
+            padding: 15px 18px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
             border-radius: var(--radius-sm);
             color: #fff;
             font-size: 15px;
@@ -195,13 +194,11 @@
         }
         .input-group input:focus,
         .input-group select:focus {
+            background: rgba(0, 0, 0, 0.6);
             border-color: var(--primary-gold);
-            box-shadow: 0 0 12px rgba(255,215,0,0.10);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.15);
         }
-        .input-group select option {
-            background: #1a1d27;
-            color: #fff;
-        }
+        .input-group select option { background: #12141c; color: #fff; }
 
         .btn-action {
             width: 100%;
@@ -212,29 +209,32 @@
             font-size: 16px;
             font-weight: 800;
             color: #000;
-            background: linear-gradient(135deg, var(--primary-gold) 0%, #b89b00 100%);
+            background: linear-gradient(135deg, var(--primary-gold) 0%, #d4af37 100%);
             transition: var(--transition);
-            margin-top: 8px;
+            margin-top: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
         }
         .btn-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(255, 215, 0, 0.25);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+            background: linear-gradient(135deg, #ffea00 0%, #e6be3e 100%);
         }
 
         /* cards */
         .map-card {
-            background: rgba(0, 0, 0, 0.40);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: var(--radius-card);
-            padding: 20px 22px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 22px 25px;
             margin-bottom: 22px;
             transition: var(--transition);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
         }
-        .map-card:hover { border-color: rgba(255, 215, 0, 0.15); }
+        .map-card:hover { border-color: rgba(255, 215, 0, 0.2); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
 
         .map-header {
             display: flex;
@@ -242,17 +242,17 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
-            margin-bottom: 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            padding-bottom: 12px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 15px;
         }
         .map-title {
-            font-size: 18px;
+            font-size: 19px;
             font-weight: 700;
             color: var(--primary-gold);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         .script-item {
@@ -261,16 +261,18 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 14px 18px;
             border-radius: var(--radius-sm);
-            margin-bottom: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: var(--transition);
         }
+        .script-item:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); }
         .script-info {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
             flex: 1 1 200px;
             min-width: 140px;
         }
@@ -280,8 +282,7 @@
             color: #fff;
             display: flex;
             align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
+            gap: 8px;
         }
         .script-url {
             font-size: 12px;
@@ -291,17 +292,16 @@
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 100%;
+            background: rgba(0,0,0,0.3);
+            padding: 4px 8px;
+            border-radius: 6px;
         }
-        .script-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
+        .script-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
         .btn-sm {
             padding: 8px 14px;
             border-radius: 10px;
-            border: none;
+            border: 1px solid transparent;
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
@@ -309,185 +309,100 @@
             align-items: center;
             gap: 6px;
             transition: var(--transition);
-            white-space: nowrap;
-            background: rgba(255,255,255,0.04);
-            color: var(--text-muted);
+            background: rgba(0,0,0,0.4);
+            color: var(--text-main);
         }
-        .btn-edit {
-            background: rgba(255, 215, 0, 0.12);
-            color: var(--primary-gold);
-            border: 1px solid rgba(255, 215, 0, 0.20);
-        }
-        .btn-edit:hover { background: rgba(255, 215, 0, 0.25); }
-        .btn-delete {
-            background: rgba(248, 113, 113, 0.12);
-            color: var(--danger-red);
-            border: 1px solid rgba(248, 113, 113, 0.20);
-        }
-        .btn-delete:hover { background: rgba(248, 113, 113, 0.25); }
+        .btn-edit { color: var(--primary-gold); border-color: rgba(255, 215, 0, 0.2); background: rgba(255, 215, 0, 0.05); }
+        .btn-edit:hover { background: rgba(255, 215, 0, 0.15); transform: translateY(-2px); }
+        .btn-delete { color: var(--danger-red); border-color: rgba(248, 113, 113, 0.2); background: rgba(248, 113, 113, 0.05); }
+        .btn-delete:hover { background: rgba(248, 113, 113, 0.15); transform: translateY(-2px); }
 
         /* table */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 8px;
-        }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         .data-table th, .data-table td {
-            padding: 14px 16px;
+            padding: 15px 18px;
             text-align: left;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
             font-size: 14px;
             word-break: break-word;
         }
-        .data-table th {
-            color: var(--primary-gold);
-            font-weight: 700;
-            background: rgba(0,0,0,0.35);
-        }
+        .data-table th { color: var(--primary-gold); font-weight: 700; background: rgba(0,0,0,0.4); border-radius: 8px 8px 0 0; }
+        .data-table tr:hover td { background: rgba(255,255,255,0.02); }
         .data-table td:last-child { text-align: right; }
 
         .auth-box {
             position: sticky;
-            top: 20px;
+            top: 0;
             z-index: 10;
             width: 100%;
-            max-width: 260px;
+            max-width: 280px;
             margin-left: auto;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             flex-shrink: 0;
         }
         .auth-box input {
             width: 100%;
-            padding: 12px 16px;
-            background: rgba(0,0,0,0.70);
-            border: 1px solid rgba(255,255,255,0.15);
+            padding: 14px 18px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: var(--radius-sm);
             color: #fff;
             font-size: 14px;
             outline: none;
             transition: var(--transition);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
         }
-        .auth-box input:focus { border-color: var(--primary-gold); }
+        .auth-box input:focus { border-color: var(--danger-red); box-shadow: 0 0 15px rgba(248, 113, 113, 0.2); }
 
-        #statusMsg {
-            text-align: center;
-            margin-top: 18px;
-            font-weight: 700;
-            font-size: 14px;
-            min-height: 26px;
-        }
+        #statusMsg { text-align: center; margin-top: 18px; font-weight: 700; font-size: 14px; min-height: 26px; }
 
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.25); border-radius: 12px; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,215,0,0.5); }
 
         /* ===== RESPONSIVE ===== */
-        @media screen and (max-width: 820px) {
+        @media screen and (max-width: 850px) {
             body { flex-direction: column; height: auto; overflow-y: auto; }
-            
-            .sidebar-toggle {
-                display: flex !important;
-            }
-
+            .sidebar-toggle { display: flex !important; }
             .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 280px;
-                height: 100vh;
-                transform: translateX(-100%);
-                margin: 0;
-                border-right: 1px solid var(--glass-border);
-                border-radius: 0 20px 20px 0;
-                box-shadow: 0 0 60px rgba(0,0,0,0.8);
-                padding: 28px 18px;
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                z-index: 40;
-                background: rgba(7, 9, 15, 0.96);
-                backdrop-filter: blur(30px);
-                -webkit-backdrop-filter: blur(30px);
+                position: fixed; top: 0; left: 0; width: 280px; height: 100vh;
+                transform: translateX(-100%); margin: 0; border-right: 1px solid var(--glass-border);
+                border-radius: 0 20px 20px 0; box-shadow: 0 0 60px rgba(0,0,0,0.8);
+                z-index: 40; background: rgba(10, 12, 18, 0.95);
             }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            .sidebar-brand { margin-bottom: 30px; }
-            .nav-btn { padding: 14px 16px; font-size: 15px; }
-
-            .main-content {
-                padding: 16px;
-                height: auto;
-                min-height: 100vh;
-                display: block;
-                padding-top: 80px;
-            }
-            .panel {
-                padding: 24px 18px;
-                margin: 10px 0;
-                border-radius: 18px;
-            }
-            .auth-box {
-                position: relative;
-                top: 0;
-                max-width: 100%;
-                margin: 0 0 18px 0;
-            }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { padding: 16px; padding-top: 80px; height: auto; min-height: 100vh; display: block; }
+            .panel { padding: 25px 20px; margin: 10px auto; border-radius: 20px; }
+            .auth-box { max-width: 100%; margin-bottom: 20px; position: relative; }
             .map-header { flex-direction: column; align-items: flex-start; }
             .script-item { flex-direction: column; align-items: stretch; }
             .script-actions { justify-content: flex-start; }
-            .data-table th, .data-table td { padding: 12px 10px; font-size: 13px; }
-            .btn-sm { padding: 6px 12px; font-size: 12px; }
         }
-
         @media screen and (max-width: 480px) {
-            .sidebar { width: 260px; padding: 20px 14px; }
-            .sidebar-brand { font-size: 20px; }
-            .nav-btn { padding: 12px 14px; font-size: 14px; gap: 12px; }
-            .main-content { padding: 12px; padding-top: 76px; }
-            .panel { padding: 18px 12px; }
-            h2 { font-size: 19px; }
-            .input-group input, .input-group select { padding: 12px 14px; font-size: 14px; }
-            .btn-action { padding: 14px; font-size: 15px; }
-            .map-card { padding: 16px; }
-            .script-item { padding: 10px 12px; }
-            .script-name { font-size: 14px; }
-            .data-table th, .data-table td { padding: 10px 6px; font-size: 12px; display: block; width: 100%; }
-            .data-table td:last-child { text-align: left; }
-            .data-table tr { display: block; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+            .sidebar { width: 260px; }
+            .nav-btn { font-size: 14px; padding: 12px 15px; }
+            h2 { font-size: 20px; }
+            .btn-action { font-size: 15px; padding: 14px; }
+            .data-table th, .data-table td { display: block; width: 100%; padding: 10px; text-align: left; }
+            .data-table tr { display: block; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
             .data-table thead { display: none; }
-            .sidebar-toggle { width: 44px; height: 44px; font-size: 20px; top: 12px; left: 12px; }
-        }
-        @media screen and (max-width: 360px) {
-            .nav-btn { font-size: 13px; padding: 10px 12px; }
-            .sidebar-brand { font-size: 18px; }
+            .data-table td:last-child { text-align: left; padding-top: 5px; }
         }
 
-        /* overlay when sidebar open */
         .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 35;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 35;
         }
         .sidebar-overlay.active { display: block; }
     </style>
 </head>
 <body>
 
-    <!-- Toggle Button (visible on mobile) -->
-    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
-        <i class="fa-solid fa-bars"></i>
-    </button>
-
-    <!-- Overlay -->
+    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-brand"><i class="fa-solid fa-crown"></i> SubX Admin</div>
         <button class="nav-btn active" onclick="switchPanel('addPanel', this)"><i class="fa-solid fa-plus-circle"></i> Add Map / Script</button>
@@ -497,14 +412,14 @@
 
     <div class="main-content">
         <div style="width:100%; display:flex; flex-direction:column;">
-            <!-- Admin Password Box -->
+            
             <div class="auth-box">
-                <input type="password" id="adminKey" placeholder="Admin Password..." aria-label="Admin Password">
+                <input type="password" id="adminKey" placeholder="Admin Password Required 🔒" aria-label="Admin Password">
             </div>
 
             <!-- Add Panel -->
             <div id="addPanel" class="panel active">
-                <h2><i class="fa-solid fa-circle-plus"></i> Add Map or Script</h2>
+                <h2><i class="fa-solid fa-circle-plus"></i> Add Content</h2>
                 <div class="input-group">
                     <label>Action Type</label>
                     <select id="addType" onchange="toggleAddType()">
@@ -536,25 +451,25 @@
                 <p id="statusMsg"></p>
             </div>
 
-            <!-- Manage Hub -->
+            <!-- Manage Hub Panel -->
             <div id="managePanel" class="panel">
-                <h2><i class="fa-solid fa-folder-tree"></i> Manage Maps & Scripts</h2>
-                <div style="max-height: 60vh; overflow-y: auto; padding-right: 4px;" id="mapsContainer">
+                <h2><i class="fa-solid fa-folder-tree"></i> Manage Hub</h2>
+                <div style="max-height: 65vh; overflow-y: auto; padding-right: 8px;" id="mapsContainer">
                     <p style="text-align:center; color:var(--text-muted); padding:20px;">Loading hub data...</p>
                 </div>
             </div>
 
             <!-- Keys Panel -->
             <div id="keysPanel" class="panel">
-                <h2><i class="fa-solid fa-key"></i> Custom & Universal Keys</h2>
-                <div style="background: rgba(0,0,0,0.30); padding: 20px; border-radius: 18px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05);">
-                    <div class="input-group" style="margin-bottom: 12px;">
+                <h2><i class="fa-solid fa-key"></i> Universal Keys</h2>
+                <div style="background: rgba(0,0,0,0.4); padding: 25px; border-radius: var(--radius-card); margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 0 15px rgba(0,0,0,0.5);">
+                    <div class="input-group" style="margin-bottom: 15px;">
                         <label>Expiration Hours (e.g. 24 = 1 Day, 720 = 30 Days)</label>
                         <input type="number" id="keyHours" value="24" min="1">
                     </div>
-                    <button class="btn-action" onclick="generateCustomKey()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Universal Key</button>
+                    <button class="btn-action" onclick="generateCustomKey()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Key</button>
                 </div>
-                <div style="max-height: 350px; overflow-y: auto; width:100%;">
+                <div style="max-height: 400px; overflow-y: auto; width:100%;">
                     <table class="data-table">
                         <thead><tr><th>Key</th><th>Expires At</th><th>Action</th></tr></thead>
                         <tbody id="keysTableBody">
@@ -567,7 +482,7 @@
     </div>
 
     <script>
-        // ===== SIDEBAR TOGGLE (mobile) =====
+        // Sidebar Toggle Logic
         const sidebar = document.getElementById('sidebar');
         const toggleBtn = document.getElementById('sidebarToggle');
         const overlay = document.getElementById('sidebarOverlay');
@@ -575,27 +490,16 @@
         function toggleSidebar() {
             sidebar.classList.toggle('open');
             overlay.classList.toggle('active');
-            const icon = toggleBtn.querySelector('i');
-            if(sidebar.classList.contains('open')) {
-                icon.className = 'fa-solid fa-xmark';
-            } else {
-                icon.className = 'fa-solid fa-bars';
-            }
+            toggleBtn.querySelector('i').className = sidebar.classList.contains('open') ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
         }
 
         toggleBtn.addEventListener('click', toggleSidebar);
         overlay.addEventListener('click', toggleSidebar);
-
-        // close sidebar when a nav button is clicked (mobile)
         document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                if(window.innerWidth <= 820 && sidebar.classList.contains('open')) {
-                    toggleSidebar();
-                }
-            });
+            btn.addEventListener('click', () => { if(window.innerWidth <= 850 && sidebar.classList.contains('open')) toggleSidebar(); });
         });
 
-        // ===== EXISTING LOGIC (unchanged) =====
+        // Hub Logic
         let cachedHubs = [];
 
         function switchPanel(panelId, btn) {
@@ -606,15 +510,10 @@
         }
 
         function toggleAddType() {
-            const type = document.getElementById('addType').value;
-            if(type === 'map') {
-                document.getElementById('mapFields').style.display = 'block';
-                document.getElementById('scriptFields').style.display = 'none';
-            } else {
-                document.getElementById('mapFields').style.display = 'none';
-                document.getElementById('scriptFields').style.display = 'block';
-                loadMapDropdown();
-            }
+            const isMap = document.getElementById('addType').value === 'map';
+            document.getElementById('mapFields').style.display = isMap ? 'block' : 'none';
+            document.getElementById('scriptFields').style.display = isMap ? 'none' : 'block';
+            if(!isMap) loadMapDropdown();
         }
 
         async function loadMapDropdown() {
@@ -626,25 +525,19 @@
                 if(data.success) {
                     cachedHubs = data.games || [];
                     select.innerHTML = '<option value="">-- Select Map --</option>';
-                    data.games.forEach(g => {
-                        select.innerHTML += `<option value="${g.id}">${g.gameName}</option>`;
-                    });
-                } else {
-                    select.innerHTML = '<option value="">Error loading maps</option>';
-                }
-            } catch(e) {
-                select.innerHTML = '<option value="">Could not load maps</option>';
-            }
+                    cachedHubs.forEach(g => select.innerHTML += `<option value="${g.id}">${g.gameName}</option>`);
+                } else select.innerHTML = '<option value="">Error loading maps</option>';
+            } catch(e) { select.innerHTML = '<option value="">Could not load maps</option>'; }
         }
 
         async function executeAdd() {
             const adminKey = document.getElementById('adminKey').value;
+            if(!adminKey) return showStatus("Enter Admin Password!", "#f87171");
             const type = document.getElementById('addType').value;
-            const status = document.getElementById('statusMsg');
 
             if(type === 'map') {
                 const gameName = document.getElementById('mapName').value.trim();
-                if(!gameName) return showStatus("Enter map name!", "#ff4d4d");
+                if(!gameName) return showStatus("Enter map name!", "#f87171");
                 try {
                     const res = await fetch('/api/scripts', {
                         method: 'POST',
@@ -652,15 +545,16 @@
                         body: JSON.stringify({ adminKey, gameName, scripts: [] })
                     });
                     const data = await res.json();
-                    if(data.success) showStatus("Map created successfully! ✅", "#4ade80");
-                    else showStatus(data.message || "Error", "#ff4d4d");
-                } catch(e) { showStatus("Network error", "#ff4d4d"); }
+                    if(data.success) { showStatus("Map created! ✅", "#4ade80"); document.getElementById('mapName').value = ''; }
+                    else showStatus(data.message || "Error", "#f87171");
+                } catch(e) { showStatus("Network error", "#f87171"); }
             } else {
                 const mapId = document.getElementById('targetMapSelect').value;
                 const scriptName = document.getElementById('scriptName').value.trim();
                 const scriptUrl = document.getElementById('scriptUrl').value.trim();
                 const targetGame = cachedHubs.find(g => g.id === mapId);
-                if(!targetGame || !scriptName || !scriptUrl) return showStatus("Fill all fields!", "#ff4d4d");
+                if(!targetGame || !scriptName || !scriptUrl) return showStatus("Fill all fields!", "#f87171");
+                
                 const updatedScripts = [...(targetGame.scripts || []), { name: scriptName, url: scriptUrl }];
                 try {
                     const res = await fetch('/api/scripts', {
@@ -669,15 +563,15 @@
                         body: JSON.stringify({ adminKey, gameName: targetGame.gameName, scripts: updatedScripts })
                     });
                     const data = await res.json();
-                    if(data.success) showStatus("Script added successfully! ✅", "#4ade80");
-                    else showStatus(data.message || "Error", "#ff4d4d");
-                } catch(e) { showStatus("Network error", "#ff4d4d"); }
+                    if(data.success) { showStatus("Script added! ✅", "#4ade80"); document.getElementById('scriptName').value = ''; document.getElementById('scriptUrl').value = ''; }
+                    else showStatus(data.message || "Error", "#f87171");
+                } catch(e) { showStatus("Network error", "#f87171"); }
             }
         }
 
         async function fetchHubData() {
             const container = document.getElementById('mapsContainer');
-            container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:20px;">Loading maps and scripts...</p>';
+            container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading maps and scripts...</p>';
             try {
                 const res = await fetch('/api/scripts');
                 const data = await res.json();
@@ -692,23 +586,24 @@
                         let scriptsHtml = '';
                         if(g.scripts && g.scripts.length > 0) {
                             g.scripts.forEach((s, idx) => {
-                                const safeName = s.name.replace(/'/g, "\\'");
-                                const safeUrl = s.url.replace(/'/g, "\\'");
+                                // التشفير الآمن لحل مشكلة علامات التنصيص في التعديل والحذف
+                                const encName = encodeURIComponent(s.name);
+                                const encUrl = encodeURIComponent(s.url);
                                 scriptsHtml += `
                                     <div class="script-item">
                                         <div class="script-info">
-                                            <span class="script-name"><i class="fa-solid fa-code" style="color:var(--success-green); margin-right:6px;"></i> ${s.name}</span>
+                                            <span class="script-name"><i class="fa-solid fa-code" style="color:var(--success-green);"></i> ${s.name}</span>
                                             <span class="script-url">${s.url}</span>
                                         </div>
                                         <div class="script-actions">
-                                            <button class="btn-sm btn-edit" onclick="editScript('${g.id}', ${idx}, '${safeName}', '${safeUrl}')"><i class="fa-solid fa-pen"></i> Edit</button>
+                                            <button class="btn-sm btn-edit" onclick="editScript('${g.id}', ${idx}, '${encName}', '${encUrl}')"><i class="fa-solid fa-pen"></i> Edit</button>
                                             <button class="btn-sm btn-delete" onclick="deleteScript('${g.id}', ${idx})"><i class="fa-solid fa-trash"></i> Delete</button>
                                         </div>
                                     </div>
                                 `;
                             });
                         } else {
-                            scriptsHtml = '<p style="font-size:13px; color:var(--text-muted); padding:6px 0;">No scripts added to this map yet.</p>';
+                            scriptsHtml = '<p style="font-size:13px; color:var(--text-muted); padding:10px 0;">No scripts added to this map yet.</p>';
                         }
                         container.innerHTML += `
                             <div class="map-card">
@@ -720,17 +615,14 @@
                             </div>
                         `;
                     });
-                } else {
-                    container.innerHTML = '<p style="text-align:center; color:var(--text-muted);">Failed to load data</p>';
-                }
-            } catch(e) {
-                container.innerHTML = '<p style="text-align:center; color:var(--text-muted);">Network error</p>';
-            }
+                } else container.innerHTML = '<p style="text-align:center; color:#f87171;">Failed to load data</p>';
+            } catch(e) { container.innerHTML = '<p style="text-align:center; color:#f87171;">Network error</p>'; }
         }
 
         async function deleteMap(id) {
             const adminKey = document.getElementById('adminKey').value;
-            if(!confirm("Delete this map and all scripts?")) return;
+            if(!adminKey) return alert("Please enter Admin Password!");
+            if(!confirm("Are you sure you want to delete this entire map?")) return;
             try {
                 const res = await fetch('/api/scripts', {
                     method: 'DELETE',
@@ -745,15 +637,21 @@
 
         async function deleteScript(mapId, scriptIdx) {
             const adminKey = document.getElementById('adminKey').value;
+            if(!adminKey) return alert("Please enter Admin Password!");
+            if(!confirm("Are you sure you want to delete this script?")) return;
+            
             const targetGame = cachedHubs.find(g => g.id === mapId);
             if(!targetGame) return;
-            if(!confirm("Delete this script?")) return;
-            targetGame.scripts.splice(scriptIdx, 1);
+            
+            // إنشاء مصفوفة جديدة بدون السكربت المحذوف
+            const updatedScripts = [...targetGame.scripts];
+            updatedScripts.splice(scriptIdx, 1);
+            
             try {
                 const res = await fetch('/api/scripts', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ adminKey, gameName: targetGame.gameName, scripts: targetGame.scripts })
+                    body: JSON.stringify({ adminKey, gameName: targetGame.gameName, scripts: updatedScripts })
                 });
                 const data = await res.json();
                 if(data.success) fetchHubData();
@@ -761,20 +659,30 @@
             } catch(e) { alert("Network error"); }
         }
 
-        async function editScript(mapId, scriptIdx, oldName, oldUrl) {
+        async function editScript(mapId, scriptIdx, encName, encUrl) {
             const adminKey = document.getElementById('adminKey').value;
+            if(!adminKey) return alert("Please enter Admin Password!");
+            
             const targetGame = cachedHubs.find(g => g.id === mapId);
             if(!targetGame) return;
+            
+            // فك التشفير الآمن لإظهار البيانات القديمة
+            const oldName = decodeURIComponent(encName);
+            const oldUrl = decodeURIComponent(encUrl);
+            
             const newName = prompt("Edit Script Name:", oldName);
             if(newName === null) return;
             const newUrl = prompt("Edit Script URL / Loadstring:", oldUrl);
-            if(newUrl === null) return;
-            targetGame.scripts[scriptIdx] = { name: newName, url: newUrl };
+            if(newUrl === null || newUrl.trim() === "") return;
+            
+            const updatedScripts = [...targetGame.scripts];
+            updatedScripts[scriptIdx] = { name: newName.trim(), url: newUrl.trim() };
+            
             try {
                 const res = await fetch('/api/scripts', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ adminKey, gameName: targetGame.gameName, scripts: targetGame.scripts })
+                    body: JSON.stringify({ adminKey, gameName: targetGame.gameName, scripts: updatedScripts })
                 });
                 const data = await res.json();
                 if(data.success) fetchHubData();
@@ -784,7 +692,7 @@
 
         async function fetchKeys() {
             const tbody = document.getElementById('keysTableBody');
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Loading keys...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading keys...</td></tr>';
             try {
                 const res = await fetch('/api/keys');
                 const data = await res.json();
@@ -798,33 +706,35 @@
                         const expiryDate = new Date(k.expiresAt).toLocaleString();
                         tbody.innerHTML += `
                             <tr>
-                                <td style="font-family:monospace; font-size:13px; color:var(--primary-gold); word-break:break-all;">${k.key}</td>
+                                <td style="font-family:monospace; font-size:14px; color:var(--primary-gold); word-break:break-all;">${k.key}</td>
                                 <td>${expiryDate}</td>
                                 <td><button class="btn-sm btn-delete" onclick="deleteKey('${k.key}')"><i class="fa-solid fa-trash"></i> Delete</button></td>
                             </tr>
                         `;
                     });
                 }
-            } catch(e) {
-                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">Error loading keys</td></tr>';
-            }
+            } catch(e) { tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; color:#f87171;">Error loading keys</td></tr>'; }
         }
 
         async function deleteKey(key) {
             const adminKey = document.getElementById('adminKey').value;
+            if(!adminKey) return alert("Please enter Admin Password!");
             if(!confirm("Delete this key?")) return;
             try {
-                await fetch('/api/keys', {
+                const res = await fetch('/api/keys', {
                     method: 'DELETE',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ key, adminKey })
                 });
-                fetchKeys();
+                const data = await res.json();
+                if(data.success) fetchKeys();
+                else alert("Error: " + data.message);
             } catch(e) { alert("Network error"); }
         }
 
         async function generateCustomKey() {
             const adminKey = document.getElementById('adminKey').value;
+            if(!adminKey) return alert("Please enter Admin Password!");
             const hours = parseInt(document.getElementById('keyHours').value) || 24;
             try {
                 const res = await fetch('/api/create-key', {
@@ -836,9 +746,7 @@
                 if(data.success) {
                     alert("Key Generated Successfully: " + data.key);
                     fetchKeys();
-                } else {
-                    alert("Error: " + data.message);
-                }
+                } else alert("Error: " + data.message);
             } catch(e) { alert("Network error"); }
         }
 
