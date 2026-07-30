@@ -9,432 +9,285 @@
     
     <style>
         :root {
-            --bg-dark: #050608;
-            --sidebar-bg: rgba(10, 12, 18, 0.65);
-            --glass-bg: rgba(15, 18, 25, 0.55);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-highlight: rgba(255, 215, 0, 0.25);
-            --primary-gold: #ffd700;
-            --primary-glow: 0 0 20px rgba(255, 215, 0, 0.15);
-            --success-green: #4ade80;
-            --danger-red: #f87171;
-            --text-main: #ffffff;
-            --text-muted: #9ca3af;
-            --radius-card: 24px;
-            --radius-sm: 14px;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --bg-main: #09090b;
+            --surface: #18181b;
+            --surface-hover: #27272a;
+            --primary: #f59e0b; /* Amber/Gold */
+            --primary-glow: 0 0 25px rgba(245, 158, 11, 0.2);
+            --danger: #ef4444;
+            --success: #10b981;
+            --text-main: #f4f4f5;
+            --text-muted: #a1a1aa;
+            --border: rgba(255, 255, 255, 0.08);
+            --radius-lg: 20px;
+            --radius-md: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
 
         body {
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(255, 215, 0, 0.04), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(74, 222, 128, 0.04), transparent 25%);
+            background-color: var(--bg-main);
+            color: var(--text-main);
             display: flex;
-            min-height: 100vh;
             height: 100vh;
             overflow: hidden;
-            color: var(--text-main);
+        }
+
+        /* ===== BACKGROUND GLOW ===== */
+        .bg-glow {
+            position: absolute; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.05) 0%, transparent 70%);
+            top: -200px; right: -100px; z-index: 0; pointer-events: none;
+        }
+        .bg-glow-2 {
+            position: absolute; width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.03) 0%, transparent 70%);
+            bottom: -100px; left: -100px; z-index: 0; pointer-events: none;
         }
 
         /* ===== SIDEBAR ===== */
         .sidebar {
-            width: 280px;
-            min-width: 220px;
-            background: var(--sidebar-bg);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-right: 1px solid var(--glass-border);
-            display: flex;
-            flex-direction: column;
-            padding: 30px 20px;
-            overflow-y: auto;
-            flex-shrink: 0;
-            height: 100vh;
-            position: sticky;
-            top: 0;
-            transition: transform var(--transition);
-            z-index: 30;
-            box-shadow: 5px 0 25px rgba(0,0,0,0.3);
+            width: 280px; background: rgba(24, 24, 27, 0.6);
+            backdrop-filter: blur(20px); border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 30px 20px;
+            z-index: 30; transition: var(--transition);
         }
-        .sidebar-brand {
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--primary-gold);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 45px;
-            padding: 0 4px;
-            text-shadow: var(--primary-glow);
+        
+        .brand {
+            font-size: 26px; font-weight: 800; color: var(--text-main);
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 40px; padding-left: 10px;
         }
-        .sidebar-brand i { font-size: 28px; }
+        .brand i { color: var(--primary); font-size: 28px; filter: drop-shadow(var(--primary-glow)); }
 
+        .nav-menu { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        
         .nav-btn {
-            width: 100%;
-            padding: 15px 18px;
-            background: transparent;
-            border: 1px solid transparent;
-            color: var(--text-muted);
-            font-size: 15px;
-            font-weight: 700;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            transition: var(--transition);
-            margin-bottom: 10px;
-            text-align: left;
+            width: 100%; padding: 16px 20px; background: transparent;
+            border: 1px solid transparent; color: var(--text-muted);
+            font-size: 15px; font-weight: 700; border-radius: var(--radius-md);
+            cursor: pointer; display: flex; align-items: center; gap: 14px;
+            transition: var(--transition); text-align: left;
         }
-        .nav-btn i { font-size: 18px; min-width: 22px; }
-        .nav-btn:hover, .nav-btn.active {
-            background: rgba(255, 215, 0, 0.08);
-            color: var(--primary-gold);
-            border: 1px solid var(--glass-highlight);
-            box-shadow: var(--primary-glow);
-            transform: translateX(5px);
+        .nav-btn i { font-size: 18px; width: 24px; text-align: center; }
+        .nav-btn:hover { color: var(--text-main); background: rgba(255,255,255,0.03); }
+        .nav-btn.active {
+            background: rgba(245, 158, 11, 0.1); color: var(--primary);
+            border-color: rgba(245, 158, 11, 0.2); box-shadow: var(--primary-glow);
         }
 
-        /* toggle button for mobile */
-        .sidebar-toggle {
-            display: none;
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            z-index: 50;
-            background: rgba(15, 18, 25, 0.85);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid var(--glass-highlight);
-            border-radius: 50%;
-            width: 48px;
-            height: 48px;
-            font-size: 22px;
-            color: var(--primary-gold);
-            cursor: pointer;
-            transition: var(--transition);
-            box-shadow: var(--shadow);
-            align-items: center;
-            justify-content: center;
-        }
-        .sidebar-toggle:hover { background: rgba(255, 215, 0, 0.15); transform: scale(1.05); }
-
-        /* ===== MAIN ===== */
+        /* ===== MAIN CONTENT ===== */
         .main-content {
-            flex: 1;
-            padding: 30px 40px;
-            overflow-y: auto;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            position: relative;
-            min-width: 0;
-            width: 100%;
-            height: 100vh;
+            flex: 1; padding: 40px; overflow-y: auto;
+            position: relative; z-index: 10; scroll-behavior: smooth;
         }
 
-        .panel {
-            display: none;
-            width: 100%;
-            max-width: 900px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid var(--glass-border);
-            padding: 35px 40px;
-            border-radius: var(--radius-card);
-            box-shadow: var(--shadow);
-            margin: 0 auto;
+        /* Top Bar */
+        .topbar {
+            display: flex; justify-content: flex-end; align-items: center;
+            margin-bottom: 30px;
         }
-        .panel.active {
-            display: block;
-            animation: fadeIn 0.4s ease;
+        .auth-box {
+            position: relative; width: 300px;
+        }
+        .auth-box i {
+            position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-size: 16px;
+        }
+        .auth-box input {
+            width: 100%; padding: 14px 16px 14px 45px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-md); color: var(--text-main);
+            font-size: 14px; font-weight: 500; transition: var(--transition);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .auth-box input:focus {
+            border-color: var(--primary); box-shadow: var(--primary-glow); outline: none;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
+        /* Panels */
+        .panel { display: none; animation: slideUp 0.4s ease forwards; }
+        .panel.active { display: block; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        h2 {
-            font-size: 24px;
-            font-weight: 800;
-            color: var(--primary-gold);
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
-        }
+        .panel-header { margin-bottom: 30px; }
+        .panel-title { font-size: 28px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        .panel-title i { color: var(--primary); }
+        .panel-desc { color: var(--text-muted); margin-top: 8px; font-size: 15px; }
 
-        .input-group { position: relative; margin-bottom: 20px; }
+        /* Form Elements */
+        .form-card {
+            background: var(--surface); border: 1px solid var(--border);
+            padding: 30px; border-radius: var(--radius-lg); margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .input-group { margin-bottom: 20px; }
         .input-group label {
-            display: block;
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 8px;
-            font-weight: 600;
-            padding-left: 4px;
+            display: block; font-size: 14px; color: var(--text-muted);
+            margin-bottom: 10px; font-weight: 600;
         }
-        .input-group input,
-        .input-group select {
-            width: 100%;
-            padding: 15px 18px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-sm);
-            color: #fff;
-            font-size: 15px;
-            outline: none;
-            transition: var(--transition);
+        .input-group input, .input-group select {
+            width: 100%; padding: 16px; background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border); border-radius: var(--radius-md);
+            color: var(--text-main); font-size: 15px; transition: var(--transition);
         }
-        .input-group input:focus,
-        .input-group select:focus {
-            background: rgba(0, 0, 0, 0.6);
-            border-color: var(--primary-gold);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.15);
+        .input-group input:focus, .input-group select:focus {
+            border-color: var(--primary); outline: none; background: rgba(0,0,0,0.4);
         }
-        .input-group select option { background: #12141c; color: #fff; }
 
         .btn-action {
-            width: 100%;
-            padding: 16px;
-            border-radius: var(--radius-sm);
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 800;
-            color: #000;
-            background: linear-gradient(135deg, var(--primary-gold) 0%, #d4af37 100%);
-            transition: var(--transition);
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+            padding: 16px 24px; border-radius: var(--radius-md); border: none;
+            font-size: 15px; font-weight: 800; color: #000; cursor: pointer;
+            background: var(--primary); transition: var(--transition);
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); width: 100%;
         }
-        .btn-action:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
-            background: linear-gradient(135deg, #ffea00 0%, #e6be3e 100%);
-        }
+        .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(245, 158, 11, 0.5); }
 
-        /* cards */
-        .map-card {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            padding: 22px 25px;
-            margin-bottom: 22px;
-            transition: var(--transition);
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        /* Hub Grid */
+        .grid-container {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 24px;
         }
-        .map-card:hover { border-color: rgba(255, 215, 0, 0.2); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .hub-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); padding: 25px;
+            transition: var(--transition); display: flex; flex-direction: column;
+        }
+        .hub-card:hover { border-color: rgba(255,255,255,0.15); box-shadow: 0 10px 40px rgba(0,0,0,0.4); transform: translateY(-4px); }
+        
+        .hub-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border);
+        }
+        .hub-title { font-size: 18px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        .hub-title i { color: var(--primary); }
 
-        .map-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 18px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 15px;
-        }
-        .map-title {
-            font-size: 19px;
-            font-weight: 700;
-            color: var(--primary-gold);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
+        .script-list { display: flex; flex-direction: column; gap: 12px; flex: 1; }
         .script-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            background: rgba(255, 255, 255, 0.02);
-            padding: 14px 18px;
-            border-radius: var(--radius-sm);
-            margin-bottom: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            transition: var(--transition);
+            background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.03);
+            border-radius: var(--radius-md); padding: 15px;
         }
-        .script-item:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.1); }
-        .script-info {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex: 1 1 200px;
-            min-width: 140px;
-        }
-        .script-name {
-            font-size: 15px;
-            font-weight: 700;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .script-url {
-            font-size: 12px;
-            color: var(--text-muted);
-            font-family: monospace;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 100%;
-            background: rgba(0,0,0,0.3);
-            padding: 4px 8px;
-            border-radius: 6px;
-        }
-        .script-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-
+        .script-info { margin-bottom: 12px; }
+        .script-name { font-weight: 700; color: var(--success); font-size: 15px; display: block; margin-bottom: 4px; }
+        .script-url { font-family: monospace; font-size: 12px; color: var(--text-muted); word-break: break-all; }
+        
+        .action-row { display: flex; gap: 8px; }
+        
+        /* Buttons */
         .btn-sm {
-            padding: 8px 14px;
-            border-radius: 10px;
-            border: 1px solid transparent;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: var(--transition);
-            background: rgba(0,0,0,0.4);
-            color: var(--text-main);
+            padding: 8px 14px; border-radius: 8px; border: 1px solid transparent;
+            font-size: 12px; font-weight: 700; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 6px; transition: var(--transition);
         }
-        .btn-edit { color: var(--success-green); border-color: rgba(74, 222, 128, 0.2); background: rgba(74, 222, 128, 0.05); }
-        .btn-edit:hover { background: rgba(74, 222, 128, 0.15); transform: translateY(-2px); }
-        .btn-delete { color: var(--danger-red); border-color: rgba(248, 113, 113, 0.2); background: rgba(248, 113, 113, 0.05); }
-        .btn-delete:hover { background: rgba(248, 113, 113, 0.15); transform: translateY(-2px); }
-        .btn-ban { color: #f97316; border-color: rgba(249, 115, 22, 0.2); background: rgba(249, 115, 22, 0.05); }
-        .btn-ban:hover { background: rgba(249, 115, 22, 0.15); transform: translateY(-2px); }
+        .btn-edit { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.2); }
+        .btn-edit:hover { background: rgba(16, 185, 129, 0.2); }
+        .btn-delete { background: rgba(239, 68, 68, 0.1); color: var(--danger); border-color: rgba(239, 68, 68, 0.2); }
+        .btn-delete:hover { background: rgba(239, 68, 68, 0.2); }
+        .btn-ban { background: rgba(245, 158, 11, 0.1); color: var(--primary); border-color: rgba(245, 158, 11, 0.2); }
+        .btn-ban:hover { background: rgba(245, 158, 11, 0.2); }
 
-        /* table */
-        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .data-table th, .data-table td {
-            padding: 15px 18px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-size: 14px;
-            word-break: break-word;
+        /* Custom Table */
+        .table-container {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-lg); overflow: hidden;
         }
-        .data-table th { color: var(--primary-gold); font-weight: 700; background: rgba(0,0,0,0.4); border-radius: 8px 8px 0 0; }
-        .data-table tr:hover td { background: rgba(255,255,255,0.02); }
-        .data-table td:last-child { text-align: left; display: flex; gap: 5px; flex-wrap: wrap; }
-
-        .auth-box {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            width: 100%;
-            max-width: 280px;
-            margin-left: auto;
-            margin-bottom: 25px;
-            flex-shrink: 0;
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th, td { padding: 18px 20px; border-bottom: 1px solid var(--border); }
+        th { background: rgba(0,0,0,0.3); font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); font-weight: 700; }
+        td { font-size: 14px; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+        tr:last-child td { border-bottom: none; }
+        
+        .badge {
+            padding: 6px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border); display: inline-block;
         }
-        .auth-box input {
-            width: 100%;
-            padding: 14px 18px;
-            background: rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: var(--radius-sm);
-            color: #fff;
-            font-size: 14px;
-            outline: none;
-            transition: var(--transition);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-            backdrop-filter: blur(10px);
+        .badge.universal { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.2); }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed; bottom: 30px; right: 30px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
         }
-        .auth-box input:focus { border-color: var(--danger-red); box-shadow: 0 0 15px rgba(248, 113, 113, 0.2); }
-
-        #statusMsg { text-align: center; margin-top: 18px; font-weight: 700; font-size: 14px; min-height: 26px; }
-
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.3); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(255,215,0,0.5); }
-
-        /* ===== RESPONSIVE ===== */
-        @media screen and (max-width: 850px) {
-            body { flex-direction: column; height: auto; overflow-y: auto; }
-            .sidebar-toggle { display: flex !important; }
-            .sidebar {
-                position: fixed; top: 0; left: 0; width: 280px; height: 100vh;
-                transform: translateX(-100%); margin: 0; border-right: 1px solid var(--glass-border);
-                border-radius: 0 20px 20px 0; box-shadow: 0 0 60px rgba(0,0,0,0.8);
-                z-index: 40; background: rgba(10, 12, 18, 0.95);
-            }
-            .sidebar.open { transform: translateX(0); }
-            .main-content { padding: 16px; padding-top: 80px; height: auto; min-height: 100vh; display: block; }
-            .panel { padding: 25px 20px; margin: 10px auto; border-radius: 20px; }
-            .auth-box { max-width: 100%; margin-bottom: 20px; position: relative; }
-            .map-header { flex-direction: column; align-items: flex-start; }
-            .script-item { flex-direction: column; align-items: stretch; }
-            .script-actions { justify-content: flex-start; }
+        .toast {
+            background: var(--surface); border-left: 4px solid var(--primary);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); padding: 16px 24px;
+            border-radius: 8px; display: flex; align-items: center; gap: 14px;
+            color: var(--text-main); font-weight: 600; font-size: 14px;
+            animation: toastEnter 0.4s cubic-bezier(0.2, 0, 0.1, 1) forwards;
         }
-        @media screen and (max-width: 480px) {
-            .sidebar { width: 260px; }
-            .nav-btn { font-size: 14px; padding: 12px 15px; }
-            h2 { font-size: 20px; }
-            .btn-action { font-size: 15px; padding: 14px; }
-            .data-table th, .data-table td { display: block; width: 100%; padding: 10px; text-align: left; }
-            .data-table tr { display: block; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-            .data-table thead { display: none; }
-            .data-table td:last-child { text-align: left; padding-top: 5px; }
+        .toast.success { border-color: var(--success); }
+        .toast.error { border-color: var(--danger); }
+        .toast i { font-size: 20px; }
+        .toast.success i { color: var(--success); }
+        .toast.error i { color: var(--danger); }
+        @keyframes toastEnter {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes toastExit {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(100%); }
         }
 
-        .sidebar-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 35;
-        }
-        .sidebar-overlay.active { display: block; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
     </style>
 </head>
 <body>
 
-    <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar"><i class="fa-solid fa-bars"></i></button>
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="bg-glow"></div>
+    <div class="bg-glow-2"></div>
 
     <div class="sidebar" id="sidebar">
-        <div class="sidebar-brand"><i class="fa-solid fa-crown"></i> SubX Admin</div>
-        <button class="nav-btn active" onclick="switchPanel('addPanel', this)"><i class="fa-solid fa-plus-circle"></i> Add Map / Script</button>
-        <button class="nav-btn" onclick="switchPanel('managePanel', this); fetchHubData();"><i class="fa-solid fa-folder-open"></i> Manage Hub</button>
-        <button class="nav-btn" onclick="switchPanel('keysPanel', this); fetchKeys();"><i class="fa-solid fa-key"></i> Manage Keys</button>
+        <div class="brand"><i class="fa-solid fa-code"></i> SubX Pro</div>
+        <div class="nav-menu">
+            <button class="nav-btn active" onclick="switchPanel('addPanel', this)"><i class="fa-solid fa-plus-circle"></i> Add Content</button>
+            <button class="nav-btn" onclick="switchPanel('managePanel', this); fetchHubData();"><i class="fa-solid fa-layer-group"></i> Manage Hub</button>
+            <button class="nav-btn" onclick="switchPanel('keysPanel', this); fetchKeys();"><i class="fa-solid fa-key"></i> Access Keys</button>
+        </div>
     </div>
 
     <div class="main-content">
-        <div style="width:100%; display:flex; flex-direction:column;">
-            
+        <div class="topbar">
             <div class="auth-box">
-                <input type="password" id="adminKey" placeholder="Admin Password Required 🔒" aria-label="Admin Password">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="adminKey" placeholder="Admin Password Required" autocomplete="off">
+            </div>
+        </div>
+
+        <!-- Panel: Add Content -->
+        <div id="addPanel" class="panel active">
+            <div class="panel-header">
+                <h2 class="panel-title"><i class="fa-solid fa-square-plus"></i> Add New Content</h2>
+                <p class="panel-desc">Create a new game folder or inject a script into an existing one.</p>
             </div>
 
-            <!-- Add Panel -->
-            <div id="addPanel" class="panel active">
-                <h2><i class="fa-solid fa-circle-plus"></i> Add Content</h2>
+            <div class="form-card">
                 <div class="input-group">
                     <label>Action Type</label>
                     <select id="addType" onchange="toggleAddType()">
-                        <option value="map">Create New Map Folder</option>
-                        <option value="script">Add Script to Map</option>
+                        <option value="map">🎮 Create New Map Folder</option>
+                        <option value="script">📜 Add Script to Existing Map</option>
                     </select>
                 </div>
+                
                 <div id="mapFields">
                     <div class="input-group">
                         <label>Map Name</label>
                         <input type="text" id="mapName" placeholder="e.g. Blox Fruits">
                     </div>
                 </div>
+                
                 <div id="scriptFields" style="display:none;">
                     <div class="input-group">
                         <label>Select Target Map</label>
@@ -445,75 +298,96 @@
                         <input type="text" id="scriptName" placeholder="e.g. Auto Farm Hub">
                     </div>
                     <div class="input-group">
-                        <label>Script URL / Loadstring</label>
-                        <input type="text" id="scriptUrl" placeholder="https://raw.githubusercontent.com/...">
+                        <label>Script Source (URL or Full Lua Code)</label>
+                        <input type="text" id="scriptUrl" placeholder="loadstring(...)() OR https://...">
                     </div>
                 </div>
-                <button class="btn-action" onclick="executeAdd()"><i class="fa-solid fa-save"></i> Save Data</button>
-                <p id="statusMsg"></p>
+
+                <button class="btn-action" onclick="executeAdd()"><i class="fa-solid fa-cloud-arrow-up"></i> Save & Deploy</button>
+            </div>
+        </div>
+
+        <!-- Panel: Manage Hub -->
+        <div id="managePanel" class="panel">
+            <div class="panel-header">
+                <h2 class="panel-title"><i class="fa-solid fa-layer-group"></i> Manage Scripts</h2>
+                <p class="panel-desc">View, edit, and delete your active scripts across all games.</p>
+            </div>
+            <div class="grid-container" id="mapsContainer">
+                <!-- Cards will load here -->
+            </div>
+        </div>
+
+        <!-- Panel: Manage Keys -->
+        <div id="keysPanel" class="panel">
+            <div class="panel-header">
+                <h2 class="panel-title"><i class="fa-solid fa-key"></i> Key Management</h2>
+                <p class="panel-desc">Generate premium keys, manage active users, and handle bans.</p>
             </div>
 
-            <!-- Manage Hub Panel -->
-            <div id="managePanel" class="panel">
-                <h2><i class="fa-solid fa-folder-tree"></i> Manage Hub</h2>
-                <div style="max-height: 65vh; overflow-y: auto; padding-right: 8px;" id="mapsContainer">
-                    <p style="text-align:center; color:var(--text-muted); padding:20px;">Loading hub data...</p>
+            <div class="form-card" style="display: flex; gap: 20px; flex-wrap: wrap; align-items: flex-end;">
+                <div class="input-group" style="margin-bottom: 0; flex: 1; min-width: 200px;">
+                    <label>Duration (Hours)</label>
+                    <input type="number" id="keyHours" value="24" min="1">
                 </div>
+                <div class="input-group" style="margin-bottom: 0; flex: 2; min-width: 200px;">
+                    <label>Assign to HWID (Leave empty for Universal)</label>
+                    <input type="text" id="keyHwid" placeholder="Paste user HWID here...">
+                </div>
+                <button class="btn-action" style="flex: 1; min-width: 200px; padding: 16px;" onclick="generateCustomKey()">
+                    <i class="fa-solid fa-bolt"></i> Generate Key
+                </button>
             </div>
 
-            <!-- Keys Panel -->
-            <div id="keysPanel" class="panel">
-                <h2><i class="fa-solid fa-key"></i> Universal Keys</h2>
-                <div style="background: rgba(0,0,0,0.4); padding: 25px; border-radius: var(--radius-card); margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 0 15px rgba(0,0,0,0.5);">
-                    <div class="input-group" style="margin-bottom: 15px;">
-                        <label>Expiration Hours (e.g. 24 = 1 Day, 720 = 30 Days)</label>
-                        <input type="number" id="keyHours" value="24" min="1">
-                    </div>
-                    <div class="input-group" style="margin-bottom: 15px;">
-                        <label>Assign to HWID (Optional)</label>
-                        <input type="text" id="keyHwid" placeholder="Leave blank for a universal key">
-                    </div>
-                    <button class="btn-action" onclick="generateCustomKey()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Key</button>
-                </div>
-                <div style="max-height: 400px; overflow-y: auto; width:100%;">
-                    <table class="data-table">
-                        <thead><tr><th>Key</th><th>HWID</th><th>Expires At</th><th>Actions</th></tr></thead>
-                        <tbody id="keysTableBody">
-                            <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Loading keys...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Premium Key</th>
+                            <th>Linked HWID</th>
+                            <th>Expires At</th>
+                            <th>Quick Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="keysTableBody">
+                        <!-- Keys will load here -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
+    <!-- Floating Toasts -->
+    <div id="toast-container"></div>
+
     <script>
-        // Sidebar Toggle Logic
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('sidebarToggle');
-        const overlay = document.getElementById('sidebarOverlay');
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('active');
-            toggleBtn.querySelector('i').className = sidebar.classList.contains('open') ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
-        }
-
-        toggleBtn.addEventListener('click', toggleSidebar);
-        overlay.addEventListener('click', toggleSidebar);
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', () => { if(window.innerWidth <= 850 && sidebar.classList.contains('open')) toggleSidebar(); });
-        });
-
-        // Hub Logic
-        let cachedHubs = [];
-
+        // UI Logic
         function switchPanel(panelId, btn) {
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(panelId).classList.add('active');
             if(btn) btn.classList.add('active');
         }
+
+        // Custom Toast Notification System
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation';
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'toastExit 0.4s cubic-bezier(0.2, 0, 0.1, 1) forwards';
+                setTimeout(() => toast.remove(), 400);
+            }, 3500);
+        }
+
+        // Data Logic
+        let cachedHubs = [];
 
         function toggleAddType() {
             const isMap = document.getElementById('addType').value === 'map';
@@ -530,7 +404,7 @@
                 const data = await res.json();
                 if(data.success) {
                     cachedHubs = data.games || [];
-                    select.innerHTML = '<option value="">-- Select Map --</option>';
+                    select.innerHTML = '<option value="" disabled selected>-- Select Target Game --</option>';
                     cachedHubs.forEach(g => select.innerHTML += `<option value="${g.id}">${g.gameName}</option>`);
                 } else select.innerHTML = '<option value="">Error loading maps</option>';
             } catch(e) { select.innerHTML = '<option value="">Could not load maps</option>'; }
@@ -538,46 +412,48 @@
 
         async function executeAdd() {
             const adminKey = document.getElementById('adminKey').value;
-            if(!adminKey) return showStatus("Enter Admin Password!", "#f87171");
+            if(!adminKey) return showToast("Admin Password Required!", "error");
+            
             const type = document.getElementById('addType').value;
-
             if(type === 'map') {
                 const gameName = document.getElementById('mapName').value.trim();
-                if(!gameName) return showStatus("Enter map name!", "#f87171");
+                if(!gameName) return showToast("Enter a map name!", "error");
                 try {
                     const res = await fetch('/api/scripts', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
+                        method: 'POST', headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ adminKey, gameName, scripts: [] })
                     });
                     const data = await res.json();
-                    if(data.success) { showStatus("Map created! ✅", "#4ade80"); document.getElementById('mapName').value = ''; }
-                    else showStatus(data.message || "Error", "#f87171");
-                } catch(e) { showStatus("Network error", "#f87171"); }
+                    if(data.success) { showToast("Game Folder Created!"); document.getElementById('mapName').value = ''; }
+                    else showToast(data.message || "Error", "error");
+                } catch(e) { showToast("Network error", "error"); }
             } else {
                 const mapId = document.getElementById('targetMapSelect').value;
                 const scriptName = document.getElementById('scriptName').value.trim();
                 const scriptUrl = document.getElementById('scriptUrl').value.trim();
                 const targetGame = cachedHubs.find(g => g.id === mapId);
-                if(!targetGame || !scriptName || !scriptUrl) return showStatus("Fill all fields!", "#f87171");
+                
+                if(!targetGame || !scriptName || !scriptUrl) return showToast("Fill all script fields!", "error");
                 
                 const updatedScripts = [...(targetGame.scripts || []), { name: scriptName, url: scriptUrl }];
                 try {
                     const res = await fetch('/api/scripts', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
+                        method: 'POST', headers: {'Content-Type': 'application/json'},
                         body: JSON.stringify({ adminKey, gameName: targetGame.gameName, scripts: updatedScripts })
                     });
                     const data = await res.json();
-                    if(data.success) { showStatus("Script added! ✅", "#4ade80"); document.getElementById('scriptName').value = ''; document.getElementById('scriptUrl').value = ''; }
-                    else showStatus(data.message || "Error", "#f87171");
-                } catch(e) { showStatus("Network error", "#f87171"); }
+                    if(data.success) { 
+                        showToast("Script Injected Successfully!"); 
+                        document.getElementById('scriptName').value = ''; document.getElementById('scriptUrl').value = ''; 
+                    }
+                    else showToast(data.message || "Error", "error");
+                } catch(e) { showToast("Network error", "error"); }
             }
         }
 
         async function fetchHubData() {
             const container = document.getElementById('mapsContainer');
-            container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading maps and scripts...</p>';
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></div>';
             try {
                 const res = await fetch('/api/scripts');
                 const data = await res.json();
@@ -585,7 +461,7 @@
                     cachedHubs = data.games || [];
                     container.innerHTML = '';
                     if(cachedHubs.length === 0) {
-                        container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding:20px;">No maps found yet.</p>';
+                        container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding:40px; color:var(--text-muted);">No content available.</div>';
                         return;
                     }
                     cachedHubs.forEach(g => {
@@ -597,85 +473,78 @@
                                 scriptsHtml += `
                                     <div class="script-item">
                                         <div class="script-info">
-                                            <span class="script-name"><i class="fa-solid fa-code" style="color:var(--success-green);"></i> ${s.name}</span>
-                                            <span class="script-url">${s.url}</span>
+                                            <span class="script-name"><i class="fa-solid fa-file-code"></i> ${s.name}</span>
+                                            <div class="script-url">${s.url}</div>
                                         </div>
-                                        <div class="script-actions">
-                                            <button class="btn-sm btn-edit" onclick="editScript('${g.id}', ${idx}, '${encName}', '${encUrl}')"><i class="fa-solid fa-pen"></i> Edit</button>
-                                            <button class="btn-sm btn-delete" onclick="deleteScript('${g.id}', ${idx})"><i class="fa-solid fa-trash"></i> Delete</button>
+                                        <div class="action-row">
+                                            <button class="btn-sm btn-edit" onclick="editScript('${g.id}', ${idx}, '${encName}', '${encUrl}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                                            <button class="btn-sm btn-delete" onclick="deleteScript('${g.id}', ${idx})"><i class="fa-solid fa-trash-can"></i></button>
                                         </div>
                                     </div>
                                 `;
                             });
                         } else {
-                            scriptsHtml = '<p style="font-size:13px; color:var(--text-muted); padding:10px 0;">No scripts added to this map yet.</p>';
+                            scriptsHtml = '<div style="font-size:13px; color:var(--text-muted); text-align:center; padding:20px 0;">Folder is empty</div>';
                         }
                         container.innerHTML += `
-                            <div class="map-card">
-                                <div class="map-header">
-                                    <span class="map-title"><i class="fa-solid fa-gamepad"></i> ${g.gameName}</span>
-                                    <button class="btn-sm btn-delete" onclick="deleteMap('${g.id}')"><i class="fa-solid fa-trash-can"></i> Delete Map</button>
+                            <div class="hub-card">
+                                <div class="hub-header">
+                                    <div class="hub-title"><i class="fa-solid fa-gamepad"></i> ${g.gameName}</div>
+                                    <button class="btn-sm btn-delete" onclick="deleteMap('${g.id}')"><i class="fa-solid fa-folder-minus"></i></button>
                                 </div>
                                 <div class="script-list">${scriptsHtml}</div>
                             </div>
                         `;
                     });
-                } else container.innerHTML = '<p style="text-align:center; color:#f87171;">Failed to load data</p>';
-            } catch(e) { container.innerHTML = '<p style="text-align:center; color:#f87171;">Network error</p>'; }
+                }
+            } catch(e) { container.innerHTML = '<div style="color:var(--danger);">Error loading data</div>'; }
         }
 
         async function deleteMap(id) {
             const adminKey = document.getElementById('adminKey').value;
-            if(!adminKey) return alert("Please enter Admin Password!");
-            if(!confirm("Are you sure you want to delete this entire map?")) return;
+            if(!adminKey) return showToast("Admin Password Required!", "error");
+            if(!confirm("⚠️ Delete this entire map folder?")) return;
             try {
                 const res = await fetch('/api/scripts', {
-                    method: 'DELETE',
-                    headers: {'Content-Type': 'application/json'},
+                    method: 'DELETE', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ id, adminKey })
                 });
                 const data = await res.json();
-                if(data.success) fetchHubData();
-                else alert("Error: " + data.message);
-            } catch(e) { alert("Network error"); }
+                if(data.success) { showToast("Map Deleted!"); fetchHubData(); }
+                else showToast(data.message, "error");
+            } catch(e) { showToast("Network error", "error"); }
         }
 
         async function deleteScript(mapId, scriptIdx) {
             const adminKey = document.getElementById('adminKey').value;
-            if(!adminKey) return alert("Please enter Admin Password!");
-            if(!confirm("Are you sure you want to delete this script?")) return;
+            if(!adminKey) return showToast("Admin Password Required!", "error");
+            if(!confirm("Delete this script?")) return;
             
             const targetGame = cachedHubs.find(g => g.id === mapId);
-            if(!targetGame) return;
-            
             const updatedScripts = [...targetGame.scripts];
             updatedScripts.splice(scriptIdx, 1);
             
             try {
                 const res = await fetch('/api/scripts', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ adminKey, gameName: targetGame.gameName, scripts: updatedScripts })
                 });
                 const data = await res.json();
-                if(data.success) fetchHubData();
-                else alert("Error: " + data.message);
-            } catch(e) { alert("Network error"); }
+                if(data.success) { showToast("Script Removed!"); fetchHubData(); }
+            } catch(e) { showToast("Network error", "error"); }
         }
 
         async function editScript(mapId, scriptIdx, encName, encUrl) {
             const adminKey = document.getElementById('adminKey').value;
-            if(!adminKey) return alert("Please enter Admin Password!");
+            if(!adminKey) return showToast("Admin Password Required!", "error");
             
             const targetGame = cachedHubs.find(g => g.id === mapId);
-            if(!targetGame) return;
-            
             const oldName = decodeURIComponent(encName);
             const oldUrl = decodeURIComponent(encUrl);
             
             const newName = prompt("Edit Script Name:", oldName);
             if(newName === null) return;
-            const newUrl = prompt("Edit Script URL / Loadstring:", oldUrl);
+            const newUrl = prompt("Edit Script Source:", oldUrl);
             if(newUrl === null || newUrl.trim() === "") return;
             
             const updatedScripts = [...targetGame.scripts];
@@ -683,159 +552,130 @@
             
             try {
                 const res = await fetch('/api/scripts', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ adminKey, gameName: targetGame.gameName, scripts: updatedScripts })
                 });
                 const data = await res.json();
-                if(data.success) fetchHubData();
-                else alert("Error: " + data.message);
-            } catch(e) { alert("Network error"); }
+                if(data.success) { showToast("Script Updated!"); fetchHubData(); }
+            } catch(e) { showToast("Network error", "error"); }
         }
 
         // ================= KEY MANAGEMENT =================
 
         async function fetchKeys() {
             const tbody = document.getElementById('keysTableBody');
-            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading keys...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color:var(--text-muted);"></i></td></tr>';
             try {
                 const res = await fetch('/api/keys');
                 const data = await res.json();
                 if(data.success) {
                     tbody.innerHTML = '';
                     if(data.keys.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No active keys found.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No active keys in database.</td></tr>';
                         return;
                     }
                     data.keys.forEach(k => {
                         const expiryDate = new Date(k.expiresAt).toLocaleString();
-                        // عرض البصمة أو نص توضيحي
-                        const hwidDisplay = k.hwid ? k.hwid : '<span style="color:#aaa;">Unclaimed/Universal</span>';
+                        const isUniversal = !k.hwid || k.hwid === "";
+                        const hwidDisplay = isUniversal ? '<span class="badge universal"><i class="fa-solid fa-earth-americas"></i> Universal</span>' : `<span class="badge"><i class="fa-solid fa-desktop"></i> ${k.hwid}</span>`;
                         
-                        // الأزرار
                         let actionsHtml = `
-                            <button class="btn-sm btn-edit" onclick="renewKey('${k.key}')"><i class="fa-solid fa-clock-rotate-left"></i> Renew</button>
-                            <button class="btn-sm btn-delete" onclick="deleteKey('${k.key}')"><i class="fa-solid fa-trash"></i> Delete</button>
+                            <button class="btn-sm btn-edit" onclick="renewKey('${k.key}')" title="Add Time"><i class="fa-solid fa-clock-rotate-left"></i></button>
+                            <button class="btn-sm btn-delete" onclick="deleteKey('${k.key}')" title="Revoke Key"><i class="fa-solid fa-trash-can"></i></button>
                         `;
-                        
-                        // إظهار زر الحظر فقط إذا كان هناك بصمة مرتبطة
-                        if (k.hwid) {
-                            actionsHtml += `<button class="btn-sm btn-ban" onclick="banUser('${k.hwid}')"><i class="fa-solid fa-ban"></i> Ban HWID</button>`;
+                        if (!isUniversal) {
+                            actionsHtml += `<button class="btn-sm btn-ban" onclick="banUser('${k.hwid}')" title="Ban HWID"><i class="fa-solid fa-gavel"></i></button>`;
                         }
 
                         tbody.innerHTML += `
                             <tr>
-                                <td style="font-family:monospace; font-size:14px; color:var(--primary-gold); word-break:break-all;">${k.key}</td>
-                                <td style="font-family:monospace; font-size:13px;">${hwidDisplay}</td>
+                                <td style="font-family:monospace; color:var(--primary); font-size: 15px;">${k.key}</td>
+                                <td>${hwidDisplay}</td>
                                 <td>${expiryDate}</td>
-                                <td>${actionsHtml}</td>
+                                <td><div class="action-row">${actionsHtml}</div></td>
                             </tr>
                         `;
                     });
-                } else {
-                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#f87171;">Failed to load keys: ${data.message || 'Unknown error'}</td></tr>`;
                 }
-            } catch(e) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#f87171;">Network error</td></tr>'; }
+            } catch(e) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--danger);">Connection Error</td></tr>'; }
         }
 
         async function generateCustomKey() {
             const adminKey = document.getElementById('adminKey').value;
-            if(!adminKey) return alert("Please enter Admin Password!");
+            if(!adminKey) return showToast("Admin Password Required!", "error");
             
             const hours = parseInt(document.getElementById('keyHours').value) || 24;
-            const hwid = document.getElementById('keyHwid').value.trim(); // أخذ البصمة إذا وجدت
+            const hwid = document.getElementById('keyHwid').value.trim(); 
 
             try {
+                // 🟢 إرسال الطلب لملف keys الموحد بصيغة POST مع action: 'create'
                 const res = await fetch('/api/keys', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ adminKey, hours, hwid })
+                    body: JSON.stringify({ action: 'create', adminKey, hours, hwid })
                 });
                 
-                // التأكد من أن الرد JSON قبل محاولة قراءته (تصليح مشكلة الـ Generation)
-                if (!res.ok && res.headers.get("content-type")?.indexOf("application/json") === -1) {
-                    throw new Error("Server did not return JSON. Please check backend logic.");
-                }
-
                 const data = await res.json();
                 if(data.success) {
-                    alert("Key Generated Successfully: " + data.key);
-                    document.getElementById('keyHwid').value = ''; // تفريغ الحقل
+                    showToast(`Key Generated: ${data.key}`);
+                    document.getElementById('keyHwid').value = ''; 
                     fetchKeys();
-                } else alert("Error: " + (data.message || "Could not generate key"));
-            } catch(e) { 
-                alert("Generation error: " + e.message); 
-            }
+                } else showToast(data.message, "error");
+            } catch(e) { showToast("Generation error", "error"); }
         }
 
         async function deleteKey(key) {
             const adminKey = document.getElementById('adminKey').value;
-            if(!adminKey) return alert("Please enter Admin Password!");
-            if(!confirm("Are you sure you want to delete this key?")) return;
+            if(!adminKey) return showToast("Admin Password Required!", "error");
+            if(!confirm("Revoke this key immediately?")) return;
             try {
+                // 🟢 إرسال الطلب بصيغة POST مع action: 'delete' لتجنب مشاكل Vercel
                 const res = await fetch('/api/keys', {
-                    method: 'DELETE',
+                    method: 'POST', 
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ key, adminKey })
+                    body: JSON.stringify({ action: 'delete', key, adminKey })
                 });
                 const data = await res.json();
-                if(data.success) fetchKeys();
-                else alert("Error: " + data.message);
-            } catch(e) { alert("Network error"); }
+                if(data.success) { showToast("Key Revoked!"); fetchKeys(); }
+                else showToast(data.message, "error");
+            } catch(e) { showToast("Network error", "error"); }
         }
 
         async function renewKey(key) {
             const adminKey = document.getElementById('adminKey').value;
-            if(!adminKey) return alert("Please enter Admin Password!");
+            if(!adminKey) return showToast("Admin Password Required!", "error");
             
-            const extraHours = prompt("How many hours do you want to add to this key?", "24");
+            const extraHours = prompt("Add additional hours:", "24");
             if (extraHours === null || isNaN(parseInt(extraHours))) return;
 
             try {
-                // ملاحظة: تأكد من برمجة هذا المسار في ملفات السيرفر (Backend)
                 const res = await fetch('/api/renew-key', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ key, adminKey, hours: parseInt(extraHours) })
                 });
                 const data = await res.json();
-                if(data.success) {
-                    alert("Key renewed successfully!");
-                    fetchKeys();
-                }
-                else alert("Error: " + data.message);
-            } catch(e) { alert("Network error while renewing."); }
+                if(data.success) { showToast("Key Renewed!"); fetchKeys(); }
+                else showToast(data.message, "error");
+            } catch(e) { showToast("Network error", "error"); }
         }
 
         async function banUser(hwid) {
             const adminKey = document.getElementById('adminKey').value;
-            if(!adminKey) return alert("Please enter Admin Password!");
-            if(!confirm(`Are you sure you want to permanently BAN this HWID?\n\nHWID: ${hwid}`)) return;
+            if(!adminKey) return showToast("Admin Password Required!", "error");
+            if(!confirm(`⚠️ PERMANENT BAN\n\nAre you sure you want to ban HWID: ${hwid}?`)) return;
 
             try {
-                // ملاحظة: تأكد من برمجة هذا المسار في ملفات السيرفر (Backend)
                 const res = await fetch('/api/ban-user', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ hwid, adminKey })
                 });
                 const data = await res.json();
-                if(data.success) {
-                    alert("User has been banned successfully.");
-                    fetchKeys(); // تحديث الجدول لحذف مفاتيح المستخدم المحظور (إن وجدت برمجة لذلك في السيرفر)
-                }
-                else alert("Error: " + data.message);
-            } catch(e) { alert("Network error while banning user."); }
+                if(data.success) { showToast("User Banned & Keys Destroyed!"); fetchKeys(); }
+                else showToast(data.message, "error");
+            } catch(e) { showToast("Network error", "error"); }
         }
 
-        function showStatus(text, color) {
-            const status = document.getElementById('statusMsg');
-            status.style.color = color || '#fff';
-            status.innerHTML = text;
-            setTimeout(() => status.innerHTML = '', 4500);
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', () => {
             if(document.getElementById('addType').value === 'script') loadMapDropdown();
         });
     </script>
