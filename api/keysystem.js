@@ -1,10 +1,16 @@
 import db from "./firebase.js";
 import { nanoid } from "nanoid";
+import jwt from "jsonwebtoken"; // 🔴 مكتبة الحماية الجديدة
 
-const LINKVERTISE_USER_ID = "1322389"; // الـ ID الخاص بك في لينك فيرتيس
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W"; // 🔴 ضع رابط ويب هوك الديسكورد الخاص بك هنا
+const LINKVERTISE_USER_ID = "1322389";
+const DISCORD_WEBHOOK_URL = "ضع_رابط_الويب_هوك_هنا";
 
-// 🚫 واجهة الخطأ إذا دخل الشخص بدون بصمة (HWID)
+// 🔐 كلمة السر الخاصة بالسيرفر (لا تعطيها لأحد أبداً، وهي التي تحمي التوكن من التزوير)
+const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
+
+// ==========================================
+// واجهات المستخدم (كما هي لم تتغير)
+// ==========================================
 const invalidLinkUI = `
 <!DOCTYPE html>
 <html lang="en">
@@ -35,7 +41,6 @@ const invalidLinkUI = `
 </html>
 `;
 
-// 🛡️ واجهة الخطأ إذا كان الـ VPN مفعلاً
 const vpnBlockUI = `
 <!DOCTYPE html>
 <html lang="en">
@@ -66,7 +71,37 @@ const vpnBlockUI = `
 </html>
 `;
 
-// ⏳ واجهة التحميل عند العودة من المهمة
+const tokenErrorUI = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invalid or Expired Link ⚠️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
+        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(248, 113, 113, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
+        h1 { color: #f87171; margin-bottom: 15px; font-size: 1.6rem; font-weight: 800; }
+        p { color: #aaa; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+        .error-icon { font-size: 60px; color: #f87171; margin-bottom: 20px; }
+        .btn { display: inline-block; padding: 12px 25px; background: #4ade80; color: #000; text-decoration: none; font-weight: bold; border-radius: 10px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+        <h1>Link Expired or Bypassed!</h1>
+        <p>The link you used has either expired (took more than 15 minutes) or is invalid due to bypassing attempts.</p>
+        <a href="/api/keysystem" class="btn">Return to Checkpoints</a>
+    </div>
+</body>
+</html>
+`;
+
 const verifyingTaskUI = `
 <!DOCTYPE html>
 <html lang="en">
@@ -108,7 +143,6 @@ const verifyingTaskUI = `
 </html>
 `;
 
-// 🔑 الواجهة الرئيسية لإنشاء المفتاح
 const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
@@ -162,9 +196,6 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="https://beansnicerroller.com/1c/8c/07/1c8c07e41dacee6cc4a64a6f22c04a4b.js"></script>
-<script>(function(s){s.dataset.zone='11383401',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SubX Key System 🔑</title>
@@ -248,6 +279,9 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
     `;
 };
 
+// ==========================================
+// الكود الأساسي (الخادم)
+// ==========================================
 export default async function handler(req, res) {
     // 0. 🛡️ فحص الـ VPN / Proxy أولاً
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
@@ -279,13 +313,13 @@ export default async function handler(req, res) {
         if (hwidMatch) userHwid = hwidMatch[1];
     }
 
-    // 🔴 نظام الحماية (Anti-Bypass)
+    // 🔴 حماية البصمة
     if (!userHwid) {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         return res.status(403).send(invalidLinkUI);
     }
 
-    // 2. قراءة بيانات المهام والمفتاح من الكوكيز
+    // 2. قراءة بيانات المهام
     let keyStep = 0;
     const stepMatch = cookieHeader.match(/key_step=(\d+)/);
     if (stepMatch) keyStep = parseInt(stepMatch[1]);
@@ -294,7 +328,6 @@ export default async function handler(req, res) {
     let activeKey = keyMatch ? keyMatch[1] : null;
     let errorMessage = null;
 
-    // 3. التحقق مما إذا كان المفتاح المحفوظ لا يزال موجوداً في الداتا بيز (Firebase)
     if (activeKey) {
         try {
             const keyDoc = await db.collection("keys").doc(activeKey).get();
@@ -312,32 +345,44 @@ export default async function handler(req, res) {
         }
     }
 
-    // 4. معالجة عودة المستخدم من Linkvertise (إظهار شاشة الانتظار 5 ثوانٍ)
-    if (req.method === "GET" && req.query.complete_step) {
-        const completedStep = parseInt(req.query.complete_step);
-        if (completedStep === keyStep + 1 && completedStep <= 3) {
-            keyStep = completedStep;
+    // ==========================================
+    // 🔴 4. نظام الـ JWT لتأكيد العودة من المهام
+    // ==========================================
+    if (req.method === "GET" && req.query.token) {
+        try {
+            // فك تشفير التوكن والتحقق من صحته
+            const decoded = jwt.verify(req.query.token, JWT_SECRET);
+            
+            // التأكد أن البصمة متطابقة، وأن رقم المهمة سليم
+            if (decoded.hwid === userHwid && decoded.targetStep === keyStep + 1 && decoded.targetStep <= 3) {
+                keyStep = decoded.targetStep;
+                
+                res.setHeader('Set-Cookie', [
+                    `key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`,
+                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
+                ]);
+                res.setHeader("Content-Type", "text/html; charset=utf-8");
+                return res.status(200).send(verifyingTaskUI);
+            } else {
+                // تلاعب في الرابط
+                res.setHeader("Content-Type", "text/html; charset=utf-8");
+                return res.status(403).send(tokenErrorUI);
+            }
+        } catch (err) {
+            // التوكن انتهى وقته (مر 15 دقيقة) أو مزور
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            return res.status(403).send(tokenErrorUI);
         }
-        
-        let cookies = [
-            `key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`,
-            `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
-        ];
-        
-        res.setHeader('Set-Cookie', cookies);
-        res.setHeader("Content-Type", "text/html; charset=utf-8");
-        return res.status(200).send(verifyingTaskUI);
     }
 
-    // 5. إنشاء المفتاح بعد تخطي الـ 3 مهام وإرسال إشعار للديسكورد
+    // 5. إنشاء المفتاح 
     if (req.method === "POST" && req.body.action === "generate") {
         if (keyStep < 3) return res.status(403).json({ success: false, message: "You must complete all tasks first!" });
 
         const uniqueKey = "SUBX-" + nanoid(10).toUpperCase();
-        const expiresAt = Date.now() + (24 * 60 * 60 * 1000); // 24 ساعة
+        const expiresAt = Date.now() + (24 * 60 * 60 * 1000); 
 
         try {
-            // حفظ المفتاح في قاعدة البيانات
             await db.collection("keys").doc(uniqueKey).set({
                 key: uniqueKey,
                 createdAt: Date.now(),
@@ -346,8 +391,7 @@ export default async function handler(req, res) {
                 ip: clientIp || "Unknown"
             });
 
-            // إرسال إشعار إلى الديسكورد (Discord Webhook)
-            if (DISCORD_WEBHOOK_URL !== "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W") {
+            if (DISCORD_WEBHOOK_URL !== "ضع_رابط_الويب_هوك_هنا") {
                 try {
                     await fetch(DISCORD_WEBHOOK_URL, {
                         method: 'POST',
@@ -355,7 +399,7 @@ export default async function handler(req, res) {
                         body: JSON.stringify({
                             embeds: [{
                                 title: "🎉 New Key Generated!",
-                                color: 4906624, // أخضر فخم
+                                color: 4906624, 
                                 fields: [
                                     { name: "🔑 Key", value: `\`${uniqueKey}\``, inline: false },
                                     { name: "💻 HWID", value: `\`${userHwid}\``, inline: false },
@@ -366,9 +410,7 @@ export default async function handler(req, res) {
                             }]
                         })
                     });
-                } catch (webhookErr) {
-                    console.error("Discord Webhook Error:", webhookErr);
-                }
+                } catch (webhookErr) {}
             }
 
             res.setHeader('Set-Cookie', [
@@ -389,13 +431,21 @@ export default async function handler(req, res) {
         if (keyStep < 3 && !activeKey) {
             const host = req.headers.host;
             const protocol = host.includes("localhost") ? "http" : "https";
-            const targetUrl = `${protocol}://${host}/api/keysystem?complete_step=${keyStep + 1}`;
+            
+            // 🔴 إنشاء توكن JWT مخصص لهذه المهمة وينتهي بعد 15 دقيقة
+            const sessionToken = jwt.sign(
+                { hwid: userHwid, targetStep: keyStep + 1 }, 
+                JWT_SECRET, 
+                { expiresIn: '15m' } // 15 دقيقة كحد أقصى لتخطي الرابط
+            );
+
+            // نضع التوكن داخل رابط العودة
+            const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             const base64Url = Buffer.from(targetUrl).toString('base64');
             const randomString = Math.random().toString(36).substring(7);
             currentTaskUrl = `https://link-to.net/${LINKVERTISE_USER_ID}/${randomString}/dynamic?r=${base64Url}`;
         }
 
-        // حفظ البصمة في الكوكيز لضمان عدم ضياعها أثناء التخطي
         if (req.query.hwid && !cookieHeader.includes(`user_hwid=${req.query.hwid}`)) {
             let existingCookies = res.getHeader('Set-Cookie') || [];
             if (!Array.isArray(existingCookies)) existingCookies = [existingCookies];
