@@ -1,5 +1,7 @@
 import db from "./firebase.js";
 
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "Hema123i#";
+
 export default async function handler(req, res) {
     // 1. جلب المابات والسكربتات
     if (req.method === "GET") {
@@ -9,13 +11,12 @@ export default async function handler(req, res) {
 
             snapshot.forEach(doc => {
                 const data = doc.data();
+                // 🟢 تم إزالة الـ Regex الذي يقص الأكواد.. الآن يحفظ الكود كما هو تماماً
                 const processedScripts = (data.scripts || []).map((script, index) => {
-                    let value = (script.url || "").trim();
-                    const match = value.match(/https?:\/\/[^")']+/);
                     return {
-                        id: index, // مؤشر السكربت للتعديل والحذف
+                        id: index,
                         name: script.name || "Unnamed Script",
-                        url: match ? match[0] : value
+                        url: (script.url || "").trim() 
                     };
                 });
 
@@ -37,7 +38,8 @@ export default async function handler(req, res) {
     if (req.method === "POST") {
         try {
             const { gameName, placeId, scripts, adminKey } = req.body;
-            if (adminKey !== "Hema123i#") {
+            
+            if (adminKey !== ADMIN_PASSWORD) {
                 return res.status(401).json({ success: false, message: "Unauthorized: Invalid Admin Password" });
             }
 
@@ -50,8 +52,6 @@ export default async function handler(req, res) {
             const doc = await docRef.get();
 
             let existingScripts = doc.exists ? (doc.data().scripts || []) : [];
-
-            // لو تم إرسال سكربتات جديدة، نقوم بدمجها أو تحديثها
             let finalScripts = scripts !== undefined ? scripts : existingScripts;
 
             await docRef.set({
@@ -71,8 +71,9 @@ export default async function handler(req, res) {
     if (req.method === "DELETE") {
         try {
             const { id, adminKey } = req.body;
-            if (adminKey !== "Hema123i#") {
-                return res.status(401).json({ success: false, message: "Unauthorized" });
+            
+            if (adminKey !== ADMIN_PASSWORD) {
+                return res.status(401).json({ success: false, message: "Unauthorized: Invalid Admin Password" });
             }
 
             await db.collection("hubs").doc(id).delete();
