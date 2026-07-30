@@ -3,7 +3,7 @@ import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken"; // 🔴 مكتبة الحماية الجديدة
 
 const LINKVERTISE_USER_ID = "1322389";
-const DISCORD_WEBHOOK_URL = "ضع_رابط_الويب_هوك_هنا";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
 // 🔐 كلمة السر الخاصة بالسيرفر (لا تعطيها لأحد أبداً، وهي التي تحمي التوكن من التزوير)
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
