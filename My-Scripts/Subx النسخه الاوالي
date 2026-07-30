@@ -116,7 +116,7 @@ end
 local function applySubXTheme(Wind)
     Wind:AddTheme({
         Name = "SubXTheme",
-        Primary = Color3.fromHex("#FFD700"), -- Gold
+        Primary = Color3.fromHex("#FFD700"), 
         White = Color3.new(1,1,1),
         Black = Color3.new(0,0,0),
         Dialog = Color3.fromHex("#18181b"), 
@@ -129,8 +129,8 @@ local function applySubXTheme(Wind)
         WindowShadow = Color3.new(0,0,0), 
         WindowTopbarTitle = Color3.fromHex("#FFFFFF"),
         WindowTopbarAuthor = Color3.fromHex("#a1a1aa"), 
-        WindowTopbarIcon = Color3.fromHex("#FFD700"), -- Topbar Icon
-        WindowTopbarButtonIcon = Color3.fromHex("#FFD700"), -- Topbar Button
+        WindowTopbarIcon = Color3.fromHex("#FFD700"), 
+        WindowTopbarButtonIcon = Color3.fromHex("#FFD700"), 
         WindowSearchBarBackground = Color3.fromHex("#18181b"), 
         TabBackground = Color3.fromHex("#FFFFFF"), 
         TabBackgroundHover = Color3.fromHex("#FFFFFF"), 
@@ -141,7 +141,7 @@ local function applySubXTheme(Wind)
         TabTextTransparency = 0.3,
         TabTextTransparencyActive = 0,
         TabTitle = Color3.fromHex("#FFFFFF"), 
-        TabIcon = Color3.fromHex("#FFD700"), -- Tab Icons
+        TabIcon = Color3.fromHex("#FFD700"), 
         TabIconTransparency = 0.2,
         TabIconTransparencyActive = 0,
         TabBorderTransparency = 1,
@@ -152,7 +152,7 @@ local function applySubXTheme(Wind)
         ElementBackgroundHover = Color3.fromHex("#1f1f22"),
         ElementTitle = Color3.fromHex("#FFFFFF"), 
         ElementDesc = Color3.fromHex("#a1a1aa"), 
-        ElementIcon = Color3.fromHex("#FFD700"), -- Elements Icons
+        ElementIcon = Color3.fromHex("#FFD700"), 
         PopupBackground = Color3.fromHex("#18181b"), 
         PopupBackgroundTransparency = 0,
         PopupTitle = Color3.fromHex("#FFFFFF"), 
@@ -178,8 +178,8 @@ local function applySubXTheme(Wind)
         TooltipText = Color3.new(1,1,1), 
         TooltipSecondary = Color3.fromHex("#FFD700"), 
         TooltipSecondaryText = Color3.new(0,0,0), 
-        TabSectionIcon = Color3.fromHex("#FFD700"), -- Section Icons
-        SectionIcon = Color3.fromHex("#FFD700"), -- Section Icons
+        TabSectionIcon = Color3.fromHex("#FFD700"), 
+        SectionIcon = Color3.fromHex("#FFD700"), 
         SectionExpandIcon = Color3.new(1,1,1), 
         SectionExpandIconTransparency = .4,
         SectionBox = Color3.new(1,1,1), 
@@ -203,7 +203,7 @@ local function applySubXTheme(Wind)
 end
 
 -- ==========================================
--- 6. دوال التحقق والتشغيل
+-- 6. نظام التشغيل الذكي (محدث ليدعم الروابط والأكواد المباشرة)
 -- ==========================================
 local function checkKeyWithServer(keyToVerify)
     if requestFunc then
@@ -223,13 +223,26 @@ local function checkKeyWithServer(keyToVerify)
     return {success = false, message = "Connection error!"}
 end
 
-local function executeScriptSafe(scriptName, scriptUrl, Wind)
+local function executeScriptSafe(scriptName, scriptData, Wind)
     Wind:Notify({Title = "Executing", Content = "Injecting " .. scriptName .. "...", Duration = 3})
     task.spawn(function()
         local s, err = pcall(function()
-            local scriptContent = requestFunc and requestFunc({Url = scriptUrl, Method = "GET"}).Body or game:HttpGet(scriptUrl)
-            loadstring(scriptContent)()
+            -- 🟢 فحص ذكي: هل هو رابط صافي أم كود Lua كامل؟
+            -- إذا كان يبدأ بـ http ولا يحتوي على مسافات أو أقواس، سيتعامل معه كرابط
+            if scriptData:match("^https?://") and not scriptData:match("[%s%(%)]") then
+                local scriptContent = requestFunc and requestFunc({Url = scriptData, Method = "GET"}).Body or game:HttpGet(scriptData)
+                loadstring(scriptContent)()
+            else
+                -- 🟢 إذا كان كود Lua كامل (مثل: loadstring(...)() ) سيقوم بتشغيله فوراً
+                local executeFunc, loadErr = loadstring(scriptData)
+                if executeFunc then
+                    executeFunc()
+                else
+                    error("Syntax Error: " .. tostring(loadErr))
+                end
+            end
         end)
+        
         if not s then
             Wind:Notify({Title = "Injection Failed", Content = tostring(err), Duration = 5})
         end
