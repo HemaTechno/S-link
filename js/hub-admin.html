@@ -746,7 +746,7 @@
             const hwid = document.getElementById('keyHwid').value.trim(); // أخذ البصمة إذا وجدت
 
             try {
-                const res = await fetch('/api/create-key', {
+                const res = await fetch('/api/keys', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ adminKey, hours, hwid })
