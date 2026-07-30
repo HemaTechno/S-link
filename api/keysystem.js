@@ -5,8 +5,11 @@ import jwt from "jsonwebtoken";
 const LINKVERTISE_USER_ID = "1322389";
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
-// 🔐 كلمة السر الخاصة بالسيرفر
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
+
+// 🔴 ضع مفاتيح جوجل كابتشا الخاصة بك هنا
+const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkXp0_d1132x_fP2GnuorVPs0";
+const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY || "6Lc31mwtAAAAALgsx7eKJwIIK-2uJkCp7-ERc__1";
 
 // ==========================================
 // واجهات المستخدم
@@ -143,7 +146,6 @@ const verifyingTaskUI = `
 </html>
 `;
 
-// 🔴 واجهة اللاعب المحظور (Banned UI)
 const bannedUserUI = (hwid) => `
 <!DOCTYPE html>
 <html lang="en">
@@ -191,12 +193,18 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
             <p class="timer-text">Valid for 24 hours.</p>
         `;
     } else if (keyStep >= 3) {
+        // 🟢 تضمين سكربت جوجل ريكابتشا ومربع التحقق هنا
         actionHtml = `
             <div class="steps-container">
                 <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 1 Completed</div>
                 <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 2 Completed</div>
                 <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 3 Completed</div>
             </div>
+            
+            <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                <div class="g-recaptcha" data-sitekey="${RECAPTCHA_SITE_KEY}" data-theme="dark"></div>
+            </div>
+
             <button class="btn generate-btn" onclick="generateKey()">
                 <i class="fa-solid fa-key"></i> Create Access Key
             </button>
@@ -228,8 +236,10 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script src="https://beansnicerroller.com/1c/8c/07/1c8c07e41dacee6cc4a64a6f22c04a4b.js"></script>
-<script>(function(s){s.dataset.zone='11383401',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    <script src="https://beansnicerroller.com/1c/8c/07/1c8c07e41dacee6cc4a64a6f22c04a4b.js"></script>
+    <script>(function(s){s.dataset.zone='11383401',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+    <!-- 🟢 مكتبة جوجل ريكابتشا الرسمية -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -284,15 +294,25 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
         }
 
         async function generateKey() {
+            // التحقق من حل كابتشا جوجل
+            const recaptchaResponse = grecaptcha.enterprise ? grecaptcha.enterprise.getResponse() : grecaptcha.getResponse();
+            if (!recaptchaResponse || recaptchaResponse.length === 0) {
+                alert("Please complete the Google reCAPTCHA verification!");
+                return;
+            }
+
             const btn = document.querySelector('.generate-btn');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying Captcha...';
             btn.disabled = true;
 
             try {
                 const response = await fetch('/api/keysystem', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'generate' })
+                    body: JSON.stringify({ 
+                        action: 'generate', 
+                        recaptchaToken: recaptchaResponse // إرسال توكن الكابتشا للسيرفر
+                    })
                 });
                 
                 const data = await response.json();
@@ -302,6 +322,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
                     alert(data.message);
                     btn.innerHTML = '<i class="fa-solid fa-key"></i> Create Access Key';
                     btn.disabled = false;
+                    grecaptcha.reset(); // إعادة تعيين الكابتشا لو حدث خطأ
                 }
             } catch (err) {
                 alert("Error generating key.");
@@ -318,7 +339,6 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
 // الكود الأساسي (الخادم)
 // ==========================================
 export default async function handler(req, res) {
-    // 0. 🛡️ فحص الـ VPN / Proxy أولاً
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
     let isVPN = false;
     
@@ -341,35 +361,27 @@ export default async function handler(req, res) {
 
     const cookieHeader = req.headers.cookie || '';
     
-    // 1. التقاط بصمة اللاعب (HWID)
     let userHwid = req.query.hwid || null;
     if (!userHwid) {
         const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
         if (hwidMatch) userHwid = hwidMatch[1];
     }
 
-    // 🔴 حماية البصمة
     if (!userHwid) {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         return res.status(403).send(invalidLinkUI);
     }
 
-    // ========================================================
-    // 🔴 فحص نظام الحظر (Ban Check) - الأهم!
-    // ========================================================
     try {
         const banCheck = await db.collection("banned_users").doc(userHwid).get();
         if (banCheck.exists) {
-            // إذا وجد البصمة في المحظورين، يطرده بصفحة Banned!
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             return res.status(403).send(bannedUserUI(userHwid));
         }
     } catch (err) {
         console.error("Ban check failed:", err);
     }
-    // ========================================================
 
-    // 2. قراءة بيانات المهام
     let keyStep = 0;
     const stepMatch = cookieHeader.match(/key_step=(\d+)/);
     if (stepMatch) keyStep = parseInt(stepMatch[1]);
@@ -395,9 +407,6 @@ export default async function handler(req, res) {
         }
     }
 
-    // ==========================================
-    // 🔴 4. نظام الـ JWT لتأكيد العودة من المهام
-    // ==========================================
     if (req.method === "GET" && req.query.token) {
         try {
             const decoded = jwt.verify(req.query.token, JWT_SECRET);
@@ -421,9 +430,28 @@ export default async function handler(req, res) {
         }
     }
 
-    // 5. إنشاء المفتاح 
+    // 5. إنشاء المفتاح والتحقق من Google reCAPTCHA عبر سيرفر جوجل
     if (req.method === "POST" && req.body.action === "generate") {
         if (keyStep < 3) return res.status(403).json({ success: false, message: "You must complete all tasks first!" });
+
+        const { recaptchaToken } = req.body;
+        if (!recaptchaToken) {
+            return res.status(400).json({ success: false, message: "Please complete the reCAPTCHA verification." });
+        }
+
+        // إرسال التوكن إلى سيرفر جوجل للتحقق من صحته
+        try {
+            const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`;
+            const recaptchaRes = await fetch(verifyUrl, { method: "POST" });
+            const recaptchaData = await recaptchaRes.json();
+
+            if (!recaptchaData.success) {
+                return res.status(400).json({ success: false, message: "reCAPTCHA verification failed. Please try again." });
+            }
+        } catch (err) {
+            console.error("reCAPTCHA validation error:", err);
+            return res.status(500).json({ success: false, message: "Captcha validation server error." });
+        }
 
         const uniqueKey = "SUBX-" + nanoid(10).toUpperCase();
         const expiresAt = Date.now() + (24 * 60 * 60 * 1000); 
@@ -437,7 +465,6 @@ export default async function handler(req, res) {
                 ip: clientIp || "Unknown"
             });
 
-            // إرسال إشعار الديسكورد
             if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL.startsWith("http")) {
                 try {
                     await fetch(DISCORD_WEBHOOK_URL, {
@@ -445,7 +472,7 @@ export default async function handler(req, res) {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             embeds: [{
-                                title: "🎉 New Key Generated!",
+                                title: "🎉 New Key Generated (Google reCAPTCHA Verified)!",
                                 color: 4906624, 
                                 fields: [
                                     { name: "🔑 Key", value: `\`${uniqueKey}\``, inline: false },
@@ -466,6 +493,7 @@ export default async function handler(req, res) {
                 `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
             ]);
 
+    // ... existing code ...
             return res.status(200).json({ success: true, key: uniqueKey });
         } catch (err) {
             return res.status(500).json({ success: false, message: "Database Error" });
