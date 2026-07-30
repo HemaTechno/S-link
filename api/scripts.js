@@ -71,7 +71,7 @@ export default async function handler(req, res) {
     if (req.method === "DELETE") {
         try {
             const { id, adminKey } = req.body;
-            if (adminKey !== "MY_SECRET_ADMIN_PASSWORD") {
+            if (adminKey !== "Hema123i#") {
                 return res.status(401).json({ success: false, message: "Unauthorized" });
             }
 
