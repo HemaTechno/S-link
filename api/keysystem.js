@@ -1,15 +1,15 @@
 import db from "./firebase.js";
 import { nanoid } from "nanoid";
-import jwt from "jsonwebtoken"; // 🔴 مكتبة الحماية الجديدة
+import jwt from "jsonwebtoken";
 
 const LINKVERTISE_USER_ID = "1322389";
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
-// 🔐 كلمة السر الخاصة بالسيرفر (لا تعطيها لأحد أبداً، وهي التي تحمي التوكن من التزوير)
+// 🔐 كلمة السر الخاصة بالسيرفر
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
 
 // ==========================================
-// واجهات المستخدم (كما هي لم تتغير)
+// واجهات المستخدم
 // ==========================================
 const invalidLinkUI = `
 <!DOCTYPE html>
@@ -139,6 +139,38 @@ const verifyingTaskUI = `
             }
         }, 1000);
     </script>
+</body>
+</html>
+`;
+
+// 🔴 واجهة اللاعب المحظور (Banned UI)
+const bannedUserUI = (hwid) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Banned 🚫</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
+        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(248, 113, 113, 0.5); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
+        h1 { color: #f87171; margin-bottom: 15px; font-size: 1.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;}
+        p { color: #aaa; font-size: 15px; margin-bottom: 20px; line-height: 1.6; }
+        .error-icon { font-size: 70px; color: #f87171; margin-bottom: 20px; text-shadow: 0 0 25px rgba(248, 113, 113, 0.5); }
+        .hwid-box { background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; font-family: monospace; color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-icon"><i class="fa-solid fa-ban"></i></div>
+        <h1>Access Denied</h1>
+        <p>Your Device HWID has been permanently <strong>BANNED</strong> from SubX Premium due to a violation of our terms.</p>
+        <div class="hwid-box">HWID: ${hwid}</div>
+    </div>
 </body>
 </html>
 `;
@@ -322,6 +354,21 @@ export default async function handler(req, res) {
         return res.status(403).send(invalidLinkUI);
     }
 
+    // ========================================================
+    // 🔴 فحص نظام الحظر (Ban Check) - الأهم!
+    // ========================================================
+    try {
+        const banCheck = await db.collection("banned_users").doc(userHwid).get();
+        if (banCheck.exists) {
+            // إذا وجد البصمة في المحظورين، يطرده بصفحة Banned!
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            return res.status(403).send(bannedUserUI(userHwid));
+        }
+    } catch (err) {
+        console.error("Ban check failed:", err);
+    }
+    // ========================================================
+
     // 2. قراءة بيانات المهام
     let keyStep = 0;
     const stepMatch = cookieHeader.match(/key_step=(\d+)/);
@@ -353,10 +400,8 @@ export default async function handler(req, res) {
     // ==========================================
     if (req.method === "GET" && req.query.token) {
         try {
-            // فك تشفير التوكن والتحقق من صحته
             const decoded = jwt.verify(req.query.token, JWT_SECRET);
             
-            // التأكد أن البصمة متطابقة، وأن رقم المهمة سليم
             if (decoded.hwid === userHwid && decoded.targetStep === keyStep + 1 && decoded.targetStep <= 3) {
                 keyStep = decoded.targetStep;
                 
@@ -367,12 +412,10 @@ export default async function handler(req, res) {
                 res.setHeader("Content-Type", "text/html; charset=utf-8");
                 return res.status(200).send(verifyingTaskUI);
             } else {
-                // تلاعب في الرابط
                 res.setHeader("Content-Type", "text/html; charset=utf-8");
                 return res.status(403).send(tokenErrorUI);
             }
         } catch (err) {
-            // التوكن انتهى وقته (مر 15 دقيقة) أو مزور
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             return res.status(403).send(tokenErrorUI);
         }
@@ -394,7 +437,8 @@ export default async function handler(req, res) {
                 ip: clientIp || "Unknown"
             });
 
-            if (DISCORD_WEBHOOK_URL !== "ضع_رابط_الويب_هوك_هنا") {
+            // إرسال إشعار الديسكورد
+            if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL.startsWith("http")) {
                 try {
                     await fetch(DISCORD_WEBHOOK_URL, {
                         method: 'POST',
@@ -435,14 +479,12 @@ export default async function handler(req, res) {
             const host = req.headers.host;
             const protocol = host.includes("localhost") ? "http" : "https";
             
-            // 🔴 إنشاء توكن JWT مخصص لهذه المهمة وينتهي بعد 15 دقيقة
             const sessionToken = jwt.sign(
                 { hwid: userHwid, targetStep: keyStep + 1 }, 
                 JWT_SECRET, 
-                { expiresIn: '15m' } // 15 دقيقة كحد أقصى لتخطي الرابط
+                { expiresIn: '15m' } 
             );
 
-            // نضع التوكن داخل رابط العودة
             const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             const base64Url = Buffer.from(targetUrl).toString('base64');
             const randomString = Math.random().toString(36).substring(7);
