@@ -7,7 +7,11 @@ const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/153131315360065137
 
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
 
-// 🔴 ضع مفاتيح جوجل كابتشا الخاصة بك هنا
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240";
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "f7__hqYkys0NAln2Bnd7mm6ySceY4Wl-";
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || "MTUzMjQ4MDkzMDYyNTg4NDI0MA.Gvxi59.Pp9nr7K7XnWm0fLl3pZnZIB5QYHKJTl0e0yl7M";
+const DISCORD_SERVER_ID = process.env.DISCORD_SERVER_ID || "1135848445471629393";
+
 const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkXp0_d1132x_fP2GnuorVPs0";
 const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY || "6Lc31mwtAAAAALgsx7eKJwIIK-2uJkCp7-ERc__1";
 
@@ -177,6 +181,40 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
+const discordAuthUI = (discordAuthUrl) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Verification Required 🛡️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
+        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(88, 101, 242, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
+        h1 { color: #5865F2; margin-bottom: 15px; font-size: 1.6rem; font-weight: 800; }
+        p { color: #aaa; font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
+        .discord-icon { font-size: 65px; color: #5865F2; margin-bottom: 20px; text-shadow: 0 0 20px rgba(88, 101, 242, 0.4); }
+        .btn-discord { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 16px; background: #5865F2; color: #fff; text-decoration: none; font-weight: bold; border-radius: 14px; transition: 0.3s; font-size: 16px; box-shadow: 0 4px 15px rgba(88,101,242,0.3); }
+        .btn-discord:hover { background: #4752c4; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="discord-icon"><i class="fa-brands fa-discord"></i></div>
+        <h1>Discord Verification</h1>
+        <p>You must link your Discord account and join our server to use the SubX Key System.</p>
+        <a href="${discordAuthUrl}" class="btn-discord">
+            <i class="fa-brands fa-discord"></i> Verify & Link Discord
+        </a>
+    </div>
+</body>
+</html>
+`;
+
 const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
@@ -193,7 +231,6 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
             <p class="timer-text">Valid for 24 hours.</p>
         `;
     } else if (keyStep >= 3) {
-        // 🟢 تضمين سكربت جوجل ريكابتشا ومربع التحقق هنا
         actionHtml = `
             <div class="steps-container">
                 <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 1 Completed</div>
@@ -238,7 +275,6 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
 <head>
     <script src="https://beansnicerroller.com/1c/8c/07/1c8c07e41dacee6cc4a64a6f22c04a4b.js"></script>
     <script>(function(s){s.dataset.zone='11383401',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-    <!-- 🟢 مكتبة جوجل ريكابتشا الرسمية -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
     <meta charset="UTF-8">
@@ -294,7 +330,6 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
         }
 
         async function generateKey() {
-            // التحقق من حل كابتشا جوجل
             const recaptchaResponse = grecaptcha.enterprise ? grecaptcha.enterprise.getResponse() : grecaptcha.getResponse();
             if (!recaptchaResponse || recaptchaResponse.length === 0) {
                 alert("Please complete the Google reCAPTCHA verification!");
@@ -311,7 +346,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         action: 'generate', 
-                        recaptchaToken: recaptchaResponse // إرسال توكن الكابتشا للسيرفر
+                        recaptchaToken: recaptchaResponse 
                     })
                 });
                 
@@ -322,7 +357,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, errorMessage) => {
                     alert(data.message);
                     btn.innerHTML = '<i class="fa-solid fa-key"></i> Create Access Key';
                     btn.disabled = false;
-                    grecaptcha.reset(); // إعادة تعيين الكابتشا لو حدث خطأ
+                    grecaptcha.reset();
                 }
             } catch (err) {
                 alert("Error generating key.");
@@ -382,6 +417,81 @@ export default async function handler(req, res) {
         console.error("Ban check failed:", err);
     }
 
+    const host = req.headers.host;
+    const protocol = host.includes("localhost") ? "http" : "https";
+    const redirectUri = `${protocol}://${host}/api/keysystem`;
+
+    // ========================================================
+    // 🟢 1. التحقق من عودة المستخدم من ديسكورد وربط الحساب بـ HWID
+    // ========================================================
+    if (req.method === "GET" && req.query.code) {
+        const code = req.query.code;
+        try {
+            const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({
+                    client_id: DISCORD_CLIENT_ID,
+                    client_secret: DISCORD_CLIENT_SECRET,
+                    grant_type: "authorization_code",
+                    code: code,
+                    redirect_uri: redirectUri
+                })
+            });
+            const tokenData = await tokenRes.json();
+            
+            if (tokenData.access_token) {
+                const userRes = await fetch("https://discord.com/api/users/@me", {
+                    headers: { authorization: `Bearer ${tokenData.access_token}` }
+                });
+                const userData = await userRes.json();
+                const discordUserId = userData.id;
+
+                // إدخال المستخدم إلى السيرفر تلقائياً
+                await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ access_token: tokenData.access_token })
+                });
+
+                // 🟢 ربط بصمة روبلوكس (HWID) بحساب ديسكورد في قاعدة البيانات
+                await db.collection("discord_links").doc(userHwid).set({
+                    discordId: discordUserId,
+                    username: userData.username,
+                    linkedAt: Date.now()
+                }, { merge: true });
+
+                res.setHeader('Set-Cookie', [
+                    `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`,
+                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
+                ]);
+                
+                return res.redirect(302, `/api/keysystem`);
+            }
+        } catch (e) {
+            console.error("Discord Auth Error:", e);
+        }
+    }
+
+    // التحقق هل تم الربط مسبقاً (سواء عبر الكوكيز أو قاعدة البيانات)
+    let isDiscordVerified = cookieHeader.includes("discord_verified=true");
+    if (!isDiscordVerified) {
+        const linkCheck = await db.collection("discord_links").doc(userHwid).get();
+        if (linkCheck.exists) {
+            isDiscordVerified = true;
+        }
+    }
+
+    if (!isDiscordVerified) {
+        const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds.join`;
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        return res.status(200).send(discordAuthUI(discordAuthUrl));
+    }
+    // ========================================================
+
     let keyStep = 0;
     const stepMatch = cookieHeader.match(/key_step=(\d+)/);
     if (stepMatch) keyStep = parseInt(stepMatch[1]);
@@ -399,6 +509,7 @@ export default async function handler(req, res) {
                 res.setHeader('Set-Cookie', [
                     `active_key=; Max-Age=0; Path=/`,
                     `key_step=0; Max-Age=0; Path=/`,
+                    `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`,
                     `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
                 ]);
             }
@@ -416,6 +527,7 @@ export default async function handler(req, res) {
                 
                 res.setHeader('Set-Cookie', [
                     `key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`,
+                    `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`,
                     `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
                 ]);
                 res.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -430,7 +542,6 @@ export default async function handler(req, res) {
         }
     }
 
-    // 5. إنشاء المفتاح والتحقق من Google reCAPTCHA عبر سيرفر جوجل
     if (req.method === "POST" && req.body.action === "generate") {
         if (keyStep < 3) return res.status(403).json({ success: false, message: "You must complete all tasks first!" });
 
@@ -439,7 +550,6 @@ export default async function handler(req, res) {
             return res.status(400).json({ success: false, message: "Please complete the reCAPTCHA verification." });
         }
 
-        // إرسال التوكن إلى سيرفر جوجل للتحقق من صحته
         try {
             const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`;
             const recaptchaRes = await fetch(verifyUrl, { method: "POST" });
@@ -457,6 +567,10 @@ export default async function handler(req, res) {
         const expiresAt = Date.now() + (24 * 60 * 60 * 1000); 
 
         try {
+            // جلب معلومات ديسكورد المرتبطة بهذا الـ HWID لإضافتها في تقرير ديسكورد
+            const linkDoc = await db.collection("discord_links").doc(userHwid).get();
+            const discordUsername = linkDoc.exists ? linkDoc.data().username : "Unknown";
+
             await db.collection("keys").doc(uniqueKey).set({
                 key: uniqueKey,
                 createdAt: Date.now(),
@@ -472,10 +586,11 @@ export default async function handler(req, res) {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             embeds: [{
-                                title: "🎉 New Key Generated (Google reCAPTCHA Verified)!",
+                                title: "🎉 New Key Generated (Discord Linked & Verified)!",
                                 color: 4906624, 
                                 fields: [
                                     { name: "🔑 Key", value: `\`${uniqueKey}\``, inline: false },
+                                    { name: "💬 Discord User", value: `\`${discordUsername}\``, inline: false },
                                     { name: "💻 HWID", value: `\`${userHwid}\``, inline: false },
                                     { name: "🌐 IP Address", value: `\`${clientIp || "Unknown"}\``, inline: false }
                                 ],
@@ -489,24 +604,20 @@ export default async function handler(req, res) {
 
             res.setHeader('Set-Cookie', [
                 `key_step=0; Max-Age=0; Path=/`, 
+                `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`,
                 `active_key=${uniqueKey}; Max-Age=86400; Path=/; SameSite=Lax`,
                 `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
             ]);
 
-    // ... existing code ...
             return res.status(200).json({ success: true, key: uniqueKey });
         } catch (err) {
             return res.status(500).json({ success: false, message: "Database Error" });
         }
     }
 
-    // 6. عرض الصفحة الرئيسية
     if (req.method === "GET") {
         let currentTaskUrl = "#";
         if (keyStep < 3 && !activeKey) {
-            const host = req.headers.host;
-            const protocol = host.includes("localhost") ? "http" : "https";
-            
             const sessionToken = jwt.sign(
                 { hwid: userHwid, targetStep: keyStep + 1 }, 
                 JWT_SECRET, 
