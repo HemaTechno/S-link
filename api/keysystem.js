@@ -2,7 +2,7 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 
 const LINKVERTISE_USER_ID = "1322389"; // الـ ID الخاص بك في لينك فيرتيس
-const DISCORD_WEBHOOK_URL = "ضع_رابط_الويب_هوك_هنا"; // 🔴 ضع رابط ويب هوك الديسكورد الخاص بك هنا
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W"; // 🔴 ضع رابط ويب هوك الديسكورد الخاص بك هنا
 
 // 🚫 واجهة الخطأ إذا دخل الشخص بدون بصمة (HWID)
 const invalidLinkUI = `
