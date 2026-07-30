@@ -4,18 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- 🟢 ميتا تاج محسين محركات البحث (SEO & Roblox Scripts Targeting) -->
+    <!-- SEO Meta Tags -->
     <title>SubX Hub - Best Roblox Scripts, Executors & Key System</title>
     <meta name="description" content="Discover the best Roblox scripts, executor hubs, auto farm scripts, and bypass keys for top games like Blox Fruits and more. Safe, fast, and updated!">
     <meta name="keywords" content="roblox scripts, roblox hub, subx hub, blox fruits script, roblox executors, key system bypass, auto farm script, roblox exploits">
     <meta name="author" content="SubX & Hema Tech">
     
-    <!-- Open Graph / Social Media Meta Tags -->
-    <meta property="og:title" content="SubX Hub - Ultimate Roblox Script Hub">
-    <meta property="og:description" content="Access powerful scripts and premium features for Roblox. Safe execution and fast key system.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://www.subx.click">
-
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -45,7 +39,6 @@
             position: relative;
         }
 
-        /* Background Effects */
         .bg-glow {
             position: absolute; width: 600px; height: 600px;
             background: radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, transparent 70%);
@@ -55,24 +48,16 @@
         /* Navbar */
         nav {
             position: fixed; top: 0; left: 0; width: 100%; height: 75px;
-            background: rgba(7, 7, 9, 0.8); backdrop-filter: blur(15px);
+            background: rgba(7, 7, 9, 0.85); backdrop-filter: blur(15px);
             border-bottom: 1px solid var(--border); z-index: 100;
             display: flex; align-items: center; justify-content: space-between; padding: 0 5%;
         }
         .nav-brand { font-size: 22px; font-weight: 900; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
         .nav-brand i { color: var(--primary); font-size: 24px; filter: drop-shadow(0 0 10px var(--primary-glow)); }
-        
-        .nav-links { display: flex; gap: 12px; flex-wrap: wrap; }
-        .social-btn {
-            background: var(--surface); border: 1px solid var(--border); color: var(--text-main);
-            padding: 10px 16px; border-radius: var(--radius-md); font-size: 14px; font-weight: 700;
-            text-decoration: none; display: flex; align-items: center; gap: 8px; transition: var(--transition);
-        }
-        .social-btn:hover { border-color: var(--primary); background: rgba(245, 158, 11, 0.1); }
 
         /* Hero Section */
         .hero {
-            position: relative; z-index: 10; padding: 140px 5% 60px 5%;
+            position: relative; z-index: 10; padding: 140px 5% 50px 5%;
             text-align: center; max-width: 900px; margin: 0 auto;
         }
         .hero-badge {
@@ -81,41 +66,48 @@
             border-radius: 50px; color: var(--primary); font-size: 13px; font-weight: 800; margin-bottom: 20px;
             box-shadow: 0 0 15px rgba(245, 158, 11, 0.15);
         }
-        .hero h1 { font-size: clamp(36px, 5vw, 56px); font-weight: 900; line-height: 1.2; margin-bottom: 20px; }
+        .hero h1 { font-size: clamp(34px, 5vw, 54px); font-weight: 900; line-height: 1.2; margin-bottom: 20px; }
         .hero h1 span { color: var(--primary); text-shadow: 0 0 30px var(--primary-glow); }
-        .hero p { color: var(--text-muted); font-size: clamp(15px, 2vw, 18px); line-height: 1.6; margin-bottom: 35px; }
+        .hero p { color: var(--text-muted); font-size: clamp(14px, 2vw, 17px); line-height: 1.6; margin-bottom: 30px; }
 
         /* Loadstring Box */
         .loadstring-box {
             background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-            padding: 15px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5); max-width: 750px; margin: 0 auto 20px auto; flex-wrap: wrap;
+            padding: 20px; display: flex; flex-direction: column; gap: 15px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5); max-width: 700px; margin: 0 auto 50px auto;
         }
         .loadstring-code {
-            flex: 1; font-family: monospace; font-size: 13px; color: var(--primary);
+            width: 100%; font-family: monospace; font-size: 13px; color: var(--primary);
             background: rgba(0,0,0,0.4); padding: 14px; border-radius: var(--radius-md);
             overflow-x: auto; white-space: nowrap; border: 1px solid rgba(255,255,255,0.03); text-align: left;
-            min-width: 250px;
         }
-        .btn-group { display: flex; gap: 10px; width: 100%; }
-        @media(min-width: 650px) { .btn-group { width: auto; } }
-
-        .action-btn {
-            flex: 1; background: var(--primary); color: #000; border: none; padding: 14px 20px;
+        
+        /* أزرار التحكم والروابط أسفل زر النسخ */
+        .action-buttons-group {
+            display: flex; flex-direction: column; gap: 10px; width: 100%;
+        }
+        .copy-btn {
+            background: var(--primary); color: #000; border: none; padding: 14px 24px;
             border-radius: var(--radius-md); font-weight: 800; font-size: 14px; cursor: pointer;
-            display: flex; align-items: center; gap: 8px; transition: var(--transition); box-shadow: 0 4px 15px var(--primary-glow);
-            justify-content: center; text-decoration: none; white-space: nowrap;
+            display: flex; align-items: center; justify-content: center; gap: 8px; 
+            transition: var(--transition); box-shadow: 0 4px 15px var(--primary-glow); width: 100%;
         }
-        .action-btn.tutorial {
-            background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3);
-            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.15);
+        .copy-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        .sub-buttons-row {
+            display: flex; gap: 10px; width: 100%;
         }
-        .action-btn.tutorial:hover { background: rgba(239, 68, 68, 0.25); color: #fff; }
-        .action-btn:hover { opacity: 0.9; transform: translateY(-2px); }
+        .social-btn {
+            flex: 1; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-main);
+            padding: 12px 16px; border-radius: var(--radius-md); font-size: 13px; font-weight: 700;
+            text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px; transition: var(--transition);
+        }
+        .social-btn.discord:hover { background: rgba(88, 101, 242, 0.15); border-color: #5865F2; }
+        .social-btn.tutorial:hover { background: rgba(239, 68, 68, 0.15); border-color: #ef4444; color: #ef4444; }
 
         /* Features Grid */
         .features {
-            padding: 40px 5% 80px 5%; max-width: 1100px; margin: 0 auto;
+            padding: 20px 5% 60px 5%; max-width: 1100px; margin: 0 auto;
             display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; position: relative; z-index: 10;
         }
         .feature-card {
@@ -126,6 +118,24 @@
         .feature-card i { font-size: 32px; color: var(--primary); margin-bottom: 20px; display: block; }
         .feature-card h3 { font-size: 18px; font-weight: 800; margin-bottom: 10px; }
         .feature-card p { font-size: 14px; color: var(--text-muted); line-height: 1.5; }
+
+        /* Gallery Section (صور الـ Hub) */
+        .gallery { padding: 40px 5% 80px 5%; max-width: 1100px; margin: 0 auto; position: relative; z-index: 10; text-align: center; }
+        .section-title { font-size: 26px; font-weight: 900; margin-bottom: 35px; }
+        .section-title span { color: var(--primary); }
+        
+        .gallery-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;
+        }
+        .gallery-item {
+            background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
+            overflow: hidden; transition: var(--transition); box-shadow: 0 10px 30px rgba(0,0,0,0.4); text-align: left;
+        }
+        .gallery-item:hover { transform: translateY(-4px); border-color: var(--primary); }
+        .gallery-item img { width: 100%; height: 210px; object-fit: cover; display: block; border-bottom: 1px solid var(--border); }
+        .gallery-content { padding: 20px; }
+        .gallery-content h4 { font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+        .gallery-content p { font-size: 13px; color: var(--text-muted); line-height: 1.4; }
 
         /* Footer */
         footer {
@@ -152,11 +162,6 @@
     <!-- Navigation -->
     <nav>
         <div class="nav-brand"><i class="fa-solid fa-crown"></i> SubX Hub</div>
-        <div class="nav-links">
-            <a href="https://discord.gg/hematech-1135848445471629393" target="_blank" class="social-btn">
-                <i class="fa-brands fa-discord" style="color: #5865F2;"></i> Discord
-            </a>
-        </div>
     </nav>
 
     <!-- Hero Section -->
@@ -165,17 +170,25 @@
         <h1>The Ultimate <span>Roblox Script Hub</span> Experience</h1>
         <p>Access powerful scripts, premium features, and lightning-fast execution backed by an advanced secure key system.</p>
         
-        <!-- Loadstring & Tutorial Buttons Box -->
+        <!-- Loadstring & Buttons Box -->
         <div class="loadstring-box">
             <div class="loadstring-code" id="scriptCode">loadstring(game:HttpGet("https://www.subx.click/Ss/subx.lua"))()</div>
-            <div class="btn-group">
-                <button class="action-btn" onclick="copyScript()">
+            
+            <div class="action-buttons-group">
+                <!-- زر النسخ الرئيسي -->
+                <button class="copy-btn" onclick="copyScript()">
                     <i class="fa-solid fa-copy"></i> Copy Script
                 </button>
-                <!-- 🟢 زر طريقة تخطي المفتاح (يفتح فيديو يوتيوب) -->
-                <a href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID" target="_blank" class="action-btn tutorial">
-                    <i class="fa-brands fa-youtube"></i> How to Get Key
-                </a>
+                
+                <!-- أزرار الديسكورد وفيديو الشرح تحت زر النسخ بجانب بعضهما -->
+                <div class="sub-buttons-row">
+                    <a href="https://discord.gg/hematech-1135848445471629393" target="_blank" class="social-btn discord">
+                        <i class="fa-brands fa-discord" style="color: #5865F2;"></i> Discord
+                    </a>
+                    <a href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID" target="_blank" class="social-btn tutorial">
+                        <i class="fa-brands fa-youtube" style="color: #ef4444;"></i> How get key
+                    </a>
+                </div>
             </div>
         </div>
     </section>
@@ -184,24 +197,52 @@
     <section class="features">
         <div class="feature-card">
             <i class="fa-solid fa-bolt-lightning"></i>
-            <h3>Lightning Fast Scripts</h3>
-            <p>Optimized execution speed with zero lag, ensuring smooth gameplay across all supported Roblox games[cite: 2].</p>
+            <h3>Lightning Fast</h3>
+            <p>Optimized execution speed with zero lag, ensuring smooth gameplay across all supported games[cite: 2].</p>
         </div>
         <div class="feature-card">
             <i class="fa-solid fa-lock"></i>
             <h3>Advanced HWID Security</h3>
-            <p>Protected by a robust key system and anti-bypass mechanisms to keep your exploits secure[cite: 2].</p>
+            <p>Protected by a robust key system and anti-bypass mechanisms to keep your sessions secure[cite: 2].</p>
         </div>
         <div class="feature-card">
             <i class="fa-solid fa-paintbrush"></i>
             <h3>WindUI Interface</h3>
-            <p>Built with a sleek, modern, and fully customizable dark-themed user interface for the best cheating experience[cite: 2].</p>
+            <p>Built with a sleek, modern, and fully customizable dark-themed user interface for the best experience[cite: 2].</p>
+        </div>
+    </section>
+
+    <!-- Gallery Section (صور الـ Hub) -->
+    <section class="gallery">
+        <h2 class="section-title">Hub <span>Preview & Showcase</span></h2>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="https://via.placeholder.com/600x350/121316/f59e0b?text=Main+Dashboard" alt="Dashboard Preview">
+                <div class="gallery-content">
+                    <h4>Main Dashboard</h4>
+                    <p>Clean and responsive main hub interface with player info and shortcuts[cite: 2].</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="https://via.placeholder.com/600x350/121316/10b981?text=Game+Scripts" alt="Scripts Preview">
+                <div class="gallery-content">
+                    <h4>Game Hubs & Scripts</h4>
+                    <p>Organized sections for various games with safe execution dialogs[cite: 2].</p>
+                </div>
+            </div>
+            <div class="gallery-item">
+                <img src="https://via.placeholder.com/600x350/121316/ef4444?text=Settings+%26+Tools" alt="Settings Preview">
+                <div class="gallery-content">
+                    <h4>Server Tools</h4>
+                    <p>Built-in server hop, rejoin utilities, and FPS monitor metrics[cite: 2].</p>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- Footer -->
     <footer>
-        <p>&copy; 2026 SubX Hub. All rights reserved. Powered by Hema Tech[cite: 3].</p>
+        <p>&copy; 2026 SubX Hub. All rights reserved. Powered by Hema Tech.</p>
     </footer>
 
     <!-- Toast Notification -->
