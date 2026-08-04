@@ -2,7 +2,7 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 
-const NITRO_LINK_API = "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9";
+const SHORT_JAMBO_API_TOKEN = "544ab4310ccbe274d8acc62f73208c25a1e07ad";
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
@@ -11,7 +11,7 @@ const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkX
 const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY || "6Lc31mwtAAAAALgsx7eKJwIIK-2uJkCp7-ERc__1";
 
 // ==========================================
-// واجهات المستخدم
+// واجهات المستخدم (تم ضبط التصميم والأناقة)
 // ==========================================
 const invalidLinkUI = `
 <!DOCTYPE html>
@@ -23,7 +23,7 @@ const invalidLinkUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(248, 113, 113, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
@@ -53,7 +53,7 @@ const vpnBlockUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(255, 165, 0, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
@@ -83,7 +83,7 @@ const tokenErrorUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(248, 113, 113, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
@@ -114,7 +114,7 @@ const verifyingTaskUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(74, 222, 128, 0.3); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
@@ -155,7 +155,7 @@ const bannedUserUI = (hwid) => `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(248, 113, 113, 0.5); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
@@ -219,7 +219,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                 <div class="step active"><i class="fa-solid fa-spinner fa-spin"></i> Required Task</div>
             </div>
             <a href="${currentTaskUrl}" target="_blank" class="btn continue-btn">
-                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:6px;"></i> Continue with Nitro Link</span> 
+                <span><i class="fa-solid fa-bolt" style="color:#00e676; margin-right:8px;"></i> Continue with Short Jambo</span> 
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
             <p class="timer-text"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Streak Progress: ${streakCount}/7 Days (Keep it up!)</p>
@@ -269,11 +269,11 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #4ade80; --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --glass-border: rgba(255, 215, 0, 0.15); --text-main: #ffffff; }
+        :root { --primary: #4ade80; --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --glass-border: rgba(255, 215, 0, 0.15); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
-        .logo-container img { max-width: 130px; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(255,215,0,0.2)); }
+        .logo-container img { max-width: 140px; margin-bottom: 20px; filter: drop-shadow(0 0 12px rgba(255,215,0,0.25)); }
         h1 { color: #fff; margin-bottom: 20px; font-size: 1.6rem; font-weight: 800; }
         
         .steps-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left; }
@@ -284,8 +284,8 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
         .step.done i { color: #4ade80; }
 
         .btn { width: 100%; padding: 16px; border-radius: 14px; cursor: pointer; font-size: 15px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: space-between; border: none; transition: 0.3s; }
-        .continue-btn { background: linear-gradient(135deg, #ffffff 0%, #e2e8f0); color: #000; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
-        .continue-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,255,255,0.2); }
+        .continue-btn { background: linear-gradient(135deg, #ffffff 0%, #cbd5e1); color: #000; box-shadow: 0 4px 15px rgba(255,255,255,0.15); }
+        .continue-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,255,255,0.25); background: #fff; }
         .generate-btn { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%); color: #000; justify-content: center; gap: 10px; }
         .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(74,222,128,0.35); }
         
@@ -585,19 +585,19 @@ export default async function handler(req, res) {
 
             const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // 🟢 استخدام Nitro Link API تماماً كما هو مطلوب ومستخرج من ملفاتك
+            // 🟢 ربط الطلب بـ Short Jambo API بناءً على التوثيق الصحيح
             try {
-                const nitroLinkApiUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API}&url=${encodeURIComponent(targetUrl)}`;
-                const nitroRes = await fetch(nitroLinkApiUrl);
-                const nitroData = await nitroRes.json();
+                const shortJamboApiUrl = `https://short-jambo.com/api?api=${SHORT_JAMBO_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&format=text`;
+                const shortRes = await fetch(shortJamboApiUrl);
+                const shortText = await shortRes.text();
                 
-                if (nitroData && nitroData.status === 'success' && nitroData.shortenedUrl) {
-                    currentTaskUrl = nitroData.shortenedUrl;
+                if (shortRes.ok && shortText.includes("http")) {
+                    currentTaskUrl = shortText.trim();
                 } else {
                     currentTaskUrl = targetUrl;
                 }
             } catch (err) {
-                console.error("Nitro Link API Error:", err);
+                console.error("Short Jambo API error:", err);
                 currentTaskUrl = targetUrl;
             }
         }
