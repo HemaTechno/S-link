@@ -585,16 +585,16 @@ export default async function handler(req, res) {
 
             const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // 🟢 استخدام Short Jambo API لتقصير الرابط
+            // 🟢 استخدام Short Jambo API بالشكل الصحيح المبين في التوثيق
             try {
                 const shortJamboApiUrl = `https://short-jambo.com/api?api=${SHORT_JAMBO_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&format=text`;
                 const shortRes = await fetch(shortJamboApiUrl);
                 const shortText = await shortRes.text();
                 
-                if (shortRes.ok && shortText.startsWith("http")) {
+                if (shortRes.ok && shortText.includes("http")) {
                     currentTaskUrl = shortText.trim();
                 } else {
-                    currentTaskUrl = targetUrl; // Fallback في حال حدوث خطأ من الموقع
+                    currentTaskUrl = targetUrl;
                 }
             } catch (err) {
                 console.error("Short Jambo API error:", err);
