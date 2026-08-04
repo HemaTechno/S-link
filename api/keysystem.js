@@ -218,7 +218,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
             <div class="steps-container">
                 <div class="step active"><i class="fa-solid fa-spinner fa-spin"></i> Required Task</div>
             </div>
-            <a href="${currentTaskUrl}" class="btn continue-btn">
+            <a href="${currentTaskUrl}" target="_blank" class="btn continue-btn">
                 <span><i class="fa-solid fa-link" style="color:#00e676; margin-right:6px;"></i> Continue with Short Jambo</span> 
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
@@ -449,6 +449,7 @@ export default async function handler(req, res) {
         }
     }
 
+    // 🟢 التحقق من التوكن القادم حصرياً عند عودة المستخدم من رابط Short Jambo
     if (req.method === "GET" && req.query.token) {
         try {
             const decoded = jwt.verify(req.query.token, JWT_SECRET);
@@ -577,15 +578,17 @@ export default async function handler(req, res) {
             const host = req.headers.host;
             const protocol = host.includes("localhost") ? "http" : "https";
 
+            // إنشاء توكن سري مرتبط بالخطوة الأولى
             const sessionToken = jwt.sign(
                 { hwid: userHwid, targetStep: 1 }, 
                 JWT_SECRET, 
                 { expiresIn: '15m' } 
             );
 
+            // الرابط الذي سيتم توجيه المستخدم إليه بعد إتمام الاختصار بنجاح
             const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // 🟢 استخدام Short Jambo API بالشكل الصحيح المبين في التوثيق
+            // طلب تقصير الرابط من Short Jambo API
             try {
                 const shortJamboApiUrl = `https://short-jambo.com/api?api=${SHORT_JAMBO_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&format=text`;
                 const shortRes = await fetch(shortJamboApiUrl);
