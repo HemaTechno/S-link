@@ -2,7 +2,7 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 
-const LINKVERTISE_USER_ID = "1322389";
+const NITRO_LINK_API = "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9";
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
@@ -181,7 +181,6 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
 
     if (activeKey) {
-        // 🟢 عداد تنازلي مباشر وحي للمفتاح الفعال
         actionHtml = `
             <div class="success-box">
                 <i class="fa-solid fa-circle-check"></i> Your Key is Active! (${streakCount} Day(s) Streak 🔥)
@@ -194,16 +193,14 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                 <i class="fa-solid fa-hourglass-half"></i> Time Remaining: <span id="liveTimer" style="color: #ffd700; font-weight: bold;">Calculated...</span>
             </div>
         `;
-    } else if (keyStep >= 3) {
+    } else if (keyStep >= 1) {
         let streakBonusText = streakCount === 6 
             ? `<div class="streak-badge" style="color: #ffd700;"><i class="fa-solid fa-fire"></i> This is your 7th Day! You will get a FREE 3-Day Key!</div>` 
             : `<div class="streak-badge"><i class="fa-solid fa-fire" style="color: #f97316;"></i> Current Streak: ${streakCount + 1}/7 Days</div>`;
 
         actionHtml = `
             <div class="steps-container">
-                <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 1 Completed</div>
-                <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 2 Completed</div>
-                <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 3 Completed</div>
+                <div class="step done"><i class="fa-solid fa-check"></i> Task Completed</div>
             </div>
             
             ${streakBonusText}
@@ -217,29 +214,18 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
             </button>
         `;
     } else {
-        const step1Class = keyStep > 0 ? 'done' : (keyStep === 0 ? 'active' : 'locked');
-        const step2Class = keyStep > 1 ? 'done' : (keyStep === 1 ? 'active' : 'locked');
-        const step3Class = keyStep > 2 ? 'done' : (keyStep === 2 ? 'error' : 'locked');
-
-        const step1Icon = keyStep > 0 ? 'fa-check' : (keyStep === 0 ? 'fa-spinner fa-spin' : 'fa-lock');
-        const step2Icon = keyStep > 1 ? 'fa-check' : (keyStep === 1 ? 'fa-spinner fa-spin' : 'fa-lock');
-        const step3Icon = keyStep > 2 ? 'fa-check' : (keyStep === 2 ? 'fa-spinner fa-spin' : 'fa-lock');
-
         actionHtml = `
             <div class="steps-container">
-                <div class="step ${step1Class}"><i class="fa-solid ${step1Icon}"></i> Checkpoint 1</div>
-                <div class="step ${step2Class}"><i class="fa-solid ${step2Icon}"></i> Checkpoint 2</div>
-                <div class="step ${step3Class}"><i class="fa-solid ${step3Icon}"></i> Checkpoint 3</div>
+                <div class="step active"><i class="fa-solid fa-spinner fa-spin"></i> Required Task</div>
             </div>
-            <a href="${currentTaskUrl}" class="btn continue-btn">
-                <span><i class="fa-solid fa-link" style="color:#00e676; margin-right:6px;"></i> Continue with Linkvertise</span> 
+            <a href="${currentTaskUrl}" target="_blank" class="btn continue-btn">
+                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:6px;"></i> Continue with Nitro Link</span> 
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
             <p class="timer-text"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Streak Progress: ${streakCount}/7 Days (Keep it up!)</p>
         `;
     }
 
-    // كتابة الكود الخاص بالتايمر الحي (Live Countdown JS) إذا كان المفتاح فعالاً
     let countdownScript = '';
     if (activeKey && expiresAt) {
         countdownScript = `
@@ -421,7 +407,6 @@ export default async function handler(req, res) {
         console.error("Ban check failed:", err);
     }
 
-    // 🟢 جلب أو إنشاء بيانات السلسلة (Streak) لهذا الـ HWID من فايربيس
     let streakCount = 0;
     let lastKeyDate = 0;
     const streakDocRef = db.collection("user_streaks").doc(userHwid);
@@ -468,8 +453,8 @@ export default async function handler(req, res) {
         try {
             const decoded = jwt.verify(req.query.token, JWT_SECRET);
             
-            if (decoded.hwid === userHwid && decoded.targetStep === keyStep + 1 && decoded.targetStep <= 3) {
-                keyStep = decoded.targetStep;
+            if (decoded.hwid === userHwid && decoded.targetStep === 1) {
+                keyStep = 1;
                 
                 res.setHeader('Set-Cookie', [
                     `key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`,
@@ -488,7 +473,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST" && req.body.action === "generate") {
-        if (keyStep < 3) return res.status(403).json({ success: false, message: "You must complete all tasks first!" });
+        if (keyStep < 1) return res.status(403).json({ success: false, message: "You must complete the task first!" });
 
         const { recaptchaToken } = req.body;
         if (!recaptchaToken) {
@@ -508,7 +493,6 @@ export default async function handler(req, res) {
             return res.status(500).json({ success: false, message: "Captcha validation server error." });
         }
 
-        // 🟢 حساب السلسلة ومنح المكافأة (لو كمل 7 أيام، اليوم السابع ياخد 3 أيام مجاناً = 72 ساعة)
         const nowTime = Date.now();
         const oneDayMs = 24 * 60 * 60 * 1000;
         let newStreak = streakCount;
@@ -518,21 +502,18 @@ export default async function handler(req, res) {
         } else {
             const diffDays = (nowTime - lastKeyDate) / oneDayMs;
             if (diffDays >= 1 && diffDays <= 2.5) {
-                // سجل دخول خلال يومين متتاليين، تزيد السلسلة
                 newStreak += 1;
             } else if (diffDays > 2.5) {
-                // فاته وقت طويل، تعود السلسلة من جديد
                 newStreak = 1;
             }
-            // لو دخل في نفس اليوم لا تتغير السلسلة لتجنب التلاعب
         }
 
-        let keyDuration = 24 * 60 * 60 * 1000; // افتراضي 24 ساعة
+        let keyDuration = 24 * 60 * 60 * 1000;
         let isBonusKey = false;
 
         if (newStreak >= 7) {
-            keyDuration = 3 * 24 * 60 * 60 * 1000; // 3 أيام مجاناً (72 ساعة)
-            newStreak = 0; // تصفير السلسلة لتبدأ دورة جديدة
+            keyDuration = 3 * 24 * 60 * 60 * 1000;
+            newStreak = 0;
             isBonusKey = true;
         }
 
@@ -592,20 +573,33 @@ export default async function handler(req, res) {
 
     if (req.method === "GET") {
         let currentTaskUrl = "#";
-        if (keyStep < 3 && !activeKey) {
+        if (keyStep < 1 && !activeKey) {
             const host = req.headers.host;
             const protocol = host.includes("localhost") ? "http" : "https";
 
             const sessionToken = jwt.sign(
-                { hwid: userHwid, targetStep: keyStep + 1 }, 
+                { hwid: userHwid, targetStep: 1 }, 
                 JWT_SECRET, 
                 { expiresIn: '15m' } 
             );
 
             const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
-            const base64Url = Buffer.from(targetUrl).toString('base64');
-            const randomString = Math.random().toString(36).substring(7);
-            currentTaskUrl = `https://link-to.net/${LINKVERTISE_USER_ID}/${randomString}/dynamic?r=${base64Url}`;
+            
+            // 🟢 استخدام Nitro Link API تماماً كما هو مطلوب ومستخرج من ملفاتك
+            try {
+                const nitroLinkApiUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API}&url=${encodeURIComponent(targetUrl)}`;
+                const nitroRes = await fetch(nitroLinkApiUrl);
+                const nitroData = await nitroRes.json();
+                
+                if (nitroData && nitroData.status === 'success' && nitroData.shortenedUrl) {
+                    currentTaskUrl = nitroData.shortenedUrl;
+                } else {
+                    currentTaskUrl = targetUrl;
+                }
+            } catch (err) {
+                console.error("Nitro Link API Error:", err);
+                currentTaskUrl = targetUrl;
+            }
         }
 
         if (req.query.hwid && !cookieHeader.includes(`user_hwid=${req.query.hwid}`)) {
