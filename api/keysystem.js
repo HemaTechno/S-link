@@ -11,7 +11,7 @@ const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkX
 const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY || "6Lc31mwtAAAAALgsx7eKJwIIK-2uJkCp7-ERc__1";
 
 // ==========================================
-// واجهات المستخدم (تم ضبط التصميم والأناقة)
+// واجهات المستخدم
 // ==========================================
 const invalidLinkUI = `
 <!DOCTYPE html>
@@ -36,7 +36,7 @@ const invalidLinkUI = `
     <div class="container">
         <div class="error-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
         <h1>Invalid Request!</h1>
-        <p>Your Device HWID is missing. You cannot bypass the system or generate a key directly from the browser.</p>
+        <p>Your Device HWID is missing from the link. You cannot bypass the system or generate a key directly from the browser.</p>
         <p style="color:#fff; font-weight:bold;">Please execute the script in Roblox to get your valid key link.</p>
     </div>
 </body>
@@ -176,7 +176,7 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
-const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage) => {
+const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage, userHwid) => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
 
@@ -209,7 +209,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                 <div class="g-recaptcha" data-sitekey="${RECAPTCHA_SITE_KEY}" data-theme="dark"></div>
             </div>
 
-            <button class="btn generate-btn" onclick="generateKey()">
+            <button class="btn generate-btn" onclick="generateKey('${userHwid}')">
                 <i class="fa-solid fa-key"></i> Create Access Key
             </button>
         `;
@@ -278,7 +278,6 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
         
         .steps-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left; }
         .step { padding: 15px 18px; border-radius: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; font-size: 14px; transition: 0.3s; }
-        .step.locked { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.04); color: #555; }
         .step.active { background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80; box-shadow: 0 0 15px rgba(74, 222, 128, 0.08); }
         .step.done { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: #fff; }
         .step.done i { color: #4ade80; }
@@ -318,7 +317,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
             alert("Key Copied to Clipboard!");
         }
 
-        async function generateKey() {
+        async function generateKey(hwid) {
             const recaptchaResponse = grecaptcha.enterprise ? grecaptcha.enterprise.getResponse() : grecaptcha.getResponse();
             if (!recaptchaResponse || recaptchaResponse.length === 0) {
                 alert("Please complete the Google reCAPTCHA verification!");
@@ -330,7 +329,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
             btn.disabled = true;
 
             try {
-                const response = await fetch('/api/keysystem', {
+                const response = await fetch('/api/keysystem?hwid=' + encodeURIComponent(hwid), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -341,7 +340,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                 
                 const data = await response.json();
                 if(data.success) {
-                    window.location.reload(); 
+                    window.location.href = '/api/keysystem?hwid=' + encodeURIComponent(hwid);
                 } else {
                     alert(data.message);
                     btn.innerHTML = '<i class="fa-solid fa-key"></i> Create Access Key';
@@ -361,21 +360,31 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي (الخادم)
+// الكود الأساسي (الخادم مع تحديث إشعارات ديسكورد - الاقتراح 4)
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
+    const userAgent = req.headers["user-agent"] || "Unknown Device";
+    
     let isVPN = false;
+    let countryName = "Unknown";
     
     if (clientIp && clientIp !== "::1" && clientIp !== "127.0.0.1") {
         try {
-            const response = await fetch(`https://blackbox.ipinfo.app/lookup/${clientIp}`);
-            const text = await response.text();
-            if (text.trim() === 'Y') {
+            const vpnRes = await fetch(`https://blackbox.ipinfo.app/lookup/${clientIp}`);
+            const vpnText = await vpnRes.text();
+            if (vpnText.trim() === 'Y') {
                 isVPN = true;
             }
+
+            // جلب معلومات الدولة عبر API مجاني خفيف للـ IP
+            const ipInfoRes = await fetch(`http://ip-api.com/json/${clientIp}`);
+            const ipInfoData = await ipInfoRes.json();
+            if (ipInfoData && ipInfoData.country) {
+                countryName = ipInfoData.country;
+            }
         } catch (error) {
-            console.error("VPN check failed");
+            console.error("IP lookup failed");
         }
     }
 
@@ -384,13 +393,7 @@ export default async function handler(req, res) {
         return res.status(403).send(vpnBlockUI);
     }
 
-    const cookieHeader = req.headers.cookie || '';
-    
     let userHwid = req.query.hwid || null;
-    if (!userHwid) {
-        const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
-        if (hwidMatch) userHwid = hwidMatch[1];
-    }
 
     if (!userHwid) {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
@@ -421,6 +424,7 @@ export default async function handler(req, res) {
         console.error("Streak fetch error:", e);
     }
 
+    const cookieHeader = req.headers.cookie || '';
     let keyStep = 0;
     const stepMatch = cookieHeader.match(/key_step=(\d+)/);
     if (stepMatch) keyStep = parseInt(stepMatch[1]);
@@ -438,8 +442,7 @@ export default async function handler(req, res) {
                 errorMessage = "Your key has expired or been deleted. Please get a new key!";
                 res.setHeader('Set-Cookie', [
                     `active_key=; Max-Age=0; Path=/`,
-                    `key_step=0; Max-Age=0; Path=/`,
-                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
+                    `key_step=0; Max-Age=0; Path=/`
                 ]);
             } else {
                 activeKeyExpiresAt = keyDoc.data().expiresAt;
@@ -457,8 +460,7 @@ export default async function handler(req, res) {
                 keyStep = 1;
                 
                 res.setHeader('Set-Cookie', [
-                    `key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`,
-                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
+                    `key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`
                 ]);
                 res.setHeader("Content-Type", "text/html; charset=utf-8");
                 return res.status(200).send(verifyingTaskUI);
@@ -533,9 +535,11 @@ export default async function handler(req, res) {
                 createdAt: nowTime,
                 expiresAt: expiresAt,
                 hwid: userHwid,
-                ip: clientIp || "Unknown"
+                ip: clientIp || "Unknown",
+                country: countryName
             });
 
+            // 🟢 إرسال إشعار ديسكورد محسن بالتفاصيل الكاملة (الاقتراح رقم 4)
             if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL.startsWith("http")) {
                 try {
                     await fetch(DISCORD_WEBHOOK_URL, {
@@ -543,15 +547,17 @@ export default async function handler(req, res) {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             embeds: [{
-                                title: isBonusKey ? "🎁 7-Day Streak Bonus! 3-Day Key Generated!" : "🎉 New Key Generated (Streak Checked)!",
+                                title: isBonusKey ? "🎁 7-Day Streak Bonus! 3-Day Key Generated!" : "🎉 New Key Generated Successfully!",
                                 color: isBonusKey ? 16766720 : 4906624, 
                                 fields: [
-                                    { name: "🔑 Key", value: `\`${uniqueKey}\``, inline: false },
-                                    { name: "🔥 Streak Status", value: isBonusKey ? "Completed 7 Days! (Rewarded 3 Days Free)" : `Day ${newStreak} of 7`, inline: false },
+                                    { name: "🔑 Generated Key", value: `\`${uniqueKey}\``, inline: false },
+                                    { name: "🔥 Streak Status", value: isBonusKey ? "Completed 7 Days! (Rewarded 3 Days Free)" : `Day ${newStreak} of 7`, inline: true },
+                                    { name: "🌍 Country", value: `\`${countryName}\``, inline: true },
                                     { name: "💻 HWID", value: `\`${userHwid}\``, inline: false },
-                                    { name: "🌐 IP Address", value: `\`${clientIp || "Unknown"}\``, inline: false }
+                                    { name: "🌐 IP Address", value: `\`${clientIp || "Unknown"}\``, inline: true },
+                                    { name: "📱 User Agent", value: `\`${userAgent.substring(0, 80)}...\``, inline: false }
                                 ],
-                                footer: { text: "SubX Premium System" },
+                                footer: { text: "SubX Advanced Logger" },
                                 timestamp: new Date().toISOString()
                             }]
                         })
@@ -561,8 +567,7 @@ export default async function handler(req, res) {
 
             res.setHeader('Set-Cookie', [
                 `key_step=0; Max-Age=0; Path=/`, 
-                `active_key=${uniqueKey}; Max-Age=86400; Path=/; SameSite=Lax`,
-                `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
+                `active_key=${uniqueKey}; Max-Age=86400; Path=/; SameSite=Lax`
             ]);
 
             return res.status(200).json({ success: true, key: uniqueKey });
@@ -583,9 +588,8 @@ export default async function handler(req, res) {
                 { expiresIn: '15m' } 
             );
 
-            const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
+            const targetUrl = `${protocol}://${host}/api/keysystem?hwid=${encodeURIComponent(userHwid)}&token=${sessionToken}`;
             
-            // 🟢 ربط الطلب بـ Short Jambo API بناءً على التوثيق الصحيح
             try {
                 const shortJamboApiUrl = `https://short-jambo.com/api?api=${SHORT_JAMBO_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&format=text`;
                 const shortRes = await fetch(shortJamboApiUrl);
@@ -602,16 +606,9 @@ export default async function handler(req, res) {
             }
         }
 
-        if (req.query.hwid && !cookieHeader.includes(`user_hwid=${req.query.hwid}`)) {
-            let existingCookies = res.getHeader('Set-Cookie') || [];
-            if (!Array.isArray(existingCookies)) existingCookies = [existingCookies];
-            existingCookies.push(`user_hwid=${req.query.hwid}; Max-Age=86400; Path=/; SameSite=Lax`);
-            res.setHeader('Set-Cookie', existingCookies);
-        }
-
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage));
+        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage, userHwid));
     }
 
     return res.status(405).send("Method Not Allowed");
-}
+                                    }
