@@ -360,7 +360,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي (بدون ديسكورد)
+// الكود الأساسي (مع حل مشكلة LinkJust)
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
@@ -394,7 +394,6 @@ export default async function handler(req, res) {
 
     const cookieHeader = req.headers.cookie || '';
     
-    // التقاط الـ HWID من الرابط (Query) أو من الكوكيز
     let userHwid = req.query.hwid || null;
     if (!userHwid) {
         const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
@@ -406,7 +405,6 @@ export default async function handler(req, res) {
         return res.status(403).send(invalidLinkUI);
     }
 
-    // حفظ وتثبيت الـ HWID في الكوكيز
     res.setHeader('Set-Cookie', `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`);
 
     try {
@@ -600,20 +598,39 @@ export default async function handler(req, res) {
 
             const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // استخدام LinkJust API
+            // ✅ حل مشكلة LinkJust - استخدام fetch مع معالجة صحيحة للاستجابة
             try {
-                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
-                const linkJustRes = await fetch(linkJustApiUrl);
-                const linkJustData = await linkJustRes.json();
+                // استخدام format=text للحصول على نص عادي
+                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&format=text`;
+                console.log("📤 LinkJust Request:", linkJustApiUrl);
                 
-                if (linkJustData && linkJustData.status === 'success' && linkJustData.shortenedUrl) {
-                    currentTaskUrl = linkJustData.shortenedUrl;
-                } else {
+                const linkJustRes = await fetch(linkJustApiUrl);
+                const responseText = await linkJustRes.text(); // استخدم text() بدلاً من json()
+                console.log("📥 LinkJust Response:", responseText);
+                
+                // التحقق من أن الاستجابة هي رابط صحيح
+                if (responseText.trim().startsWith('https://linkjust.com/')) {
+                    currentTaskUrl = responseText.trim();
+                } 
+                // إذا كانت استجابة JSON
+                else if (responseText.trim().startsWith('{')) {
+                    try {
+                        const jsonData = JSON.parse(responseText);
+                        if (jsonData && jsonData.status === 'success' && jsonData.shortenedUrl) {
+                            currentTaskUrl = jsonData.shortenedUrl;
+                        }
+                    } catch (e) {
+                        console.error("JSON parse error:", e);
+                    }
+                }
+                // إذا فشل كل شيء، استخدم الرابط الأصلي
+                else {
+                    console.log("⚠️ LinkJust returned unexpected response, using fallback");
                     currentTaskUrl = targetUrl;
                 }
             } catch (err) {
-                console.error("LinkJust API Error:", err);
-                currentTaskUrl = targetUrl;
+                console.error("❌ LinkJust API Error:", err);
+                currentTaskUrl = targetUrl; // استخدم الرابط الأصلي كـ fallback
             }
         }
 
