@@ -176,6 +176,7 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
+// ✅ تحديث واجهة المستخدم - زر واحد يوجه مباشرة لـ LinkJust
 const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage) => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
@@ -214,12 +215,13 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
             </button>
         `;
     } else {
+        // ✅ زر واحد يوجه مباشرة لـ LinkJust من غير ما يظهر الرابط
         actionHtml = `
             <div class="steps-container">
                 <div class="step active"><i class="fa-solid fa-spinner fa-spin"></i> Required Task</div>
             </div>
             <a href="${currentTaskUrl}" target="_blank" class="btn continue-btn">
-                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Continue with LinkJust</span> 
+                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Click to Complete Task</span> 
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
             <p class="timer-text"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Streak Progress: ${streakCount}/7 Days (Keep it up!)</p>
@@ -283,8 +285,24 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
         .step.done i { color: #4ade80; }
 
         .btn { width: 100%; padding: 16px; border-radius: 14px; cursor: pointer; font-size: 15px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: space-between; border: none; transition: 0.3s; }
-        .continue-btn { background: linear-gradient(135deg, #ffffff 0%, #cbd5e1); color: #000; box-shadow: 0 4px 15px rgba(255,255,255,0.15); }
-        .continue-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,255,255,0.25); background: #fff; }
+        .continue-btn { 
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); 
+            color: #fff; 
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+            justify-content: center;
+            gap: 10px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 107, 107, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+        }
+        .continue-btn:hover { 
+            transform: translateY(-3px) scale(1.02); 
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.5); 
+            background: linear-gradient(135deg, #ff6b6b 0%, #d63031 100%);
+        }
         .generate-btn { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%); color: #000; justify-content: center; gap: 10px; }
         .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(74,222,128,0.35); }
         
@@ -360,7 +378,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي (مع حل مشكلة LinkJust)
+// الكود الأساسي
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
@@ -598,21 +616,20 @@ export default async function handler(req, res) {
 
             const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // ✅ حل مشكلة LinkJust - استخدام fetch مع معالجة صحيحة للاستجابة
+            // ✅ استخدام Alias فريد عشان نتجنب تكرار الأسماء
             try {
-                // استخدام format=text للحصول على نص عادي
-                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&format=text`;
+                const uniqueAlias = `task_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&alias=${uniqueAlias}&format=text`;
+                
                 console.log("📤 LinkJust Request:", linkJustApiUrl);
                 
                 const linkJustRes = await fetch(linkJustApiUrl);
-                const responseText = await linkJustRes.text(); // استخدم text() بدلاً من json()
+                const responseText = await linkJustRes.text();
                 console.log("📥 LinkJust Response:", responseText);
                 
-                // التحقق من أن الاستجابة هي رابط صحيح
                 if (responseText.trim().startsWith('https://linkjust.com/')) {
                     currentTaskUrl = responseText.trim();
                 } 
-                // إذا كانت استجابة JSON
                 else if (responseText.trim().startsWith('{')) {
                     try {
                         const jsonData = JSON.parse(responseText);
@@ -623,14 +640,13 @@ export default async function handler(req, res) {
                         console.error("JSON parse error:", e);
                     }
                 }
-                // إذا فشل كل شيء، استخدم الرابط الأصلي
                 else {
                     console.log("⚠️ LinkJust returned unexpected response, using fallback");
                     currentTaskUrl = targetUrl;
                 }
             } catch (err) {
                 console.error("❌ LinkJust API Error:", err);
-                currentTaskUrl = targetUrl; // استخدم الرابط الأصلي كـ fallback
+                currentTaskUrl = targetUrl;
             }
         }
 
