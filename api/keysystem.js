@@ -7,6 +7,12 @@ const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/153131315360065137
 
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
 
+// إعدادات ديسكورد
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240";
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "f7__hqYkys0NAln2Bnd7mm6ySceY4Wl-"; // تأكد من وضع الـ Secret الصحيح
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; // ضع توكن البوت هنا لإدخال العضو للسيرفر تلقائياً
+const DISCORD_SERVER_ID = process.env.DISCORD_SERVER_ID || "1135848445471629393";
+
 const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkXp0_d1132x_fP2GnuorVPs0";
 const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY || "6Lc31mwtAAAAALgsx7eKJwIIK-2uJkCp7-ERc__1";
 
@@ -68,6 +74,40 @@ const vpnBlockUI = `
         <h1>VPN / Proxy Detected!</h1>
         <p>We detected that you are using a VPN or Proxy connection.</p>
         <p style="color:#fff; font-weight:bold;">Please turn off your VPN and refresh the page to continue.</p>
+    </div>
+</body>
+</html>
+`;
+
+const discordAuthUI = (discordAuthUrl) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Verification Required 🛡️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
+        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(88, 101, 242, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
+        h1 { color: #5865F2; margin-bottom: 15px; font-size: 1.6rem; font-weight: 800; }
+        p { color: #aaa; font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
+        .discord-icon { font-size: 65px; color: #5865F2; margin-bottom: 20px; text-shadow: 0 0 20px rgba(88, 101, 242, 0.4); }
+        .btn-discord { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 16px; background: #5865F2; color: #fff; text-decoration: none; font-weight: bold; border-radius: 14px; transition: 0.3s; font-size: 16px; box-shadow: 0 4px 15px rgba(88,101,242,0.3); }
+        .btn-discord:hover { background: #4752c4; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="discord-icon"><i class="fa-brands fa-discord"></i></div>
+        <h1>Discord Verification</h1>
+        <p>You must link your Discord account and join our server to use the SubX Key System.</p>
+        <a href="${discordAuthUrl}" class="btn-discord">
+            <i class="fa-brands fa-discord"></i> Verify & Link Discord
+        </a>
     </div>
 </body>
 </html>
@@ -176,7 +216,7 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
-// ✅ تحديث واجهة المستخدم - دمج الزر المباشر والاحتياطي
+// واجهة المستخدم الخاصة بتوليد المفتاح مع نظام LinkJust الاحتياطي
 const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage, requiresClientApi = false, targetUrl = "") => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
@@ -217,7 +257,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
     } else {
         let taskButton = '';
         
-        // 🟢 الحل العبقري: لو السيرفر اتعمله بلوك، هنخلي المتصفح هو اللي يولد الرابط
+        // 🟢 الحل العبقري: لو السيرفر اتعمله بلوك، المتصفح هيولد الرابط
         if (requiresClientApi) {
             taskButton = `
             <a href="javascript:void(0)" onclick="generateLinkClientSide()" class="btn continue-btn" id="taskBtn">
@@ -231,7 +271,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                     btn.style.pointerEvents = 'none';
 
                     const target = "${targetUrl}";
-                    const apiUrl = "https://linkjust.com/api?api=944c5ea148b949eb99be07963d8615e6904f460b&url=" + encodeURIComponent(target);
+                    const apiUrl = "https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=" + encodeURIComponent(target);
                     
                     try {
                         const res = await fetch(apiUrl);
@@ -243,13 +283,11 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                     } catch(err) {
                         console.error("Browser API blocked, routing direct to target", err);
                     }
-                    // لو المتصفح كمان فشل (مستبعد جداً)، هنحوله للهدف مباشرة
                     window.location.href = target;
                 }
             </script>
             `;
         } else {
-            // لو السيرفر نجح يولد الرابط، بنحط الرابط المباشر
             taskButton = `
             <a href="${currentTaskUrl}" class="btn continue-btn">
                 <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Click to Complete Task</span> 
@@ -417,7 +455,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي
+// الكود الأساسي والمنطق (مع دمج Discord)
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
@@ -451,6 +489,7 @@ export default async function handler(req, res) {
 
     const cookieHeader = req.headers.cookie || '';
     
+    // التقاط الـ HWID من الرابط أو من الكوكيز
     let userHwid = req.query.hwid || null;
     if (!userHwid) {
         const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
@@ -462,7 +501,8 @@ export default async function handler(req, res) {
         return res.status(403).send(invalidLinkUI);
     }
 
-    res.setHeader('Set-Cookie', `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`);
+    // حفظ الـ HWID في الكوكيز لضمان عدم ضياعه
+    let cookieArray = [`user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`];
 
     try {
         const banCheck = await db.collection("banned_users").doc(userHwid).get();
@@ -473,6 +513,91 @@ export default async function handler(req, res) {
     } catch (err) {
         console.error("Ban check failed:", err);
     }
+
+    // ========================================================
+    // 🟢 نظام ديسكورد للتحقق من العضوية والانضمام
+    // ========================================================
+    const host = req.headers.host;
+    const protocol = host.includes("localhost") ? "http" : "https";
+    const redirectUri = `${protocol}://${host}/api/keysystem`;
+
+    if (req.method === "GET" && req.query.code) {
+        const code = req.query.code;
+        try {
+            const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({
+                    client_id: DISCORD_CLIENT_ID,
+                    client_secret: DISCORD_CLIENT_SECRET,
+                    grant_type: "authorization_code",
+                    code: code,
+                    redirect_uri: redirectUri
+                })
+            });
+            const tokenData = await tokenRes.json();
+            
+            if (tokenData.access_token) {
+                const userRes = await fetch("https://discord.com/api/users/@me", {
+                    headers: { authorization: `Bearer ${tokenData.access_token}` }
+                });
+                const userData = await userRes.json();
+                const discordUserId = userData.id;
+
+                // إدخال المستخدم إلى السيرفر تلقائياً (تحتاج لصلاحية وإضافة توكن البوت)
+                if (DISCORD_BOT_TOKEN) {
+                    await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
+                        method: "PUT",
+                        headers: {
+                            Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ access_token: tokenData.access_token })
+                    });
+                }
+
+                // ربط الـ HWID بحساب الديسكورد في قاعدة البيانات
+                await db.collection("discord_links").doc(userHwid).set({
+                    discordId: discordUserId,
+                    username: userData.username,
+                    linkedAt: Date.now()
+                }, { merge: true });
+
+                res.setHeader('Set-Cookie', [
+                    `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`,
+                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
+                ]);
+                
+                // إعادة توجيه مع إرفاق الـ HWID لحمايته
+                return res.redirect(302, `/api/keysystem?hwid=${userHwid}`);
+            }
+        } catch (e) {
+            console.error("Discord Auth Error:", e);
+        }
+    }
+
+    let isDiscordVerified = cookieHeader.includes("discord_verified=true");
+    
+    // فحص الديسكورد من قاعدة البيانات لو الكوكي مفقودة
+    if (!isDiscordVerified) {
+        const linkCheck = await db.collection("discord_links").doc(userHwid).get();
+        if (linkCheck.exists) {
+            isDiscordVerified = true;
+            cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
+        }
+    }
+
+    if (!isDiscordVerified && DISCORD_CLIENT_ID !== "YOUR_DISCORD_CLIENT_ID") {
+        const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds.join`;
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.setHeader('Set-Cookie', cookieArray);
+        return res.status(200).send(discordAuthUI(discordAuthUrl));
+    } else if (isDiscordVerified && !cookieArray.includes(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`)) {
+        cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
+    }
+
+    res.setHeader('Set-Cookie', cookieArray);
+    // ========================================================
 
     let streakCount = 0;
     let lastKeyDate = 0;
@@ -506,7 +631,8 @@ export default async function handler(req, res) {
                 res.setHeader('Set-Cookie', [
                     `active_key=; Max-Age=0; Path=/`,
                     `key_step=0; Max-Age=0; Path=/`,
-                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
+                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`,
+                    `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`
                 ]);
             } else {
                 activeKeyExpiresAt = keyDoc.data().expiresAt;
@@ -525,7 +651,8 @@ export default async function handler(req, res) {
                 
                 res.setHeader('Set-Cookie', [
                     `key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`,
-                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
+                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`,
+                    `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`
                 ]);
                 res.setHeader("Content-Type", "text/html; charset=utf-8");
                 return res.status(200).send(verifyingTaskUI);
@@ -595,6 +722,10 @@ export default async function handler(req, res) {
         const expiresAt = nowTime + keyDuration; 
 
         try {
+            // جلب معلومات ديسكورد إذا توفرت لإرسالها في الويبهوك
+            const linkDoc = await db.collection("discord_links").doc(userHwid).get();
+            const discordUsername = linkDoc.exists ? linkDoc.data().username : "Unknown";
+
             await db.collection("keys").doc(uniqueKey).set({
                 key: uniqueKey,
                 createdAt: nowTime,
@@ -615,6 +746,7 @@ export default async function handler(req, res) {
                                 color: isBonusKey ? 16766720 : 4906624, 
                                 fields: [
                                     { name: "🔑 Generated Key", value: `\`${uniqueKey}\``, inline: false },
+                                    { name: "💬 Discord User", value: `\`${discordUsername}\``, inline: true },
                                     { name: "🔥 Streak Status", value: isBonusKey ? "Completed 7 Days! (Rewarded 3 Days Free)" : `Day ${newStreak} of 7`, inline: true },
                                     { name: "🌍 Country", value: `\`${countryName}\``, inline: true },
                                     { name: "💻 HWID", value: `\`${userHwid}\``, inline: false },
@@ -632,7 +764,8 @@ export default async function handler(req, res) {
             res.setHeader('Set-Cookie', [
                 `key_step=0; Max-Age=0; Path=/`, 
                 `active_key=${uniqueKey}; Max-Age=86400; Path=/; SameSite=Lax`,
-                `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
+                `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`,
+                `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`
             ]);
 
             return res.status(200).json({ success: true, key: uniqueKey });
@@ -656,24 +789,22 @@ export default async function handler(req, res) {
                 { expiresIn: '15m' } 
             );
 
-            // ده الرابط اللي الزائر بيرجع عليه بعد ما يخلص المهمة (صفحة التحقق)
             targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // 🟢 المحاولة الأولى: السيرفر يكلم LinkJust (لو Cloudflare مقفلة هيعمل error)
             try {
-                // نطلب بصيغة json السليمة عشان نضمن عدم وجود أخطاء نصية[cite: 1, 3]
+                // نطلب بصيغة JSON السليمة بناءً على الصور المرفقة
                 const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
                 const response = await fetch(linkJustApiUrl);
                 const data = await response.json();
                 
                 if (data && data.status === 'success' && data.shortenedUrl) {
-                    currentTaskUrl = data.shortenedUrl; // نجحت من السيرفر
+                    currentTaskUrl = data.shortenedUrl; 
                 } else {
-                    requiresClientApi = true; // فشلت وهنفعل زر المتصفح
+                    requiresClientApi = true; 
                 }
             } catch (err) {
                 console.error("LinkJust Server API Blocked:", err);
-                requiresClientApi = true; // فشلت وهنفعل زر المتصفح
+                requiresClientApi = true; 
             }
         }
 
