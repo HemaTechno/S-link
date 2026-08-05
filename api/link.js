@@ -3,13 +3,13 @@ import { nanoid } from "nanoid";
 import axios from "axios";
 
 const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
-const LINKVERTISE_USER_ID = "1322389"; // ضع الـ ID الخاص بك هنا
-const LINKJUST_API = "944c5ea148b949eb99be07963d8615e6904f460b"; // توكن LinkJust الخاص بك
+const LINKVERTISE_USER_ID = "1322389";
+const LINKJUST_API = "944c5ea148b949eb99be07963d8615e6904f460b"; // من الصورة الأولى
 
 const cache = new Map();
-const spamCache = new Map(); 
+const spamCache = new Map();
 
-const RATE_LIMIT_WINDOW = 60 * 1000; 
+const RATE_LIMIT_WINDOW = 60 * 1000;
 const MAX_REQUESTS = 5;
 
 // 🛡️ واجهة الخطأ إذا كان الـ VPN مفعلاً
@@ -47,12 +47,9 @@ const vpnBlockUI = `
 const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
     const host = req.headers.host || "";
     const protocol = host.includes("localhost") ? "http" : "https";
-    const fullImageUrl = host ? `${protocol}://${host}/logo.png` : "/logo.png";
-    const pageUrl = host ? `${protocol}://${host}/?id=${linkName}` : "";
 
     let actionHtml = '';
 
-    // HTML & CSS الخاص بالأزرار
     const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, linkjustUrl) => {
         let buttonsArray = [];
         
@@ -75,16 +72,14 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         if (linkjustUrl) {
             buttonsArray.push(`
             <a href="${linkjustUrl}" class="network-btn linkjust-btn">
-                <span class="btn-text"><i class="fa-solid fa-rocket"></i> Unlock via LinkJust</span>
+                <span class="btn-text"><i class="fa-solid fa-arrow-up-right-from-square"></i> Unlock via LinkJust</span>
                 <img src="/linkjust.png" alt="LinkJust Logo" class="network-logo">
             </a>`);
         }
 
-        // دمج الأزرار بفاصل OR بشكل ذكي
         return `<div class="networks-container">${buttonsArray.join(`<div class="or-divider"><span>OR</span></div>`)}</div>`;
     };
 
-    // في حالة تعطيل الإعلانات من لوحة التحكم، نعرض المحتوى المباشر
     if (urls.text) {
         actionHtml = `
         <div class="text-container">
@@ -105,7 +100,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         </script>`;
     } 
     else if (urls.lootlabs || urls.linkvertise || urls.linkjust) {
-        // عرض أزرار التخطي المتاحة
         actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise, urls.linkjust);
     } 
     else if (urls.direct) {
@@ -143,7 +137,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         h1 { color: var(--primary); margin-bottom: 15px; font-size: 1.8rem; }
         .desc { color: #a0a0a0; margin-bottom: 30px; font-size: 1.1rem; }
         
-        /* New Button Styles */
         .networks-container { display: flex; flex-direction: column; gap: 16px; }
         
         .network-btn {
@@ -174,7 +167,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         
         .network-logo { height: 24px; object-fit: contain; z-index: 2; max-width: 120px; }
 
-        /* LootLabs Button Styling */
         .lootlabs-btn { color: #ffd700; border-color: rgba(255, 215, 0, 0.15); }
         .lootlabs-btn:hover {
             transform: translateY(-4px);
@@ -183,7 +175,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             background: rgba(255, 215, 0, 0.05);
         }
 
-        /* Linkvertise Button Styling */
         .linkvertise-btn { color: #4ade80; border-color: rgba(74, 222, 128, 0.15); }
         .linkvertise-btn:hover {
             transform: translateY(-4px);
@@ -192,16 +183,18 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             background: rgba(74, 222, 128, 0.05);
         }
 
-        /* LinkJust Button Styling */
-        .linkjust-btn { color: #00bcd4; border-color: rgba(0, 188, 212, 0.15); }
+        .linkjust-btn { 
+            color: #ff6b6b; 
+            border-color: rgba(255, 107, 107, 0.15);
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(255, 107, 107, 0.02));
+        }
         .linkjust-btn:hover {
             transform: translateY(-4px);
-            border-color: rgba(0, 188, 212, 0.5);
-            box-shadow: 0 8px 25px rgba(0, 188, 212, 0.15);
-            background: rgba(0, 188, 212, 0.05);
+            border-color: rgba(255, 107, 107, 0.5);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.15);
+            background: rgba(255, 107, 107, 0.08);
         }
 
-        /* OR Divider */
         .or-divider { text-align: center; margin: 10px 0; position: relative; }
         .or-divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.1); z-index: 1; }
         .or-divider span { background: var(--bg-dark); padding: 4px 14px; border-radius: 12px; font-size: 13px; font-weight: 800; color: #a0a0a0; position: relative; z-index: 2; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -297,13 +290,11 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "GET") {
-        // 🛡️ فحص الـ VPN / Proxy أولاً لحماية الوصول للروابط
         const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
         let isVPN = false;
         
         if (clientIp && clientIp !== "::1" && clientIp !== "127.0.0.1") {
             try {
-                // نستخدم axios بما أنه مستورد بالفعل في الكود للتحقق من الآي بي
                 const response = await axios.get(`https://blackbox.ipinfo.app/lookup/${clientIp}`);
                 if (typeof response.data === 'string' && response.data.trim() === 'Y') {
                     isVPN = true;
@@ -313,7 +304,6 @@ export default async function handler(req, res) {
             }
         }
 
-        // إذا كان يمتلك VPN، امنعه من الدخول واعرض رسالة الخطأ
         if (isVPN) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             return res.status(403).send(vpnBlockUI);
@@ -338,7 +328,11 @@ export default async function handler(req, res) {
             
             const linkvertiseCompletionUrl = `https://subx.click/api/complete?id=${id}&network=linkvertise&tc=[tc]`;
             const lootlabsCompletionUrl = `https://subx.click/api/complete?id=${id}&network=lootlabs&tc=[tc]`;
-            const linkjustCompletionUrl = `https://subx.click/api/complete?id=${id}&network=linkjust`;
+            
+            // 🔥 تغيير مهم: الرابط النهائي الذي سيرسل المستخدم إليه LinkJust
+            // يجب أن يكون الرابط الذي سيتلقى المستخدم بعد إكمال المهمة
+            const finalDestinationUrl = data.url; // الرابط الأصلي للمحتوى
+            const linkjustCompletionUrl = `${req.headers.origin}/api/complete?id=${id}&network=linkjust`;
 
             const cookieHeader = req.headers.cookie || '';
             const hasLinkjustCooldown = cookieHeader.includes('linkjust_24h_cooldown=1');
@@ -365,32 +359,53 @@ export default async function handler(req, res) {
                 }
             }
 
-            // استخدام LinkJust بدلاً من Nitro Link
+            // ✅ استخدام LinkJust بشكل صحيح
             if (adSettings.linkjust !== false && !hasLinkjustCooldown) {
                 try {
-                    // إنشاء رابط مختصر عبر LinkJust مع إضافة format=text للحصول على نص عادي
-                    const linkjustUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(linkjustCompletionUrl)}&format=text`;
-                    const response = await axios.get(linkjustUrl);
+                    // استخدام الرابط النهائي مباشرة مع LinkJust
+                    const alias = `lj_${id}_${Date.now().toString(36)}`;
                     
-                    // التحقق من الاستجابة (نص عادي أو JSON)
-                    if (typeof response.data === 'string' && response.data.trim().startsWith('{')) {
-                        // إذا كانت JSON
-                        try {
-                            const jsonData = JSON.parse(response.data);
-                            if (jsonData.status === 'success' && jsonData.shortenedUrl) {
-                                urls.linkjust = jsonData.shortenedUrl;
+                    // محاولة مع JSON أولاً
+                    let linkjustUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(finalDestinationUrl)}&alias=${alias}`;
+                    let response = await axios.get(linkjustUrl, { timeout: 10000 });
+                    
+                    // محاولة مع format=text إذا فشل JSON
+                    if (!response.data || !response.data.shortenedUrl) {
+                        linkjustUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(finalDestinationUrl)}&alias=${alias}&format=text`;
+                        response = await axios.get(linkjustUrl, { timeout: 10000 });
+                        
+                        if (typeof response.data === 'string' && response.data.trim().startsWith('https://')) {
+                            urls.linkjust = response.data.trim();
+                        } else {
+                            // محاولة parse كـ JSON
+                            try {
+                                const jsonData = JSON.parse(response.data);
+                                if (jsonData.status === 'success' && jsonData.shortenedUrl) {
+                                    urls.linkjust = jsonData.shortenedUrl;
+                                }
+                            } catch (e) {
+                                console.error("LinkJust parse error:", e.message);
                             }
-                        } catch (e) {
-                            console.error("JSON parse error:", e.message);
                         }
-                    } else if (typeof response.data === 'string' && response.data.trim().startsWith('https://')) {
-                        // إذا كان النص هو الرابط مباشرة
-                        urls.linkjust = response.data.trim();
                     } else {
-                        console.error("Unexpected LinkJust response format");
+                        urls.linkjust = response.data.shortenedUrl;
                     }
+                    
+                    console.log(`LinkJust created: ${urls.linkjust} for ${finalDestinationUrl}`);
+                    
                 } catch (err) {
-                    console.error("LinkJust API Error", err.message);
+                    console.error("LinkJust API Error:", err.message);
+                    
+                    // محاولة بديلة بدون alias (قد يكون alias مكرر)
+                    try {
+                        const fallbackUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(finalDestinationUrl)}&format=text`;
+                        const fallbackResponse = await axios.get(fallbackUrl, { timeout: 10000 });
+                        if (typeof fallbackResponse.data === 'string' && fallbackResponse.data.trim().startsWith('https://')) {
+                            urls.linkjust = fallbackResponse.data.trim();
+                        }
+                    } catch (fallbackErr) {
+                        console.error("LinkJust fallback failed:", fallbackErr.message);
+                    }
                 }
             }
 
