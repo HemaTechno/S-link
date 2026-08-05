@@ -2,7 +2,7 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 
-const LINKJUST_API_TOKEN = "944c5ea148b949eb91be07963d8615e6904f460b";
+const LINKJUST_API_TOKEN = "944c5ea148b949eb99be07963d8615e6904f460b";
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240";
@@ -264,7 +264,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                 <div class="step active"><i class="fa-solid fa-spinner fa-spin"></i> Required Task</div>
             </div>
             <a href="${currentTaskUrl}" target="_blank" class="btn continue-btn">
-                <span><i class="fa-solid fa-link" style="color:#f59e0b; margin-right:8px;"></i> Continue with LinkJust</span> 
+                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Continue with LinkJust</span> 
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
             <p class="timer-text"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Streak Progress: ${streakCount}/7 Days (Keep it up!)</p>
@@ -405,7 +405,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي (الخادم مع ربط LinkJust API بصيغة format=text)
+// الكود الأساسي
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
@@ -686,17 +686,16 @@ export default async function handler(req, res) {
                 { expiresIn: '15m' } 
             );
 
-            // 🟢 تمرير الـ HWID والـ Token لضمان توجيه المستخدم بدقة بعد تخطي LinkJust
-            const targetUrl = `${protocol}://${host}/api/keysystem?hwid=${encodeURIComponent(userHwid)}&token=${sessionToken}`;
+            const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // 🟢 استخدام LinkJust API مع الصيغة النصية المباشرة (format=text)
+            // 🟢 استخدام LinkJust API
             try {
-                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&format=text`;
+                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
                 const linkJustRes = await fetch(linkJustApiUrl);
-                const textResult = await linkJustRes.text();
+                const linkJustData = await linkJustRes.json();
                 
-                if (linkJustRes.ok && textResult.trim().startsWith("http")) {
-                    currentTaskUrl = textResult.trim();
+                if (linkJustData && linkJustData.status === 'success' && linkJustData.shortenedUrl) {
+                    currentTaskUrl = linkJustData.shortenedUrl;
                 } else {
                     currentTaskUrl = targetUrl;
                 }
@@ -706,9 +705,9 @@ export default async function handler(req, res) {
             }
         }
 
-        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.Header("Content-Type", "text/html; charset=utf-8");
         return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage));
     }
 
     return res.status(405).send("Method Not Allowed");
-        }
+}
