@@ -3,8 +3,8 @@ import { nanoid } from "nanoid";
 import axios from "axios";
 
 const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
-const LINKVERTISE_USER_ID = "1322389"; 
-const LINKJUST_API_TOKEN = "944c5ea148b949eb99be07963d8615e6904f460b"; // تم التبديل لتوكن LinkJust
+const LINKVERTISE_USER_ID = "1322389"; // ضع الـ ID الخاص بك هنا
+const LINKJUST_API = "944c5ea148b949eb99be07963d8615e6904f460b"; // توكن LinkJust الخاص بك
 
 const cache = new Map();
 const spamCache = new Map(); 
@@ -43,6 +43,7 @@ const vpnBlockUI = `
 </html>
 `;
 
+// Glassmorphism UI Generation with Custom Network Buttons
 const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
     const host = req.headers.host || "";
     const protocol = host.includes("localhost") ? "http" : "https";
@@ -51,6 +52,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 
     let actionHtml = '';
 
+    // HTML & CSS الخاص بالأزرار
     const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, linkjustUrl) => {
         let buttonsArray = [];
         
@@ -73,14 +75,16 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         if (linkjustUrl) {
             buttonsArray.push(`
             <a href="${linkjustUrl}" class="network-btn linkjust-btn">
-                <span class="btn-text"><i class="fa-solid fa-bolt"></i> Unlock via LinkJust</span>
-                <img src="/logo.png" alt="LinkJust Logo" class="network-logo">
+                <span class="btn-text"><i class="fa-solid fa-rocket"></i> Unlock via LinkJust</span>
+                <img src="/linkjust.png" alt="LinkJust Logo" class="network-logo">
             </a>`);
         }
 
+        // دمج الأزرار بفاصل OR بشكل ذكي
         return `<div class="networks-container">${buttonsArray.join(`<div class="or-divider"><span>OR</span></div>`)}</div>`;
     };
 
+    // في حالة تعطيل الإعلانات من لوحة التحكم، نعرض المحتوى المباشر
     if (urls.text) {
         actionHtml = `
         <div class="text-container">
@@ -101,6 +105,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         </script>`;
     } 
     else if (urls.lootlabs || urls.linkvertise || urls.linkjust) {
+        // عرض أزرار التخطي المتاحة
         actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise, urls.linkjust);
     } 
     else if (urls.direct) {
@@ -138,6 +143,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         h1 { color: var(--primary); margin-bottom: 15px; font-size: 1.8rem; }
         .desc { color: #a0a0a0; margin-bottom: 30px; font-size: 1.1rem; }
         
+        /* New Button Styles */
         .networks-container { display: flex; flex-direction: column; gap: 16px; }
         
         .network-btn {
@@ -168,6 +174,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         
         .network-logo { height: 24px; object-fit: contain; z-index: 2; max-width: 120px; }
 
+        /* LootLabs Button Styling */
         .lootlabs-btn { color: #ffd700; border-color: rgba(255, 215, 0, 0.15); }
         .lootlabs-btn:hover {
             transform: translateY(-4px);
@@ -176,6 +183,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             background: rgba(255, 215, 0, 0.05);
         }
 
+        /* Linkvertise Button Styling */
         .linkvertise-btn { color: #4ade80; border-color: rgba(74, 222, 128, 0.15); }
         .linkvertise-btn:hover {
             transform: translateY(-4px);
@@ -184,14 +192,16 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             background: rgba(74, 222, 128, 0.05);
         }
 
-        .linkjust-btn { color: #00e676; border-color: rgba(0, 230, 118, 0.15); }
+        /* LinkJust Button Styling */
+        .linkjust-btn { color: #00bcd4; border-color: rgba(0, 188, 212, 0.15); }
         .linkjust-btn:hover {
             transform: translateY(-4px);
-            border-color: rgba(0, 230, 118, 0.5);
-            box-shadow: 0 8px 25px rgba(0, 230, 118, 0.15);
-            background: rgba(0, 230, 118, 0.05);
+            border-color: rgba(0, 188, 212, 0.5);
+            box-shadow: 0 8px 25px rgba(0, 188, 212, 0.15);
+            background: rgba(0, 188, 212, 0.05);
         }
 
+        /* OR Divider */
         .or-divider { text-align: center; margin: 10px 0; position: relative; }
         .or-divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.1); z-index: 1; }
         .or-divider span { background: var(--bg-dark); padding: 4px 14px; border-radius: 12px; font-size: 13px; font-weight: 800; color: #a0a0a0; position: relative; z-index: 2; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -287,11 +297,13 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "GET") {
+        // 🛡️ فحص الـ VPN / Proxy أولاً لحماية الوصول للروابط
         const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
         let isVPN = false;
         
         if (clientIp && clientIp !== "::1" && clientIp !== "127.0.0.1") {
             try {
+                // نستخدم axios بما أنه مستورد بالفعل في الكود للتحقق من الآي بي
                 const response = await axios.get(`https://blackbox.ipinfo.app/lookup/${clientIp}`);
                 if (typeof response.data === 'string' && response.data.trim() === 'Y') {
                     isVPN = true;
@@ -301,6 +313,7 @@ export default async function handler(req, res) {
             }
         }
 
+        // إذا كان يمتلك VPN، امنعه من الدخول واعرض رسالة الخطأ
         if (isVPN) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             return res.status(403).send(vpnBlockUI);
@@ -327,7 +340,12 @@ export default async function handler(req, res) {
             const lootlabsCompletionUrl = `https://subx.click/api/complete?id=${id}&network=lootlabs&tc=[tc]`;
             const linkjustCompletionUrl = `https://subx.click/api/complete?id=${id}&network=linkjust`;
 
-            if (adSettings.linkvertise !== false) {
+            const cookieHeader = req.headers.cookie || '';
+            const hasLinkjustCooldown = cookieHeader.includes('linkjust_24h_cooldown=1');
+
+            const shouldShowLinkvertise = (adSettings.linkvertise !== false) || hasLinkjustCooldown;
+
+            if (shouldShowLinkvertise) {
                 const base64Url = Buffer.from(linkvertiseCompletionUrl).toString('base64');
                 const randomString = Math.random().toString(36).substring(7);
                 urls.linkvertise = `https://link-to.net/${LINKVERTISE_USER_ID}/${randomString}/dynamic?r=${base64Url}`;
@@ -347,20 +365,29 @@ export default async function handler(req, res) {
                 }
             }
 
-            // 🟢 التعديل الجذري لـ LinkJust هنا 🟢
-            if (adSettings.linkjust !== false) {
+            // استخدام LinkJust بدلاً من Nitro Link
+            if (adSettings.linkjust !== false && !hasLinkjustCooldown) {
                 try {
-                    // استخدام format=text عشان نتجنب مشاكل قراءة الـ JSON، وإضافة User-Agent
-                    const reqUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(linkjustCompletionUrl)}&format=text`;
-                    const response = await axios.get(reqUrl, {
-                        headers: {
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
-                        },
-                        timeout: 6000
-                    });
+                    // إنشاء رابط مختصر عبر LinkJust مع إضافة format=text للحصول على نص عادي
+                    const linkjustUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(linkjustCompletionUrl)}&format=text`;
+                    const response = await axios.get(linkjustUrl);
                     
-                    if (response.data && typeof response.data === 'string' && response.data.startsWith('http')) {
+                    // التحقق من الاستجابة (نص عادي أو JSON)
+                    if (typeof response.data === 'string' && response.data.trim().startsWith('{')) {
+                        // إذا كانت JSON
+                        try {
+                            const jsonData = JSON.parse(response.data);
+                            if (jsonData.status === 'success' && jsonData.shortenedUrl) {
+                                urls.linkjust = jsonData.shortenedUrl;
+                            }
+                        } catch (e) {
+                            console.error("JSON parse error:", e.message);
+                        }
+                    } else if (typeof response.data === 'string' && response.data.trim().startsWith('https://')) {
+                        // إذا كان النص هو الرابط مباشرة
                         urls.linkjust = response.data.trim();
+                    } else {
+                        console.error("Unexpected LinkJust response format");
                     }
                 } catch (err) {
                     console.error("LinkJust API Error", err.message);
