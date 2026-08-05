@@ -2,9 +2,7 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import axios from "axios";
 
-const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
-const LINKVERTISE_USER_ID = "1322389";
-const LINKJUST_API = "944c5ea148b949eb99be07963d8615e6904f460b"; // من الصورة الأولى
+const LINKJUST_API = "944c5ea148b949eb99be07963d8615e6904f460b";
 
 const cache = new Map();
 const spamCache = new Map();
@@ -43,70 +41,25 @@ const vpnBlockUI = `
 </html>
 `;
 
-// Glassmorphism UI Generation with Custom Network Buttons
-const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
+// UI Generation مع زر LinkJust فقط
+const generatePageHtml = (title, linkName, messageTitle, req, linkjustUrl) => {
     const host = req.headers.host || "";
     const protocol = host.includes("localhost") ? "http" : "https";
 
     let actionHtml = '';
 
-    const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, linkjustUrl) => {
-        let buttonsArray = [];
-        
-        if (lootlabsUrl) {
-            buttonsArray.push(`
-            <a href="${lootlabsUrl}" class="network-btn lootlabs-btn">
-                <span class="btn-text"><i class="fa-solid fa-gem"></i> Unlock via LootLabs</span>
-                <img src="/LootLabs.png" alt="LootLabs Logo" class="network-logo">
-            </a>`);
-        }
-
-        if (linkvertiseUrl) {
-            buttonsArray.push(`
-            <a href="${linkvertiseUrl}" class="network-btn linkvertise-btn">
-                <span class="btn-text"><i class="fa-solid fa-link"></i> Unlock via Linkvertise</span>
-                <img src="/linkvertise.png" alt="Linkvertise Logo" class="network-logo link-logo">
-            </a>`);
-        }
-        
-        if (linkjustUrl) {
-            buttonsArray.push(`
-            <a href="${linkjustUrl}" class="network-btn linkjust-btn">
-                <span class="btn-text"><i class="fa-solid fa-arrow-up-right-from-square"></i> Unlock via LinkJust</span>
-                <img src="/linkjust.png" alt="LinkJust Logo" class="network-logo">
-            </a>`);
-        }
-
-        return `<div class="networks-container">${buttonsArray.join(`<div class="or-divider"><span>OR</span></div>`)}</div>`;
-    };
-
-    if (urls.text) {
+    if (linkjustUrl) {
         actionHtml = `
-        <div class="text-container">
-            <textarea id="textContent" readonly rows="4">${urls.text}</textarea>
-        </div>
-        <button class="btn copy-btn" onclick="copyText()">
-            Copy Text <i class="fa-solid fa-copy"></i>
-        </button>
-        <script>
-            function copyText() {
-                const text = document.getElementById("textContent");
-                text.select();
-                navigator.clipboard.writeText(text.value);
-                const btn = document.querySelector(".copy-btn");
-                btn.innerHTML = 'Copied! <i class="fa-solid fa-check"></i>';
-                setTimeout(() => { btn.innerHTML = 'Copy Text <i class="fa-solid fa-copy"></i>'; }, 2000);
-            }
-        </script>`;
-    } 
-    else if (urls.lootlabs || urls.linkvertise || urls.linkjust) {
-        actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise, urls.linkjust);
-    } 
-    else if (urls.direct) {
-        actionHtml = `
-        <a href="${urls.direct}" class="btn default-btn">
-            Direct Access (No Ads) <i class="fa-solid fa-arrow-right"></i>
+        <a href="${linkjustUrl}" class="network-btn linkjust-btn">
+            <span class="btn-text"><i class="fa-solid fa-arrow-up-right-from-square"></i> Unlock via LinkJust</span>
+            <img src="/linkjust.png" alt="LinkJust Logo" class="network-logo">
         </a>`;
+    } else {
+        actionHtml = `
+        <div style="color: #ff6b6b; padding: 20px; border: 1px solid #ff6b6b; border-radius: 16px; background: rgba(255, 107, 107, 0.1);">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 24px;"></i>
+            <p style="margin-top: 10px;">Failed to generate LinkJust URL. Please try again later.</p>
+        </div>`;
     }
 
     return `
@@ -122,7 +75,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #ffd700; --bg-dark: #0c0d10; --glass-bg: rgba(20, 21, 25, 0.6); --text-main: #ffffff; }
+        :root { --primary: #ff6b6b; --bg-dark: #0c0d10; --glass-bg: rgba(20, 21, 25, 0.6); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         
@@ -137,8 +90,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         h1 { color: var(--primary); margin-bottom: 15px; font-size: 1.8rem; }
         .desc { color: #a0a0a0; margin-bottom: 30px; font-size: 1.1rem; }
         
-        .networks-container { display: flex; flex-direction: column; gap: 16px; }
-        
         .network-btn {
             position: relative;
             width: 100%;
@@ -151,8 +102,8 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             align-items: center;
             justify-content: space-between;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 107, 107, 0.15);
+            background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(255, 107, 107, 0.02));
             overflow: hidden;
         }
 
@@ -163,59 +114,17 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             display: flex;
             align-items: center;
             gap: 10px;
+            color: #ff6b6b;
         }
         
         .network-logo { height: 24px; object-fit: contain; z-index: 2; max-width: 120px; }
 
-        .lootlabs-btn { color: #ffd700; border-color: rgba(255, 215, 0, 0.15); }
-        .lootlabs-btn:hover {
-            transform: translateY(-4px);
-            border-color: rgba(255, 215, 0, 0.5);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15);
-            background: rgba(255, 215, 0, 0.05);
-        }
-
-        .linkvertise-btn { color: #4ade80; border-color: rgba(74, 222, 128, 0.15); }
-        .linkvertise-btn:hover {
-            transform: translateY(-4px);
-            border-color: rgba(74, 222, 128, 0.5);
-            box-shadow: 0 8px 25px rgba(74, 222, 128, 0.15);
-            background: rgba(74, 222, 128, 0.05);
-        }
-
-        .linkjust-btn { 
-            color: #ff6b6b; 
-            border-color: rgba(255, 107, 107, 0.15);
-            background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(255, 107, 107, 0.02));
-        }
         .linkjust-btn:hover {
             transform: translateY(-4px);
             border-color: rgba(255, 107, 107, 0.5);
             box-shadow: 0 8px 25px rgba(255, 107, 107, 0.15);
             background: rgba(255, 107, 107, 0.08);
         }
-
-        .or-divider { text-align: center; margin: 10px 0; position: relative; }
-        .or-divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.1); z-index: 1; }
-        .or-divider span { background: var(--bg-dark); padding: 4px 14px; border-radius: 12px; font-size: 13px; font-weight: 800; color: #a0a0a0; position: relative; z-index: 2; border: 1px solid rgba(255, 255, 255, 0.1); }
-
-        .default-btn { width: 100%; padding: 18px; border-radius: 16px; cursor: pointer; font-size: 17px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; color: #000; background: linear-gradient(135deg, var(--primary) 0%, #b89b00 100%); border: none; transition: transform 0.3s; }
-        .default-btn:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2); }
-
-        .text-container {
-            background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border);
-            border-radius: 16px; padding: 15px; margin-bottom: 20px; text-align: left;
-        }
-        textarea {
-            width: 100%; background: transparent; border: none; color: var(--text-main);
-            font-size: 16px; resize: none; outline: none; font-family: inherit; line-height: 1.5;
-        }
-        .copy-btn {
-            width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary) 0%, #b89b00 100%);
-            color: #000; border: none; border-radius: 16px; cursor: pointer; font-size: 18px; font-weight: 800;
-            display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s;
-        }
-        .copy-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255, 215, 0, 0.25); background: linear-gradient(135deg, #ffea00 0%, #c9a900 100%); }
     </style>
 </head>
 <body>
@@ -231,24 +140,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 };
 
 export default async function handler(req, res) {
-    if (req.method === "PATCH") {
-        try {
-            const { lootlabsEnabled, linkvertiseEnabled, linkjustEnabled, adminKey } = req.body;
-            if (adminKey !== "MY_SECRET_ADMIN_PASSWORD") return res.status(401).json({ success: false, message: "Unauthorized" });
-
-            const settings = { 
-                lootlabs: Boolean(lootlabsEnabled), 
-                linkvertise: Boolean(linkvertiseEnabled),
-                linkjust: Boolean(linkjustEnabled)
-            };
-            await db.collection("settings").doc("adNetworks").set(settings);
-            cache.set("adSettings", settings);
-            return res.status(200).json({ success: true, message: "Settings updated successfully", settings });
-        } catch (err) {
-            return res.status(500).json({ success: false, message: err.message });
-        }
-    }
-
     if (req.method === "POST") {
         try {
             const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "unknown";
@@ -265,7 +156,7 @@ export default async function handler(req, res) {
 
             if (userSpamData.count > MAX_REQUESTS) return res.status(429).json({ success: false, message: "Too many requests!" });
 
-            const { url, slug, tier, tasks } = req.body;
+            const { url, slug } = req.body;
             if (!url) return res.status(400).json({ success: false, message: "URL required" });
 
             let id = (slug && slug.trim() !== "") ? slug.trim().toLowerCase() : nanoid(6);
@@ -274,13 +165,7 @@ export default async function handler(req, res) {
 
             await db.collection("links").doc(id).set({
                 url, 
-                completedTasksCount: 0, 
-                lootlabsCompletions: 0, 
-                linkvertiseCompletions: 0, 
-                linkjustCompletions: 0,
-                createdAt: Date.now(),
-                tier: tier ? parseInt(tier) : 1,       
-                tasks: tasks ? parseInt(tasks) : 3      
+                createdAt: Date.now()
             });
 
             return res.status(200).json({ success: true, short: `${req.headers.origin}/${id}` });
@@ -290,6 +175,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "GET") {
+        // 🛡️ فحص الـ VPN / Proxy
         const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
         let isVPN = false;
         
@@ -317,109 +203,57 @@ export default async function handler(req, res) {
             if (!doc.exists) return res.status(404).send("Content not found");
             const data = doc.data();
 
-            let adSettings = cache.get("adSettings");
-            if (!adSettings) {
-                const settingsDoc = await db.collection("settings").doc("adNetworks").get();
-                adSettings = settingsDoc.exists ? settingsDoc.data() : { lootlabs: true, linkvertise: true, linkjust: true }; 
-                cache.set("adSettings", adSettings);
-            }
+            let linkjustUrl = null;
 
-            let urls = { lootlabs: null, linkvertise: null, linkjust: null };
-            
-            const linkvertiseCompletionUrl = `https://subx.click/api/complete?id=${id}&network=linkvertise&tc=[tc]`;
-            const lootlabsCompletionUrl = `https://subx.click/api/complete?id=${id}&network=lootlabs&tc=[tc]`;
-            
-            // 🔥 تغيير مهم: الرابط النهائي الذي سيرسل المستخدم إليه LinkJust
-            // يجب أن يكون الرابط الذي سيتلقى المستخدم بعد إكمال المهمة
-            const finalDestinationUrl = data.url; // الرابط الأصلي للمحتوى
-            const linkjustCompletionUrl = `${req.headers.origin}/api/complete?id=${id}&network=linkjust`;
-
-            const cookieHeader = req.headers.cookie || '';
-            const hasLinkjustCooldown = cookieHeader.includes('linkjust_24h_cooldown=1');
-
-            const shouldShowLinkvertise = (adSettings.linkvertise !== false) || hasLinkjustCooldown;
-
-            if (shouldShowLinkvertise) {
-                const base64Url = Buffer.from(linkvertiseCompletionUrl).toString('base64');
-                const randomString = Math.random().toString(36).substring(7);
-                urls.linkvertise = `https://link-to.net/${LINKVERTISE_USER_ID}/${randomString}/dynamic?r=${base64Url}`;
-            }
-
-            if (adSettings.lootlabs !== false) {
-                try {
-                    const response = await axios.post(
-                        "https://creators.lootlabs.gg/api/public/content_locker",
-                        { title: id, url: lootlabsCompletionUrl, tier_id: data.tier || 1, number_of_tasks: data.tasks || 3, theme: 1 },
-                        { headers: { Authorization: `Bearer ${LOOTLABS_API}`, "Content-Type": "application/json" } }
-                    );
-                    const messageData = Array.isArray(response.data?.message) ? response.data.message[0] : response.data?.message;
-                    urls.lootlabs = messageData?.loot_url || response.data?.loot_url;
-                } catch (err) {
-                    console.error("LootLabs API Error", err.message);
-                }
-            }
-
-            // ✅ استخدام LinkJust بشكل صحيح
-            if (adSettings.linkjust !== false && !hasLinkjustCooldown) {
-                try {
-                    // استخدام الرابط النهائي مباشرة مع LinkJust
-                    const alias = `lj_${id}_${Date.now().toString(36)}`;
+            // ✅ استخدام LinkJust فقط
+            try {
+                const finalDestinationUrl = data.url;
+                const alias = `lj_${id}_${Date.now().toString(36)}`;
+                
+                // محاولة مع JSON أولاً
+                let linkjustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(finalDestinationUrl)}&alias=${alias}`;
+                let response = await axios.get(linkjustApiUrl, { timeout: 10000 });
+                
+                // محاولة مع format=text إذا فشل JSON
+                if (!response.data || !response.data.shortenedUrl) {
+                    linkjustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(finalDestinationUrl)}&alias=${alias}&format=text`;
+                    response = await axios.get(linkjustApiUrl, { timeout: 10000 });
                     
-                    // محاولة مع JSON أولاً
-                    let linkjustUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(finalDestinationUrl)}&alias=${alias}`;
-                    let response = await axios.get(linkjustUrl, { timeout: 10000 });
-                    
-                    // محاولة مع format=text إذا فشل JSON
-                    if (!response.data || !response.data.shortenedUrl) {
-                        linkjustUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(finalDestinationUrl)}&alias=${alias}&format=text`;
-                        response = await axios.get(linkjustUrl, { timeout: 10000 });
-                        
-                        if (typeof response.data === 'string' && response.data.trim().startsWith('https://')) {
-                            urls.linkjust = response.data.trim();
-                        } else {
-                            // محاولة parse كـ JSON
-                            try {
-                                const jsonData = JSON.parse(response.data);
-                                if (jsonData.status === 'success' && jsonData.shortenedUrl) {
-                                    urls.linkjust = jsonData.shortenedUrl;
-                                }
-                            } catch (e) {
-                                console.error("LinkJust parse error:", e.message);
-                            }
-                        }
+                    if (typeof response.data === 'string' && response.data.trim().startsWith('https://')) {
+                        linkjustUrl = response.data.trim();
                     } else {
-                        urls.linkjust = response.data.shortenedUrl;
-                    }
-                    
-                    console.log(`LinkJust created: ${urls.linkjust} for ${finalDestinationUrl}`);
-                    
-                } catch (err) {
-                    console.error("LinkJust API Error:", err.message);
-                    
-                    // محاولة بديلة بدون alias (قد يكون alias مكرر)
-                    try {
-                        const fallbackUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(finalDestinationUrl)}&format=text`;
-                        const fallbackResponse = await axios.get(fallbackUrl, { timeout: 10000 });
-                        if (typeof fallbackResponse.data === 'string' && fallbackResponse.data.trim().startsWith('https://')) {
-                            urls.linkjust = fallbackResponse.data.trim();
+                        try {
+                            const jsonData = JSON.parse(response.data);
+                            if (jsonData.status === 'success' && jsonData.shortenedUrl) {
+                                linkjustUrl = jsonData.shortenedUrl;
+                            }
+                        } catch (e) {
+                            console.error("LinkJust parse error:", e.message);
                         }
-                    } catch (fallbackErr) {
-                        console.error("LinkJust fallback failed:", fallbackErr.message);
                     }
-                }
-            }
-
-            if (!urls.lootlabs && !urls.linkvertise && !urls.linkjust) {
-                const isUrlCheck = data.url.trim().startsWith("http");
-                if (!isUrlCheck) {
-                    urls.text = data.url; 
                 } else {
-                    urls.direct = data.url; 
+                    linkjustUrl = response.data.shortenedUrl;
+                }
+                
+                console.log(`✅ LinkJust created: ${linkjustUrl} for ${finalDestinationUrl}`);
+                
+            } catch (err) {
+                console.error("❌ LinkJust API Error:", err.message);
+                
+                // محاولة بديلة بدون alias
+                try {
+                    const fallbackUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(data.url)}&format=text`;
+                    const fallbackResponse = await axios.get(fallbackUrl, { timeout: 10000 });
+                    if (typeof fallbackResponse.data === 'string' && fallbackResponse.data.trim().startsWith('https://')) {
+                        linkjustUrl = fallbackResponse.data.trim();
+                    }
+                } catch (fallbackErr) {
+                    console.error("❌ LinkJust fallback failed:", fallbackErr.message);
                 }
             }
 
             res.setHeader("Content-Type", "text/html; charset=utf-8");
-            return res.status(200).send(generatePageHtml("Choose Verification", id, "Select a Method to Unlock", req, urls));
+            return res.status(200).send(generatePageHtml("LinkJust Unlock", id, "Complete Task to Unlock", req, linkjustUrl));
 
         } catch (err) {
             console.error("Error Details:", err.message);
