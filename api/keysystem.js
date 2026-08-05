@@ -10,7 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#";
 
 // 🔴 إعدادات ديسكورد: تأكد من وضع الـ Client Secret الصحيح وتوكن البوت
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240";
-const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "f7__hqYkys0NAln2Bnd7mm6ySceY4Wl-"; 
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "fJ2SyQX5I_DY2IHUzn8EYnw6Pm6YFHAB"; 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; // ضع توكن البوت هنا لفحص خروج الأعضاء
 const DISCORD_SERVER_ID = process.env.DISCORD_SERVER_ID || "1135848445471629393";
 
