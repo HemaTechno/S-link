@@ -5,11 +5,6 @@ import jwt from "jsonwebtoken";
 const LINKJUST_API_TOKEN = "944c5ea148b949eb99be07963d8615e6904f460b";
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
-const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240";
-const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "xCZUa1TypWjogrJbd6HH9QX4Cr2KfXnW";
-const DISCORD_GUILD_ID = process.env.DISCORD_GUILD_ID || "1135848445471629393";
-const DISCORD_INVITE_LINK = "https://discord.gg/hematech-1135848445471629393";
-
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
 
 const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkXp0_d1132x_fP2GnuorVPs0";
@@ -73,46 +68,6 @@ const vpnBlockUI = `
         <h1>VPN / Proxy Detected!</h1>
         <p>We detected that you are using a VPN or Proxy connection.</p>
         <p style="color:#fff; font-weight:bold;">Please turn off your VPN and refresh the page to continue.</p>
-    </div>
-</body>
-</html>
-`;
-
-const discordVerifyUI = (discordLoginUrl, inviteLink) => `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Discord Verification Required 🤖</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { --primary: #5865F2; --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --glass-border: rgba(88, 101, 242, 0.25); --text-main: #ffffff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
-        .logo-container img { max-width: 130px; margin-bottom: 20px; filter: drop-shadow(0 0 12px rgba(88,101,242,0.3)); }
-        h1 { color: #fff; margin-bottom: 15px; font-size: 1.6rem; font-weight: 800; }
-        p { color: #aaa; font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
-        .btn { width: 100%; padding: 16px; border-radius: 14px; cursor: pointer; font-size: 15px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px; border: none; transition: 0.3s; margin-bottom: 12px; }
-        .discord-btn { background: #5865F2; color: #fff; box-shadow: 0 4px 15px rgba(88,101,242,0.3); }
-        .discord-btn:hover { background: #4752C4; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(88,101,242,0.4); }
-        .join-btn { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
-        .join-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="logo-container"><img src="/logo.png" alt="Logo"></div>
-        <h1>Discord Required!</h1>
-        <p>You must join our Discord server and verify your account to access the key system.</p>
-        <a href="${inviteLink}" target="_blank" class="btn join-btn">
-            <i class="fa-brands fa-discord"></i> 1. Join Discord Server
-        </a>
-        <a href="${discordLoginUrl}" class="btn discord-btn">
-            <i class="fa-solid fa-right-to-bracket"></i> 2. Verify Membership
-        </a>
     </div>
 </body>
 </html>
@@ -405,7 +360,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي (الخادم مع حل مشكلة HWID وديسكورد)
+// الكود الأساسي (بدون ديسكورد)
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
@@ -451,7 +406,7 @@ export default async function handler(req, res) {
         return res.status(403).send(invalidLinkUI);
     }
 
-    // حفظ الـ HWID في الكوكيز لضمان عدم ضياعه
+    // حفظ وتثبيت الـ HWID في الكوكيز
     res.setHeader('Set-Cookie', `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`);
 
     try {
@@ -462,53 +417,6 @@ export default async function handler(req, res) {
         }
     } catch (err) {
         console.error("Ban check failed:", err);
-    }
-
-    // نظام ديسكورد OAuth2 للتحقق من العضوية في السيرفر
-    const host = req.headers.host;
-    const protocol = host.includes("localhost") ? "http" : "https";
-    const redirectUri = `${protocol}://${host}/api/keysystem`;
-
-    if (req.query.code) {
-        try {
-            const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
-                    client_id: DISCORD_CLIENT_ID,
-                    client_secret: DISCORD_CLIENT_SECRET,
-                    grant_type: 'authorization_code',
-                    code: req.query.code,
-                    redirect_uri: redirectUri,
-                })
-            });
-            const tokenData = await tokenRes.json();
-
-            if (tokenData.access_token) {
-                const memberRes = await fetch(`https://discord.com/api/users/@me/guilds/${DISCORD_GUILD_ID}/member`, {
-                    headers: { Authorization: `Bearer ${tokenData.access_token}` }
-                });
-
-                if (memberRes.status === 200) {
-                    res.setHeader('Set-Cookie', [
-                        `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`,
-                        `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`
-                    ]);
-                    // إعادة التوجيه مع تمرير الـ hwid في الرابط لمنع ضياعه
-                    return res.redirect(`/api/keysystem?hwid=${userHwid}`);
-                }
-            }
-        } catch (err) {
-            console.error("Discord Auth Error:", err);
-        }
-    }
-
-    const isDiscordVerified = cookieHeader.includes('discord_verified=true');
-
-    if (!isDiscordVerified && DISCORD_CLIENT_ID !== "YOUR_DISCORD_CLIENT_ID") {
-        const discordLoginUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds.members.read`;
-        res.setHeader("Content-Type", "text/html; charset=utf-8");
-        return res.status(200).send(discordVerifyUI(discordLoginUrl, DISCORD_INVITE_LINK));
     }
 
     let streakCount = 0;
@@ -543,8 +451,7 @@ export default async function handler(req, res) {
                 res.setHeader('Set-Cookie', [
                     `active_key=; Max-Age=0; Path=/`,
                     `key_step=0; Max-Age=0; Path=/`,
-                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`,
-                    `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`
+                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
                 ]);
             } else {
                 activeKeyExpiresAt = keyDoc.data().expiresAt;
@@ -563,8 +470,7 @@ export default async function handler(req, res) {
                 
                 res.setHeader('Set-Cookie', [
                     `key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`,
-                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`,
-                    `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`
+                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
                 ]);
                 res.setHeader("Content-Type", "text/html; charset=utf-8");
                 return res.status(200).send(verifyingTaskUI);
@@ -671,8 +577,7 @@ export default async function handler(req, res) {
             res.setHeader('Set-Cookie', [
                 `key_step=0; Max-Age=0; Path=/`, 
                 `active_key=${uniqueKey}; Max-Age=86400; Path=/; SameSite=Lax`,
-                `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`,
-                `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`
+                `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
             ]);
 
             return res.status(200).json({ success: true, key: uniqueKey });
@@ -683,6 +588,9 @@ export default async function handler(req, res) {
 
     if (req.method === "GET") {
         let currentTaskUrl = "#";
+        const host = req.headers.host;
+        const protocol = host.includes("localhost") ? "http" : "https";
+
         if (keyStep < 1 && !activeKey) {
             const sessionToken = jwt.sign(
                 { hwid: userHwid, targetStep: 1 }, 
