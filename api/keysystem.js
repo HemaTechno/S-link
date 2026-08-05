@@ -176,8 +176,8 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
-// ✅ تحديث واجهة المستخدم - زر واحد يوجه مباشرة لـ LinkJust
-const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage) => {
+// ✅ تحديث واجهة المستخدم - دمج الزر المباشر والاحتياطي
+const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage, requiresClientApi = false, targetUrl = "") => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
 
@@ -215,15 +215,54 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
             </button>
         `;
     } else {
-        // ✅ زر واحد يوجه مباشرة لـ LinkJust من غير ما يظهر الرابط
+        let taskButton = '';
+        
+        // 🟢 الحل العبقري: لو السيرفر اتعمله بلوك، هنخلي المتصفح هو اللي يولد الرابط
+        if (requiresClientApi) {
+            taskButton = `
+            <a href="javascript:void(0)" onclick="generateLinkClientSide()" class="btn continue-btn" id="taskBtn">
+                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Click to Complete Task</span> 
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            <script>
+                async function generateLinkClientSide() {
+                    const btn = document.getElementById('taskBtn');
+                    btn.innerHTML = '<span><i class="fa-solid fa-spinner fa-spin"></i> Loading Secure Link...</span>';
+                    btn.style.pointerEvents = 'none';
+
+                    const target = "${targetUrl}";
+                    const apiUrl = "https://linkjust.com/api?api=944c5ea148b949eb99be07963d8615e6904f460b&url=" + encodeURIComponent(target);
+                    
+                    try {
+                        const res = await fetch(apiUrl);
+                        const data = await res.json();
+                        if(data.status === 'success' && data.shortenedUrl) {
+                            window.location.href = data.shortenedUrl;
+                            return;
+                        }
+                    } catch(err) {
+                        console.error("Browser API blocked, routing direct to target", err);
+                    }
+                    // لو المتصفح كمان فشل (مستبعد جداً)، هنحوله للهدف مباشرة
+                    window.location.href = target;
+                }
+            </script>
+            `;
+        } else {
+            // لو السيرفر نجح يولد الرابط، بنحط الرابط المباشر
+            taskButton = `
+            <a href="${currentTaskUrl}" class="btn continue-btn">
+                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Click to Complete Task</span> 
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            `;
+        }
+
         actionHtml = `
             <div class="steps-container">
                 <div class="step active"><i class="fa-solid fa-spinner fa-spin"></i> Required Task</div>
             </div>
-            <a href="${currentTaskUrl}" target="_blank" class="btn continue-btn">
-                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Click to Complete Task</span> 
-                <i class="fa-solid fa-arrow-right"></i>
-            </a>
+            ${taskButton}
             <p class="timer-text"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Streak Progress: ${streakCount}/7 Days (Keep it up!)</p>
         `;
     }
@@ -604,6 +643,9 @@ export default async function handler(req, res) {
 
     if (req.method === "GET") {
         let currentTaskUrl = "#";
+        let targetUrl = "";
+        let requiresClientApi = false;
+        
         const host = req.headers.host;
         const protocol = host.includes("localhost") ? "http" : "https";
 
@@ -614,56 +656,29 @@ export default async function handler(req, res) {
                 { expiresIn: '15m' } 
             );
 
-            const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
+            // ده الرابط اللي الزائر بيرجع عليه بعد ما يخلص المهمة (صفحة التحقق)
+            targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // ✅ طلب API سليم لـ LinkJust مع User-Agent لمنع الحظر
+            // 🟢 المحاولة الأولى: السيرفر يكلم LinkJust (لو Cloudflare مقفلة هيعمل error)
             try {
-                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&format=text`;
+                // نطلب بصيغة json السليمة عشان نضمن عدم وجود أخطاء نصية[cite: 1, 3]
+                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
+                const response = await fetch(linkJustApiUrl);
+                const data = await response.json();
                 
-                console.log("📤 LinkJust Request:", linkJustApiUrl);
-                
-                const linkJustRes = await fetch(linkJustApiUrl, {
-                    method: 'GET',
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                        'Accept': 'text/plain, application/json'
-                    }
-                });
-                
-                const responseText = await linkJustRes.text();
-                console.log("📥 LinkJust Response:", responseText);
-                
-                if (responseText && typeof responseText === 'string') {
-                    const cleanResponse = responseText.trim();
-                    
-                    if (cleanResponse.startsWith('http')) {
-                        currentTaskUrl = cleanResponse;
-                    } 
-                    else if (cleanResponse.startsWith('{')) {
-                        try {
-                            const jsonData = JSON.parse(cleanResponse);
-                            if (jsonData && jsonData.status === 'success' && jsonData.shortenedUrl) {
-                                currentTaskUrl = jsonData.shortenedUrl;
-                            }
-                        } catch (e) {
-                            console.error("JSON parse error:", e);
-                            currentTaskUrl = targetUrl;
-                        }
-                    } else {
-                        console.log("⚠️ LinkJust returned an unexpected response, using fallback");
-                        currentTaskUrl = targetUrl;
-                    }
+                if (data && data.status === 'success' && data.shortenedUrl) {
+                    currentTaskUrl = data.shortenedUrl; // نجحت من السيرفر
                 } else {
-                    currentTaskUrl = targetUrl;
+                    requiresClientApi = true; // فشلت وهنفعل زر المتصفح
                 }
             } catch (err) {
-                console.error("❌ LinkJust API Error:", err);
-                currentTaskUrl = targetUrl;
+                console.error("LinkJust Server API Blocked:", err);
+                requiresClientApi = true; // فشلت وهنفعل زر المتصفح
             }
         }
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage));
+        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage, requiresClientApi, targetUrl));
     }
 
     return res.status(405).send("Method Not Allowed");
