@@ -405,7 +405,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي (الخادم ومعالجة الـ HWID)
+// الكود الأساسي (الخادم مع حل مشكلة HWID وديسكورد)
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
@@ -439,24 +439,20 @@ export default async function handler(req, res) {
 
     const cookieHeader = req.headers.cookie || '';
     
-    // 🟢 التقاط الـ HWID من الرابط (Query) أو من الكوكيز
+    // التقاط الـ HWID من الرابط (Query) أو من الكوكيز
     let userHwid = req.query.hwid || null;
     if (!userHwid) {
         const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
         if (hwidMatch) userHwid = hwidMatch[1];
     }
 
-    // إذا لم يتم العثور عليه في أيهما، يتم إظهار خطأ أن الرابط غير صالح (يجب فتحه من روبلوكس)
     if (!userHwid) {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         return res.status(403).send(invalidLinkUI);
     }
 
-    // 🟢 التأكد من حفظ/تحديث HWID في الكوكيز دائماً لمنع ضياعه أثناء التنقل بين الصفحات
-    let existingCookies = res.getHeader('Set-Cookie') || [];
-    if (!Array.isArray(existingCookies)) existingCookies = [existingCookies];
-    existingCookies.push(`user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`);
-    res.setHeader('Set-Cookie', existingCookies);
+    // حفظ الـ HWID في الكوكيز لضمان عدم ضياعه
+    res.setHeader('Set-Cookie', `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`);
 
     try {
         const banCheck = await db.collection("banned_users").doc(userHwid).get();
@@ -468,7 +464,7 @@ export default async function handler(req, res) {
         console.error("Ban check failed:", err);
     }
 
-    // 🟢 نظام ديسكورد OAuth2 للتحقق من العضوية في السيرفر
+    // نظام ديسكورد OAuth2 للتحقق من العضوية في السيرفر
     const host = req.headers.host;
     const protocol = host.includes("localhost") ? "http" : "https";
     const redirectUri = `${protocol}://${host}/api/keysystem`;
@@ -498,7 +494,8 @@ export default async function handler(req, res) {
                         `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`,
                         `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`
                     ]);
-                    return res.redirect(`/api/keysystem`);
+                    // إعادة التوجيه مع تمرير الـ hwid في الرابط لمنع ضياعه
+                    return res.redirect(`/api/keysystem?hwid=${userHwid}`);
                 }
             }
         } catch (err) {
@@ -695,7 +692,7 @@ export default async function handler(req, res) {
 
             const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // 🟢 ربط رابط الهدف عبر LinkJust API
+            // استخدام LinkJust API
             try {
                 const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
                 const linkJustRes = await fetch(linkJustApiUrl);
