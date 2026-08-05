@@ -9,8 +9,8 @@ const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#";
 
 // إعدادات ديسكورد
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240";
-const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "f7__hqYkys0NAln2Bnd7mm6ySceY4Wl-"; // تأكد من وضع الـ Secret الصحيح
-const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; // ضع توكن البوت هنا لإدخال العضو للسيرفر تلقائياً
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "f7__hqYkys0NAln2Bnd7mm6ySceY4Wl-"; 
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; 
 const DISCORD_SERVER_ID = process.env.DISCORD_SERVER_ID || "1135848445471629393";
 
 const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkXp0_d1132x_fP2GnuorVPs0";
@@ -216,7 +216,7 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
-// واجهة المستخدم الخاصة بتوليد المفتاح مع نظام LinkJust الاحتياطي
+// واجهة المستخدم لتوليد المفتاح 
 const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage, requiresClientApi = false, targetUrl = "") => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
@@ -257,7 +257,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
     } else {
         let taskButton = '';
         
-        // 🟢 الحل العبقري: لو السيرفر اتعمله بلوك، المتصفح هيولد الرابط
+        // لو السيرفر اتعمله بلوك، المتصفح بيولد الرابط بتاع LinkJust
         if (requiresClientApi) {
             taskButton = `
             <a href="javascript:void(0)" onclick="generateLinkClientSide()" class="btn continue-btn" id="taskBtn">
@@ -455,7 +455,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي والمنطق (مع دمج Discord)
+// الكود الأساسي والمنطق (مع دمج Discord و إصلاح اللوب)
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
@@ -489,11 +489,19 @@ export default async function handler(req, res) {
 
     const cookieHeader = req.headers.cookie || '';
     
-    // التقاط الـ HWID من الرابط أو من الكوكيز
+    // التقاط الـ HWID 
     let userHwid = req.query.hwid || null;
     if (!userHwid) {
         const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
         if (hwidMatch) userHwid = hwidMatch[1];
+    }
+
+    // 🟢 تثبيت الـ redirectUri ليكون مطابق تماماً لمنصة ديسكورد لحل المشكلة
+    const redirectUri = "https://subx.click/api/keysystem";
+
+    // 🟢 استرجاع الـ HWID لو كنا راجعين من ديسكورد عبر المتغير state
+    if (req.method === "GET" && req.query.code && req.query.state) {
+        userHwid = req.query.state;
     }
 
     if (!userHwid) {
@@ -501,7 +509,6 @@ export default async function handler(req, res) {
         return res.status(403).send(invalidLinkUI);
     }
 
-    // حفظ الـ HWID في الكوكيز لضمان عدم ضياعه
     let cookieArray = [`user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`];
 
     try {
@@ -517,10 +524,6 @@ export default async function handler(req, res) {
     // ========================================================
     // 🟢 نظام ديسكورد للتحقق من العضوية والانضمام
     // ========================================================
-    const host = req.headers.host;
-    const protocol = host.includes("localhost") ? "http" : "https";
-    const redirectUri = `${protocol}://${host}/api/keysystem`;
-
     if (req.method === "GET" && req.query.code) {
         const code = req.query.code;
         try {
@@ -544,7 +547,6 @@ export default async function handler(req, res) {
                 const userData = await userRes.json();
                 const discordUserId = userData.id;
 
-                // إدخال المستخدم إلى السيرفر تلقائياً (تحتاج لصلاحية وإضافة توكن البوت)
                 if (DISCORD_BOT_TOKEN) {
                     await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
                         method: "PUT",
@@ -556,20 +558,19 @@ export default async function handler(req, res) {
                     });
                 }
 
-                // ربط الـ HWID بحساب الديسكورد في قاعدة البيانات
                 await db.collection("discord_links").doc(userHwid).set({
                     discordId: discordUserId,
                     username: userData.username,
                     linkedAt: Date.now()
                 }, { merge: true });
 
-                res.setHeader('Set-Cookie', [
-                    `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`,
-                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`
-                ]);
+                cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
+                res.setHeader('Set-Cookie', cookieArray);
                 
-                // إعادة توجيه مع إرفاق الـ HWID لحمايته
+                // إعادة توجيه مع تمرير הـ HWID لحمايته
                 return res.redirect(302, `/api/keysystem?hwid=${userHwid}`);
+            } else {
+                console.error("Discord Auth Failed, Token Data:", tokenData);
             }
         } catch (e) {
             console.error("Discord Auth Error:", e);
@@ -578,7 +579,6 @@ export default async function handler(req, res) {
 
     let isDiscordVerified = cookieHeader.includes("discord_verified=true");
     
-    // فحص الديسكورد من قاعدة البيانات لو الكوكي مفقودة
     if (!isDiscordVerified) {
         const linkCheck = await db.collection("discord_links").doc(userHwid).get();
         if (linkCheck.exists) {
@@ -588,7 +588,8 @@ export default async function handler(req, res) {
     }
 
     if (!isDiscordVerified && DISCORD_CLIENT_ID !== "YOUR_DISCORD_CLIENT_ID") {
-        const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds.join`;
+        // 🟢 إرسال الـ HWID داخل الـ state عشان ميتوهش في النص
+        const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds.join&state=${userHwid}`;
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader('Set-Cookie', cookieArray);
         return res.status(200).send(discordAuthUI(discordAuthUrl));
@@ -722,7 +723,6 @@ export default async function handler(req, res) {
         const expiresAt = nowTime + keyDuration; 
 
         try {
-            // جلب معلومات ديسكورد إذا توفرت لإرسالها في الويبهوك
             const linkDoc = await db.collection("discord_links").doc(userHwid).get();
             const discordUsername = linkDoc.exists ? linkDoc.data().username : "Unknown";
 
@@ -792,7 +792,6 @@ export default async function handler(req, res) {
             targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
             try {
-                // نطلب بصيغة JSON السليمة بناءً على الصور المرفقة
                 const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
                 const response = await fetch(linkJustApiUrl);
                 const data = await response.json();
