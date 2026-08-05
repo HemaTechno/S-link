@@ -41,19 +41,23 @@ const vpnBlockUI = `
 </html>
 `;
 
-// UI Generation مع زر LinkJust فقط
+// UI Generation مع زر LinkJust
 const generatePageHtml = (title, linkName, messageTitle, req, linkjustUrl) => {
-    const host = req.headers.host || "";
-    const protocol = host.includes("localhost") ? "http" : "https";
-
     let actionHtml = '';
 
     if (linkjustUrl) {
+        // ✅ إضافة JavaScript للتوجيه التلقائي عند الضغط على الزر
         actionHtml = `
-        <a href="${linkjustUrl}" class="network-btn linkjust-btn">
-            <span class="btn-text"><i class="fa-solid fa-arrow-up-right-from-square"></i> Unlock via LinkJust</span>
+        <a href="${linkjustUrl}" class="network-btn linkjust-btn" id="unlockBtn">
+            <span class="btn-text"><i class="fa-solid fa-arrow-up-right-from-square"></i> Click to Unlock</span>
             <img src="/linkjust.png" alt="LinkJust Logo" class="network-logo">
-        </a>`;
+        </a>
+        <script>
+            // 🚀 توجيه تلقائي بعد 2 ثانية
+            setTimeout(function() {
+                window.location.href = "${linkjustUrl}";
+            }, 1500);
+        </script>`;
     } else {
         actionHtml = `
         <div style="color: #ff6b6b; padding: 20px; border: 1px solid #ff6b6b; border-radius: 16px; background: rgba(255, 107, 107, 0.1);">
@@ -66,9 +70,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, linkjustUrl) => {
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-<script src="https://beansnicerroller.com/1c/8c/07/1c8c07e41dacee6cc4a64a6f22c04a4b.js"></script>
-<script>(function(s){s.dataset.zone='11383401',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${title}</title>
@@ -93,7 +94,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, linkjustUrl) => {
         .network-btn {
             position: relative;
             width: 100%;
-            padding: 18px 24px;
+            padding: 20px 24px;
             border-radius: 16px;
             cursor: pointer;
             text-decoration: none;
@@ -105,25 +106,47 @@ const generatePageHtml = (title, linkName, messageTitle, req, linkjustUrl) => {
             border: 1px solid rgba(255, 107, 107, 0.15);
             background: linear-gradient(135deg, rgba(255, 107, 107, 0.05), rgba(255, 107, 107, 0.02));
             overflow: hidden;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 107, 107, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
         }
 
         .btn-text { 
-            font-size: 16px; 
+            font-size: 18px; 
             font-weight: 800; 
             z-index: 2; 
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             color: #ff6b6b;
         }
         
-        .network-logo { height: 24px; object-fit: contain; z-index: 2; max-width: 120px; }
+        .network-logo { height: 28px; object-fit: contain; z-index: 2; max-width: 120px; }
 
         .linkjust-btn:hover {
-            transform: translateY(-4px);
+            transform: translateY(-4px) scale(1.02);
             border-color: rgba(255, 107, 107, 0.5);
-            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.15);
-            background: rgba(255, 107, 107, 0.08);
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.25);
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 107, 107, 0.3);
+            border-radius: 50%;
+            border-top-color: #ff6b6b;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -205,50 +228,45 @@ export default async function handler(req, res) {
 
             let linkjustUrl = null;
 
-            // ✅ استخدام LinkJust فقط
+            // ✅ استخدام LinkJust مع Alias
             try {
                 const finalDestinationUrl = data.url;
-                const alias = `lj_${id}_${Date.now().toString(36)}`;
+                const alias = `subx_${id}`; // استخدم Alias ثابت عشان التتبع
                 
-                // محاولة مع JSON أولاً
-                let linkjustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(finalDestinationUrl)}&alias=${alias}`;
-                let response = await axios.get(linkjustApiUrl, { timeout: 10000 });
+                // الرابط زي ما أنت عاوز بالضبط
+                const linkjustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(finalDestinationUrl)}&alias=${alias}`;
+                console.log("📤 Sending request to:", linkjustApiUrl);
                 
-                // محاولة مع format=text إذا فشل JSON
-                if (!response.data || !response.data.shortenedUrl) {
-                    linkjustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(finalDestinationUrl)}&alias=${alias}&format=text`;
-                    response = await axios.get(linkjustApiUrl, { timeout: 10000 });
-                    
-                    if (typeof response.data === 'string' && response.data.trim().startsWith('https://')) {
-                        linkjustUrl = response.data.trim();
-                    } else {
-                        try {
-                            const jsonData = JSON.parse(response.data);
-                            if (jsonData.status === 'success' && jsonData.shortenedUrl) {
-                                linkjustUrl = jsonData.shortenedUrl;
-                            }
-                        } catch (e) {
-                            console.error("LinkJust parse error:", e.message);
-                        }
+                const response = await axios.get(linkjustApiUrl, { 
+                    timeout: 15000,
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                     }
-                } else {
+                });
+                
+                console.log("📥 Response status:", response.status);
+                console.log("📥 Response data:", response.data);
+
+                // معالجة الاستجابة
+                if (response.data && response.data.status === 'success' && response.data.shortenedUrl) {
                     linkjustUrl = response.data.shortenedUrl;
+                } else if (typeof response.data === 'string' && response.data.trim().startsWith('https://linkjust.com/')) {
+                    linkjustUrl = response.data.trim();
+                } else {
+                    console.log("❌ Unexpected response format:", response.data);
                 }
                 
-                console.log(`✅ LinkJust created: ${linkjustUrl} for ${finalDestinationUrl}`);
+                if (linkjustUrl) {
+                    console.log(`✅ LinkJust created: ${linkjustUrl}`);
+                } else {
+                    console.log("❌ Failed to get LinkJust URL");
+                }
                 
             } catch (err) {
                 console.error("❌ LinkJust API Error:", err.message);
-                
-                // محاولة بديلة بدون alias
-                try {
-                    const fallbackUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(data.url)}&format=text`;
-                    const fallbackResponse = await axios.get(fallbackUrl, { timeout: 10000 });
-                    if (typeof fallbackResponse.data === 'string' && fallbackResponse.data.trim().startsWith('https://')) {
-                        linkjustUrl = fallbackResponse.data.trim();
-                    }
-                } catch (fallbackErr) {
-                    console.error("❌ LinkJust fallback failed:", fallbackErr.message);
+                if (err.response) {
+                    console.error("Response status:", err.response.status);
+                    console.error("Response data:", err.response.data);
                 }
             }
 
