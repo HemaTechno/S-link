@@ -686,7 +686,8 @@ export default async function handler(req, res) {
                 { expiresIn: '15m' } 
             );
 
-            const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
+            // 🟢 تمرير الـ HWID والـ Token لضمان توجيه المستخدم بدقة بعد تخطي LinkJust
+            const targetUrl = `${protocol}://${host}/api/keysystem?hwid=${encodeURIComponent(userHwid)}&token=${sessionToken}`;
             
             // 🟢 استخدام LinkJust API مع الصيغة النصية المباشرة (format=text)
             try {
@@ -710,4 +711,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).send("Method Not Allowed");
-}
+        }
