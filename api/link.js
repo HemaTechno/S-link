@@ -4,7 +4,7 @@ import axios from "axios";
 
 const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
 const LINKVERTISE_USER_ID = "1322389"; // ضع الـ ID الخاص بك هنا
-const NITRO_LINK_API = "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9"; // توكن Nitro Link الخاص بك
+const LINKJUST_API = "944c5ea148b949eb99be07963d8615e6904f460b"; // توكن LinkJust الخاص بك[cite: 3]
 
 const cache = new Map();
 const spamCache = new Map(); 
@@ -53,7 +53,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
     let actionHtml = '';
 
     // HTML & CSS الخاص بالأزرار
-    const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, nitroLinkUrl) => {
+    const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, linkjustUrl) => {
         let buttonsArray = [];
         
         if (lootlabsUrl) {
@@ -72,11 +72,11 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             </a>`);
         }
         
-        if (nitroLinkUrl) {
+        if (linkjustUrl) {
             buttonsArray.push(`
-            <a href="${nitroLinkUrl}" class="network-btn nitrolink-btn">
-                <span class="btn-text"><i class="fa-solid fa-rocket"></i> Unlock via Nitro Link</span>
-                <img src="/nitrolink.png" alt="Nitro Link Logo" class="network-logo">
+            <a href="${linkjustUrl}" class="network-btn linkjust-btn">
+                <span class="btn-text"><i class="fa-solid fa-bolt"></i> Unlock via LinkJust</span>
+                <img src="/linkjust.png" alt="LinkJust Logo" class="network-logo">
             </a>`);
         }
 
@@ -104,9 +104,9 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             }
         </script>`;
     } 
-    else if (urls.lootlabs || urls.linkvertise || urls.nitroLink) {
+    else if (urls.lootlabs || urls.linkvertise || urls.linkjust) {
         // عرض أزرار التخطي المتاحة
-        actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise, urls.nitroLink);
+        actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise, urls.linkjust);
     } 
     else if (urls.direct) {
         actionHtml = `
@@ -192,13 +192,13 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             background: rgba(74, 222, 128, 0.05);
         }
 
-        /* Nitro Link Button Styling */
-        .nitrolink-btn { color: #ff5722; border-color: rgba(255, 87, 34, 0.15); }
-        .nitrolink-btn:hover {
+        /* LinkJust Button Styling */
+        .linkjust-btn { color: #00e676; border-color: rgba(0, 230, 118, 0.15); }
+        .linkjust-btn:hover {
             transform: translateY(-4px);
-            border-color: rgba(255, 87, 34, 0.5);
-            box-shadow: 0 8px 25px rgba(255, 87, 34, 0.15);
-            background: rgba(255, 87, 34, 0.05);
+            border-color: rgba(0, 230, 118, 0.5);
+            box-shadow: 0 8px 25px rgba(0, 230, 118, 0.15);
+            background: rgba(0, 230, 118, 0.05);
         }
 
         /* OR Divider */
@@ -240,13 +240,13 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
 export default async function handler(req, res) {
     if (req.method === "PATCH") {
         try {
-            const { lootlabsEnabled, linkvertiseEnabled, nitrolinkEnabled, adminKey } = req.body;
+            const { lootlabsEnabled, linkvertiseEnabled, linkjustEnabled, adminKey } = req.body;
             if (adminKey !== "MY_SECRET_ADMIN_PASSWORD") return res.status(401).json({ success: false, message: "Unauthorized" });
 
             const settings = { 
                 lootlabs: Boolean(lootlabsEnabled), 
                 linkvertise: Boolean(linkvertiseEnabled),
-                nitrolink: Boolean(nitrolinkEnabled)
+                linkjust: Boolean(linkjustEnabled)
             };
             await db.collection("settings").doc("adNetworks").set(settings);
             cache.set("adSettings", settings);
@@ -284,7 +284,7 @@ export default async function handler(req, res) {
                 completedTasksCount: 0, 
                 lootlabsCompletions: 0, 
                 linkvertiseCompletions: 0, 
-                nitrolinkCompletions: 0,
+                linkjustCompletions: 0,
                 createdAt: Date.now(),
                 tier: tier ? parseInt(tier) : 1,       
                 tasks: tasks ? parseInt(tasks) : 3      
@@ -303,7 +303,6 @@ export default async function handler(req, res) {
         
         if (clientIp && clientIp !== "::1" && clientIp !== "127.0.0.1") {
             try {
-                // نستخدم axios بما أنه مستورد بالفعل في الكود للتحقق من الآي بي
                 const response = await axios.get(`https://blackbox.ipinfo.app/lookup/${clientIp}`);
                 if (typeof response.data === 'string' && response.data.trim() === 'Y') {
                     isVPN = true;
@@ -330,15 +329,15 @@ export default async function handler(req, res) {
             let adSettings = cache.get("adSettings");
             if (!adSettings) {
                 const settingsDoc = await db.collection("settings").doc("adNetworks").get();
-                adSettings = settingsDoc.exists ? settingsDoc.data() : { lootlabs: true, linkvertise: true, nitrolink: true }; 
+                adSettings = settingsDoc.exists ? settingsDoc.data() : { lootlabs: true, linkvertise: true, linkjust: true }; 
                 cache.set("adSettings", adSettings);
             }
 
-            let urls = { lootlabs: null, linkvertise: null, nitroLink: null };
+            let urls = { lootlabs: null, linkvertise: null, linkjust: null };
             
             const linkvertiseCompletionUrl = `https://subx.click/api/complete?id=${id}&network=linkvertise&tc=[tc]`;
             const lootlabsCompletionUrl = `https://subx.click/api/complete?id=${id}&network=lootlabs&tc=[tc]`;
-            const nitroLinkCompletionUrl = `https://subx.click/api/complete?id=${id}&network=nitrolink`;
+            const linkjustCompletionUrl = `https://subx.click/api/complete?id=${id}&network=linkjust`;
 
             const cookieHeader = req.headers.cookie || '';
             const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
@@ -365,19 +364,20 @@ export default async function handler(req, res) {
                 }
             }
 
-            if (adSettings.nitrolink !== false && !hasNitroCooldown) {
+            if (adSettings.linkjust !== false && !hasNitroCooldown) {
                 try {
-                    const reqUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API}&url=${encodeURIComponent(nitroLinkCompletionUrl)}`;
+                    // استخدام واجهة API الخاصة بـ LinkJust بناءً على الصور المرفقة
+                    const reqUrl = `https://linkjust.com/api?api=${LINKJUST_API}&url=${encodeURIComponent(linkjustCompletionUrl)}`;
                     const response = await axios.get(reqUrl);
                     if (response.data && response.data.status === 'success') {
-                        urls.nitroLink = response.data.shortenedUrl;
+                        urls.linkjust = response.data.shortenedUrl;
                     }
                 } catch (err) {
-                    console.error("Nitro Link API Error", err.message);
+                    console.error("LinkJust API Error", err.message);
                 }
             }
 
-            if (!urls.lootlabs && !urls.linkvertise && !urls.nitroLink) {
+            if (!urls.lootlabs && !urls.linkvertise && !urls.linkjust) {
                 const isUrlCheck = data.url.trim().startsWith("http");
                 if (!isUrlCheck) {
                     urls.text = data.url; 
