@@ -5,6 +5,11 @@ import jwt from "jsonwebtoken";
 const NITRO_LINK_API = "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9";
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240";
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "xCZUa1TypWjogrJbd6HH9QX4Cr2KfXnW";
+const DISCORD_GUILD_ID = process.env.DISCORD_GUILD_ID || "1135848445471629393";
+const DISCORD_INVITE_LINK = "https://discord.gg/hematech-1135848445471629393";
+
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
 
 const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkXp0_d1132x_fP2GnuorVPs0";
@@ -36,7 +41,7 @@ const invalidLinkUI = `
     <div class="container">
         <div class="error-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
         <h1>Invalid Request!</h1>
-        <p>Your Device HWID is missing from the link. You cannot bypass the system or generate a key directly from the browser.</p>
+        <p>Your Device HWID is missing. You cannot bypass the system or generate a key directly from the browser.</p>
         <p style="color:#fff; font-weight:bold;">Please execute the script in Roblox to get your valid key link.</p>
     </div>
 </body>
@@ -68,6 +73,46 @@ const vpnBlockUI = `
         <h1>VPN / Proxy Detected!</h1>
         <p>We detected that you are using a VPN or Proxy connection.</p>
         <p style="color:#fff; font-weight:bold;">Please turn off your VPN and refresh the page to continue.</p>
+    </div>
+</body>
+</html>
+`;
+
+const discordVerifyUI = (discordLoginUrl, inviteLink) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Verification Required 🤖</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary: #5865F2; --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --glass-border: rgba(88, 101, 242, 0.25); --text-main: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
+        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
+        .logo-container img { max-width: 130px; margin-bottom: 20px; filter: drop-shadow(0 0 12px rgba(88,101,242,0.3)); }
+        h1 { color: #fff; margin-bottom: 15px; font-size: 1.6rem; font-weight: 800; }
+        p { color: #aaa; font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
+        .btn { width: 100%; padding: 16px; border-radius: 14px; cursor: pointer; font-size: 15px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px; border: none; transition: 0.3s; margin-bottom: 12px; }
+        .discord-btn { background: #5865F2; color: #fff; box-shadow: 0 4px 15px rgba(88,101,242,0.3); }
+        .discord-btn:hover { background: #4752C4; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(88,101,242,0.4); }
+        .join-btn { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+        .join-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-container"><img src="/logo.png" alt="Logo"></div>
+        <h1>Discord Required!</h1>
+        <p>You must join our Discord server and verify your account to access the key system.</p>
+        <a href="${inviteLink}" target="_blank" class="btn join-btn">
+            <i class="fa-brands fa-discord"></i> 1. Join Discord Server
+        </a>
+        <a href="${discordLoginUrl}" class="btn discord-btn">
+            <i class="fa-solid fa-right-to-bracket"></i> 2. Verify Membership
+        </a>
     </div>
 </body>
 </html>
@@ -176,7 +221,7 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
-const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage, userHwid) => {
+const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage) => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
 
@@ -209,7 +254,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                 <div class="g-recaptcha" data-sitekey="${RECAPTCHA_SITE_KEY}" data-theme="dark"></div>
             </div>
 
-            <button class="btn generate-btn" onclick="generateKey('${userHwid}')">
+            <button class="btn generate-btn" onclick="generateKey()">
                 <i class="fa-solid fa-key"></i> Create Access Key
             </button>
         `;
@@ -317,7 +362,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
             alert("Key Copied to Clipboard!");
         }
 
-        async function generateKey(hwid) {
+        async function generateKey() {
             const recaptchaResponse = grecaptcha.enterprise ? grecaptcha.enterprise.getResponse() : grecaptcha.getResponse();
             if (!recaptchaResponse || recaptchaResponse.length === 0) {
                 alert("Please complete the Google reCAPTCHA verification!");
@@ -329,7 +374,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
             btn.disabled = true;
 
             try {
-                const response = await fetch('/api/keysystem?hwid=' + encodeURIComponent(hwid), {
+                const response = await fetch('/api/keysystem', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -340,7 +385,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                 
                 const data = await response.json();
                 if(data.success) {
-                    window.location.href = '/api/keysystem?hwid=' + encodeURIComponent(hwid);
+                    window.location.reload(); 
                 } else {
                     alert(data.message);
                     btn.innerHTML = '<i class="fa-solid fa-key"></i> Create Access Key';
@@ -360,7 +405,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي (الخادم)
+// الكود الأساسي (الخادم مع استعادة دعم الكوكيز للـ HWID وديسكورد)
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
@@ -392,13 +437,22 @@ export default async function handler(req, res) {
         return res.status(403).send(vpnBlockUI);
     }
 
-    // 🟢 قراءة الـ HWID حصرياً من الرابط
+    const cookieHeader = req.headers.cookie || '';
+    
+    // استعادة جلب الـ HWID من الرابط أو من الكوكيز
     let userHwid = req.query.hwid || null;
+    if (!userHwid) {
+        const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
+        if (hwidMatch) userHwid = hwidMatch[1];
+    }
 
     if (!userHwid) {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         return res.status(403).send(invalidLinkUI);
     }
+
+    // حفظ الـ HWID في الكوكيز لضمان بقائه
+    res.setHeader('Set-Cookie', `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`);
 
     try {
         const banCheck = await db.collection("banned_users").doc(userHwid).get();
@@ -408,6 +462,52 @@ export default async function handler(req, res) {
         }
     } catch (err) {
         console.error("Ban check failed:", err);
+    }
+
+    // 🟢 نظام ديسكورد OAuth2 للتحقق من العضوية في السيرفر
+    const host = req.headers.host;
+    const protocol = host.includes("localhost") ? "http" : "https";
+    const redirectUri = `${protocol}://${host}/api/keysystem`;
+
+    if (req.query.code) {
+        try {
+            const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams({
+                    client_id: DISCORD_CLIENT_ID,
+                    client_secret: DISCORD_CLIENT_SECRET,
+                    grant_type: 'authorization_code',
+                    code: req.query.code,
+                    redirect_uri: redirectUri,
+                })
+            });
+            const tokenData = await tokenRes.json();
+
+            if (tokenData.access_token) {
+                const memberRes = await fetch(`https://discord.com/api/users/@me/guilds/${DISCORD_GUILD_ID}/member`, {
+                    headers: { Authorization: `Bearer ${tokenData.access_token}` }
+                });
+
+                if (memberRes.status === 200) {
+                    res.setHeader('Set-Cookie', [
+                        `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`,
+                        `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`
+                    ]);
+                    return res.redirect(`/api/keysystem`);
+                }
+            }
+        } catch (err) {
+            console.error("Discord Auth Error:", err);
+        }
+    }
+
+    const isDiscordVerified = cookieHeader.includes('discord_verified=true');
+
+    if (!isDiscordVerified && DISCORD_CLIENT_ID !== "YOUR_DISCORD_CLIENT_ID") {
+        const discordLoginUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds.members.read`;
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        return res.status(200).send(discordVerifyUI(discordLoginUrl, DISCORD_INVITE_LINK));
     }
 
     let streakCount = 0;
@@ -424,7 +524,6 @@ export default async function handler(req, res) {
         console.error("Streak fetch error:", e);
     }
 
-    const cookieHeader = req.headers.cookie || '';
     let keyStep = 0;
     const stepMatch = cookieHeader.match(/key_step=(\d+)/);
     if (stepMatch) keyStep = parseInt(stepMatch[1]);
@@ -442,7 +541,9 @@ export default async function handler(req, res) {
                 errorMessage = "Your key has expired or been deleted. Please get a new key!";
                 res.setHeader('Set-Cookie', [
                     `active_key=; Max-Age=0; Path=/`,
-                    `key_step=0; Max-Age=0; Path=/`
+                    `key_step=0; Max-Age=0; Path=/`,
+                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`,
+                    `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`
                 ]);
             } else {
                 activeKeyExpiresAt = keyDoc.data().expiresAt;
@@ -460,7 +561,9 @@ export default async function handler(req, res) {
                 keyStep = 1;
                 
                 res.setHeader('Set-Cookie', [
-                    `key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`
+                    `key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`,
+                    `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`,
+                    `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`
                 ]);
                 res.setHeader("Content-Type", "text/html; charset=utf-8");
                 return res.status(200).send(verifyingTaskUI);
@@ -566,7 +669,9 @@ export default async function handler(req, res) {
 
             res.setHeader('Set-Cookie', [
                 `key_step=0; Max-Age=0; Path=/`, 
-                `active_key=${uniqueKey}; Max-Age=86400; Path=/; SameSite=Lax`
+                `active_key=${uniqueKey}; Max-Age=86400; Path=/; SameSite=Lax`,
+                `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`,
+                `discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`
             ]);
 
             return res.status(200).json({ success: true, key: uniqueKey });
@@ -578,18 +683,15 @@ export default async function handler(req, res) {
     if (req.method === "GET") {
         let currentTaskUrl = "#";
         if (keyStep < 1 && !activeKey) {
-            const host = req.headers.host;
-            const protocol = host.includes("localhost") ? "http" : "https";
-
             const sessionToken = jwt.sign(
                 { hwid: userHwid, targetStep: 1 }, 
                 JWT_SECRET, 
                 { expiresIn: '15m' } 
             );
 
-            const targetUrl = `${protocol}://${host}/api/keysystem?hwid=${encodeURIComponent(userHwid)}&token=${sessionToken}`;
+            const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // 🟢 استخدام Nitro Link API تماماً كما طلبته
+            // 🟢 استخدام Nitro Link API
             try {
                 const nitroLinkApiUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API}&url=${encodeURIComponent(targetUrl)}`;
                 const nitroRes = await fetch(nitroLinkApiUrl);
@@ -607,8 +709,8 @@ export default async function handler(req, res) {
         }
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage, userHwid));
+        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage));
     }
 
     return res.status(405).send("Method Not Allowed");
-}
+        }
