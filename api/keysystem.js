@@ -616,32 +616,44 @@ export default async function handler(req, res) {
 
             const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // ✅ استخدام Alias فريد عشان نتجنب تكرار الأسماء
+            // ✅ طلب API سليم لـ LinkJust مع User-Agent لمنع الحظر
             try {
-                const uniqueAlias = `task_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&alias=${uniqueAlias}&format=text`;
+                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&format=text`;
                 
                 console.log("📤 LinkJust Request:", linkJustApiUrl);
                 
-                const linkJustRes = await fetch(linkJustApiUrl);
+                const linkJustRes = await fetch(linkJustApiUrl, {
+                    method: 'GET',
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'text/plain, application/json'
+                    }
+                });
+                
                 const responseText = await linkJustRes.text();
                 console.log("📥 LinkJust Response:", responseText);
                 
-                if (responseText.trim().startsWith('https://linkjust.com/')) {
-                    currentTaskUrl = responseText.trim();
-                } 
-                else if (responseText.trim().startsWith('{')) {
-                    try {
-                        const jsonData = JSON.parse(responseText);
-                        if (jsonData && jsonData.status === 'success' && jsonData.shortenedUrl) {
-                            currentTaskUrl = jsonData.shortenedUrl;
+                if (responseText && typeof responseText === 'string') {
+                    const cleanResponse = responseText.trim();
+                    
+                    if (cleanResponse.startsWith('http')) {
+                        currentTaskUrl = cleanResponse;
+                    } 
+                    else if (cleanResponse.startsWith('{')) {
+                        try {
+                            const jsonData = JSON.parse(cleanResponse);
+                            if (jsonData && jsonData.status === 'success' && jsonData.shortenedUrl) {
+                                currentTaskUrl = jsonData.shortenedUrl;
+                            }
+                        } catch (e) {
+                            console.error("JSON parse error:", e);
+                            currentTaskUrl = targetUrl;
                         }
-                    } catch (e) {
-                        console.error("JSON parse error:", e);
+                    } else {
+                        console.log("⚠️ LinkJust returned an unexpected response, using fallback");
+                        currentTaskUrl = targetUrl;
                     }
-                }
-                else {
-                    console.log("⚠️ LinkJust returned unexpected response, using fallback");
+                } else {
                     currentTaskUrl = targetUrl;
                 }
             } catch (err) {
