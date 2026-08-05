@@ -2,7 +2,7 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 
-const NITRO_LINK_API = "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9";
+const LINKJUST_API_TOKEN = "944c5ea148b949eb91be07963d8615e6904f460b";
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240";
@@ -264,7 +264,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                 <div class="step active"><i class="fa-solid fa-spinner fa-spin"></i> Required Task</div>
             </div>
             <a href="${currentTaskUrl}" target="_blank" class="btn continue-btn">
-                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Continue with Nitro Link</span> 
+                <span><i class="fa-solid fa-link" style="color:#f59e0b; margin-right:8px;"></i> Continue with LinkJust</span> 
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
             <p class="timer-text"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Streak Progress: ${streakCount}/7 Days (Keep it up!)</p>
@@ -405,7 +405,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي (الخادم مع استعادة دعم الكوكيز للـ HWID وديسكورد)
+// الكود الأساسي (الخادم مع ربط LinkJust API)
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
@@ -439,7 +439,6 @@ export default async function handler(req, res) {
 
     const cookieHeader = req.headers.cookie || '';
     
-    // استعادة جلب الـ HWID من الرابط أو من الكوكيز
     let userHwid = req.query.hwid || null;
     if (!userHwid) {
         const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
@@ -451,7 +450,6 @@ export default async function handler(req, res) {
         return res.status(403).send(invalidLinkUI);
     }
 
-    // حفظ الـ HWID في الكوكيز لضمان بقائه
     res.setHeader('Set-Cookie', `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`);
 
     try {
@@ -464,7 +462,7 @@ export default async function handler(req, res) {
         console.error("Ban check failed:", err);
     }
 
-    // 🟢 نظام ديسكورد OAuth2 للتحقق من العضوية في السيرفر
+    // 🟢 نظام ديسكورد OAuth2 للتحقق من العضوية
     const host = req.headers.host;
     const protocol = host.includes("localhost") ? "http" : "https";
     const redirectUri = `${protocol}://${host}/api/keysystem`;
@@ -691,19 +689,29 @@ export default async function handler(req, res) {
 
             const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // 🟢 استخدام Nitro Link API
+            // 🟢 استخدام LinkJust API بناءً على التوثيق (يدعم JSON و Text)
             try {
-                const nitroLinkApiUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API}&url=${encodeURIComponent(targetUrl)}`;
-                const nitroRes = await fetch(nitroLinkApiUrl);
-                const nitroData = await nitroRes.json();
-                
-                if (nitroData && nitroData.status === 'success' && nitroData.shortenedUrl) {
-                    currentTaskUrl = nitroData.shortenedUrl;
+                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
+                const linkJustRes = await fetch(linkJustApiUrl);
+                const contentType = linkJustRes.headers.get("content-type") || "";
+
+                if (contentType.includes("application/json")) {
+                    const linkJustData = await linkJustRes.json();
+                    if (linkJustData.status === "success" && linkJustData.shortenedUrl) {
+                        currentTaskUrl = linkJustData.shortenedUrl;
+                    } else {
+                        currentTaskUrl = targetUrl;
+                    }
                 } else {
-                    currentTaskUrl = targetUrl;
+                    const textResult = await linkJustRes.text();
+                    if (linkJustRes.ok && textResult.trim().startsWith("http")) {
+                        currentTaskUrl = textResult.trim();
+                    } else {
+                        currentTaskUrl = targetUrl;
+                    }
                 }
             } catch (err) {
-                console.error("Nitro Link API Error:", err);
+                console.error("LinkJust API Error:", err);
                 currentTaskUrl = targetUrl;
             }
         }
@@ -713,4 +721,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).send("Method Not Allowed");
-        }
+}
