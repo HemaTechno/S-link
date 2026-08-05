@@ -405,7 +405,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي
+// الكود الأساسي (الخادم ومعالجة الـ HWID)
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
@@ -439,18 +439,24 @@ export default async function handler(req, res) {
 
     const cookieHeader = req.headers.cookie || '';
     
+    // 🟢 التقاط الـ HWID من الرابط (Query) أو من الكوكيز
     let userHwid = req.query.hwid || null;
     if (!userHwid) {
         const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
         if (hwidMatch) userHwid = hwidMatch[1];
     }
 
+    // إذا لم يتم العثور عليه في أيهما، يتم إظهار خطأ أن الرابط غير صالح (يجب فتحه من روبلوكس)
     if (!userHwid) {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         return res.status(403).send(invalidLinkUI);
     }
 
-    res.setHeader('Set-Cookie', `user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`);
+    // 🟢 التأكد من حفظ/تحديث HWID في الكوكيز دائماً لمنع ضياعه أثناء التنقل بين الصفحات
+    let existingCookies = res.getHeader('Set-Cookie') || [];
+    if (!Array.isArray(existingCookies)) existingCookies = [existingCookies];
+    existingCookies.push(`user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`);
+    res.setHeader('Set-Cookie', existingCookies);
 
     try {
         const banCheck = await db.collection("banned_users").doc(userHwid).get();
@@ -462,6 +468,7 @@ export default async function handler(req, res) {
         console.error("Ban check failed:", err);
     }
 
+    // 🟢 نظام ديسكورد OAuth2 للتحقق من العضوية في السيرفر
     const host = req.headers.host;
     const protocol = host.includes("localhost") ? "http" : "https";
     const redirectUri = `${protocol}://${host}/api/keysystem`;
@@ -688,7 +695,7 @@ export default async function handler(req, res) {
 
             const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // 🟢 استخدام LinkJust API
+            // 🟢 ربط رابط الهدف عبر LinkJust API
             try {
                 const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
                 const linkJustRes = await fetch(linkJustApiUrl);
@@ -705,7 +712,7 @@ export default async function handler(req, res) {
             }
         }
 
-        res.Header("Content-Type", "text/html; charset=utf-8");
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
         return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage));
     }
 
