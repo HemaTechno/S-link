@@ -405,7 +405,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي (الخادم مع ربط LinkJust API)
+// الكود الأساسي (الخادم مع ربط LinkJust API بصيغة format=text)
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
@@ -688,26 +688,16 @@ export default async function handler(req, res) {
 
             const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // 🟢 استخدام LinkJust API بناءً على التوثيق المستخرج من صور لوحة التحكم
+            // 🟢 استخدام LinkJust API مع الصيغة النصية المباشرة (format=text)
             try {
-                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
+                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&format=text`;
                 const linkJustRes = await fetch(linkJustApiUrl);
-                const contentType = linkJustRes.headers.get("content-type") || "";
-
-                if (contentType.includes("application/json")) {
-                    const linkJustData = await linkJustRes.json();
-                    if (linkJustData.status === "success" && linkJustData.shortenedUrl) {
-                        currentTaskUrl = linkJustData.shortenedUrl;
-                    } else {
-                        currentTaskUrl = targetUrl;
-                    }
+                const textResult = await linkJustRes.text();
+                
+                if (linkJustRes.ok && textResult.trim().startsWith("http")) {
+                    currentTaskUrl = textResult.trim();
                 } else {
-                    const textResult = await linkJustRes.text();
-                    if (linkJustRes.ok && textResult.trim().startsWith("http")) {
-                        currentTaskUrl = textResult.trim();
-                    } else {
-                        currentTaskUrl = targetUrl;
-                    }
+                    currentTaskUrl = targetUrl;
                 }
             } catch (err) {
                 console.error("LinkJust API Error:", err);
