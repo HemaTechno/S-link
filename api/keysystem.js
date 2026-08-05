@@ -462,7 +462,6 @@ export default async function handler(req, res) {
         console.error("Ban check failed:", err);
     }
 
-    // 🟢 نظام ديسكورد OAuth2 للتحقق من العضوية
     const host = req.headers.host;
     const protocol = host.includes("localhost") ? "http" : "https";
     const redirectUri = `${protocol}://${host}/api/keysystem`;
@@ -689,7 +688,7 @@ export default async function handler(req, res) {
 
             const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
             
-            // 🟢 استخدام LinkJust API بناءً على التوثيق (يدعم JSON و Text)
+            // 🟢 استخدام LinkJust API بناءً على التوثيق المستخرج من صور لوحة التحكم
             try {
                 const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
                 const linkJustRes = await fetch(linkJustApiUrl);
