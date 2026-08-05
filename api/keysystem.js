@@ -360,7 +360,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي (الخادم مع تحديث إشعارات ديسكورد - الاقتراح 4)
+// الكود الأساسي (الخادم)
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
@@ -377,7 +377,6 @@ export default async function handler(req, res) {
                 isVPN = true;
             }
 
-            // جلب معلومات الدولة عبر API مجاني خفيف للـ IP
             const ipInfoRes = await fetch(`http://ip-api.com/json/${clientIp}`);
             const ipInfoData = await ipInfoRes.json();
             if (ipInfoData && ipInfoData.country) {
@@ -393,6 +392,7 @@ export default async function handler(req, res) {
         return res.status(403).send(vpnBlockUI);
     }
 
+    // قراءة الـ HWID حصرياً من الرابط (Query Parameters)
     let userHwid = req.query.hwid || null;
 
     if (!userHwid) {
@@ -539,7 +539,6 @@ export default async function handler(req, res) {
                 country: countryName
             });
 
-            // 🟢 إرسال إشعار ديسكورد محسن بالتفاصيل الكاملة (الاقتراح رقم 4)
             if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL.startsWith("http")) {
                 try {
                     await fetch(DISCORD_WEBHOOK_URL, {
@@ -590,15 +589,34 @@ export default async function handler(req, res) {
 
             const targetUrl = `${protocol}://${host}/api/keysystem?hwid=${encodeURIComponent(userHwid)}&token=${sessionToken}`;
             
+            // معالجة استجابة Short Jambo (سواء كانت JSON أو Text) لضمان الحصول على الرابط المختصر الفعلي
             try {
-                const shortJamboApiUrl = `https://short-jambo.com/api?api=${SHORT_JAMBO_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&format=text`;
+                const shortJamboApiUrl = `https://short-jambo.com/api?api=${SHORT_JAMBO_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
                 const shortRes = await fetch(shortJamboApiUrl);
-                const shortText = await shortRes.text();
-                
-                if (shortRes.ok && shortText.includes("http")) {
-                    currentTaskUrl = shortText.trim();
+                const contentType = shortRes.headers.get("content-type") || "";
+
+                if (contentType.includes("application/json")) {
+                    const shortData = await shortRes.json();
+                    if (shortData.status === "success" && shortData.shortenedUrl) {
+                        currentTaskUrl = shortData.shortenedUrl;
+                    } else if (shortData.shortened_url) {
+                        currentTaskUrl = shortData.shortened_url;
+                    } else {
+                        currentTaskUrl = targetUrl;
+                    }
                 } else {
-                    currentTaskUrl = targetUrl;
+                    const shortText = await shortRes.text();
+                    if (shortRes.ok && shortText.trim().startsWith("http")) {
+                        currentTaskUrl = shortText.trim();
+                    } else {
+                        const textRes = await fetch(shortJamboApiUrl + "&format=text");
+                        const textResult = await textRes.text();
+                        if (textResult.trim().startsWith("http")) {
+                            currentTaskUrl = textResult.trim();
+                        } else {
+                            currentTaskUrl = targetUrl;
+                        }
+                    }
                 }
             } catch (err) {
                 console.error("Short Jambo API error:", err);
@@ -611,4 +629,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).send("Method Not Allowed");
-                                    }
+}
