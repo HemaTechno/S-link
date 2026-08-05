@@ -2,7 +2,7 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 
-const SHORT_JAMBO_API_TOKEN = "544ab4310ccbe274d8acc62f73208c25a1e07ad";
+const NITRO_LINK_API = "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9";
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
@@ -23,7 +23,7 @@ const invalidLinkUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(248, 113, 113, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
@@ -53,7 +53,7 @@ const vpnBlockUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(255, 165, 0, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
@@ -83,7 +83,7 @@ const tokenErrorUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(248, 113, 113, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
@@ -114,7 +114,7 @@ const verifyingTaskUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(74, 222, 128, 0.3); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
@@ -155,7 +155,7 @@ const bannedUserUI = (hwid) => `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(248, 113, 113, 0.5); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
@@ -219,7 +219,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                 <div class="step active"><i class="fa-solid fa-spinner fa-spin"></i> Required Task</div>
             </div>
             <a href="${currentTaskUrl}" target="_blank" class="btn continue-btn">
-                <span><i class="fa-solid fa-bolt" style="color:#00e676; margin-right:6px;"></i> Continue with Short Jambo</span> 
+                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Continue with Nitro Link</span> 
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
             <p class="timer-text"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Streak Progress: ${streakCount}/7 Days (Keep it up!)</p>
@@ -269,23 +269,22 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #4ade80; --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --glass-border: rgba(255, 215, 0, 0.15); --text-main: #ffffff; }
+        :root { --primary: #4ade80; --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --glass-border: rgba(255, 215, 0, 0.15); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
-        .logo-container img { max-width: 130px; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(255,215,0,0.2)); }
+        .logo-container img { max-width: 140px; margin-bottom: 20px; filter: drop-shadow(0 0 12px rgba(255,215,0,0.25)); }
         h1 { color: #fff; margin-bottom: 20px; font-size: 1.6rem; font-weight: 800; }
         
         .steps-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left; }
         .step { padding: 15px 18px; border-radius: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; font-size: 14px; transition: 0.3s; }
-        .step.locked { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.04); color: #555; }
         .step.active { background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80; box-shadow: 0 0 15px rgba(74, 222, 128, 0.08); }
         .step.done { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: #fff; }
         .step.done i { color: #4ade80; }
 
         .btn { width: 100%; padding: 16px; border-radius: 14px; cursor: pointer; font-size: 15px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: space-between; border: none; transition: 0.3s; }
-        .continue-btn { background: linear-gradient(135deg, #ffffff 0%, #e2e8f0); color: #000; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
-        .continue-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,255,255,0.2); }
+        .continue-btn { background: linear-gradient(135deg, #ffffff 0%, #cbd5e1); color: #000; box-shadow: 0 4px 15px rgba(255,255,255,0.15); }
+        .continue-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,255,255,0.25); background: #fff; }
         .generate-btn { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%); color: #000; justify-content: center; gap: 10px; }
         .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(74,222,128,0.35); }
         
@@ -365,7 +364,10 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
+    const userAgent = req.headers["user-agent"] || "Unknown Device";
+    
     let isVPN = false;
+    let countryName = "Unknown";
     
     if (clientIp && clientIp !== "::1" && clientIp !== "127.0.0.1") {
         try {
@@ -374,8 +376,14 @@ export default async function handler(req, res) {
             if (text.trim() === 'Y') {
                 isVPN = true;
             }
+
+            const ipInfoRes = await fetch(`http://ip-api.com/json/${clientIp}`);
+            const ipInfoData = await ipInfoRes.json();
+            if (ipInfoData && ipInfoData.country) {
+                countryName = ipInfoData.country;
+            }
         } catch (error) {
-            console.error("VPN check failed");
+            console.error("VPN or IP check failed");
         }
     }
 
@@ -384,7 +392,7 @@ export default async function handler(req, res) {
         return res.status(403).send(vpnBlockUI);
     }
 
-    // 🟢 قراءة الـ HWID حصرياً من رابط الـ GET
+    // 🟢 قراءة الـ HWID حصرياً من الرابط
     let userHwid = req.query.hwid || null;
 
     if (!userHwid) {
@@ -527,7 +535,8 @@ export default async function handler(req, res) {
                 createdAt: nowTime,
                 expiresAt: expiresAt,
                 hwid: userHwid,
-                ip: clientIp || "Unknown"
+                ip: clientIp || "Unknown",
+                country: countryName
             });
 
             if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL.startsWith("http")) {
@@ -537,15 +546,17 @@ export default async function handler(req, res) {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             embeds: [{
-                                title: isBonusKey ? "🎁 7-Day Streak Bonus! 3-Day Key Generated!" : "🎉 New Key Generated (Streak Checked)!",
+                                title: isBonusKey ? "🎁 7-Day Streak Bonus! 3-Day Key Generated!" : "🎉 New Key Generated Successfully!",
                                 color: isBonusKey ? 16766720 : 4906624, 
                                 fields: [
-                                    { name: "🔑 Key", value: `\`${uniqueKey}\``, inline: false },
-                                    { name: "🔥 Streak Status", value: isBonusKey ? "Completed 7 Days! (Rewarded 3 Days Free)" : `Day ${newStreak} of 7`, inline: false },
+                                    { name: "🔑 Generated Key", value: `\`${uniqueKey}\``, inline: false },
+                                    { name: "🔥 Streak Status", value: isBonusKey ? "Completed 7 Days! (Rewarded 3 Days Free)" : `Day ${newStreak} of 7`, inline: true },
+                                    { name: "🌍 Country", value: `\`${countryName}\``, inline: true },
                                     { name: "💻 HWID", value: `\`${userHwid}\``, inline: false },
-                                    { name: "🌐 IP Address", value: `\`${clientIp || "Unknown"}\``, inline: false }
+                                    { name: "🌐 IP Address", value: `\`${clientIp || "Unknown"}\``, inline: true },
+                                    { name: "📱 User Agent", value: `\`${userAgent.substring(0, 80)}...\``, inline: false }
                                 ],
-                                footer: { text: "SubX Premium System" },
+                                footer: { text: "SubX Advanced Logger" },
                                 timestamp: new Date().toISOString()
                             }]
                         })
@@ -566,12 +577,6 @@ export default async function handler(req, res) {
 
     if (req.method === "GET") {
         let currentTaskUrl = "#";
-        
-        // إذا لم يكن لديه مفتاح فعال، نجبره على البدء من الخطوة صفر لتوليد رابط Short Jambo
-        if (activeKey) {
-            keyStep = 0;
-        }
-
         if (keyStep < 1 && !activeKey) {
             const host = req.headers.host;
             const protocol = host.includes("localhost") ? "http" : "https";
@@ -584,19 +589,19 @@ export default async function handler(req, res) {
 
             const targetUrl = `${protocol}://${host}/api/keysystem?hwid=${encodeURIComponent(userHwid)}&token=${sessionToken}`;
             
-            // 🟢 استخدام Short Jambo API بالشكل الصحيح
+            // 🟢 استخدام Nitro Link API تماماً كما طلبته
             try {
-                const shortJamboApiUrl = `https://short-jambo.com/api?api=${SHORT_JAMBO_API_TOKEN}&url=${encodeURIComponent(targetUrl)}&format=text`;
-                const shortRes = await fetch(shortJamboApiUrl);
-                const shortText = await shortRes.text();
+                const nitroLinkApiUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API}&url=${encodeURIComponent(targetUrl)}`;
+                const nitroRes = await fetch(nitroLinkApiUrl);
+                const nitroData = await nitroRes.json();
                 
-                if (shortRes.ok && shortText.trim().startsWith("http")) {
-                    currentTaskUrl = shortText.trim();
+                if (nitroData && nitroData.status === 'success' && nitroData.shortenedUrl) {
+                    currentTaskUrl = nitroData.shortenedUrl;
                 } else {
                     currentTaskUrl = targetUrl;
                 }
             } catch (err) {
-                console.error("Short Jambo API error:", err);
+                console.error("Nitro Link API Error:", err);
                 currentTaskUrl = targetUrl;
             }
         }
