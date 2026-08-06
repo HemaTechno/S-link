@@ -3,8 +3,8 @@ import { nanoid } from "nanoid";
 import axios from "axios";
 
 const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
-const LINKVERTISE_USER_ID = "1322389"; // ضع الـ ID الخاص بك هنا
-const NITRO_LINK_API = "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9"; // توكن Nitro Link الخاص بك
+const LINKVERTISE_USER_ID = "1322389";
+const NITRO_LINK_API = "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9";
 
 // 🔴 إعدادات ديسكورد
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240";
@@ -13,6 +13,10 @@ const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || "";
 const DISCORD_SERVER_ID = process.env.DISCORD_SERVER_ID || "1135848445471629393";
 const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || "https://discord.gg/hematech-1135848445471629393"; 
 const REQUIRED_ROLE_ID = process.env.REQUIRED_ROLE_ID || "1271181175305797652"; 
+
+// 🖼️ ميديا السيرفر
+const DISCORD_BANNER_URL = process.env.DISCORD_BANNER_URL || "/banner.png"; // رابط البانر
+const DISCORD_LOGO_URL = process.env.DISCORD_LOGO_URL || "/logo.png";     // رابط اللوجو
 
 const cache = new Map();
 const spamCache = new Map(); 
@@ -51,8 +55,8 @@ const vpnBlockUI = `
 </html>
 `;
 
-// 🟢 واجهة طلب دخول السيرفر والتحقق من ديسكورد
-const discordAuthUI = (discordAuthUrl) => `
+// 🟢 واجهة تحقق ديسكورد الجديدة مع البانر واللوجو وإحصائيات السيرفر
+const discordAuthUI = (discordAuthUrl, stats = { totalMembers: "--", onlineMembers: "--" }) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -62,32 +66,97 @@ const discordAuthUI = (discordAuthUrl) => `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #0c0d10; --glass-bg: rgba(20, 21, 25, 0.6); --text-main: #ffffff; }
+        :root { --bg-dark: #0c0d10; --glass-bg: rgba(20, 21, 25, 0.75); --text-main: #ffffff; --discord: #5865F2; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .container { width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(88, 101, 242, 0.4); text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.7); }
-        h1 { color: #5865F2; margin-bottom: 15px; font-size: 1.8rem; font-weight: 800; }
-        p { color: #aaa; font-size: 1.1rem; margin-bottom: 25px; line-height: 1.6; }
-        .discord-icon { font-size: 65px; color: #5865F2; margin-bottom: 20px; text-shadow: 0 0 20px rgba(88, 101, 242, 0.4); }
+        
+        .container { 
+            width: 480px; max-width: 100%; border-radius: 28px; 
+            background: var(--glass-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(88, 101, 242, 0.3); text-align: center; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8); overflow: hidden; position: relative;
+        }
+
+        /* Banner & Logo Header */
+        .server-banner {
+            width: 100%; height: 140px; background: url('${DISCORD_BANNER_URL}') center/cover no-repeat;
+            position: relative; border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .server-banner::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(20, 21, 25, 0.95));
+        }
+
+        .logo-wrapper {
+            position: relative; margin-top: -50px; margin-bottom: 15px; z-index: 2;
+        }
+        .server-logo {
+            width: 90px; height: 90px; border-radius: 50%; border: 4px solid #141519;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6); object-fit: cover; background: #141519;
+        }
+
+        .content-body { padding: 0 35px 35px 35px; }
+
+        h1 { color: #fff; margin-bottom: 8px; font-size: 1.7rem; font-weight: 800; }
+        p.subtitle { color: #aaa; font-size: 0.95rem; margin-bottom: 20px; line-height: 1.5; }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px;
+        }
+        .stat-card {
+            background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 12px; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .stat-value { font-size: 1.1rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px; }
+        .stat-label { font-size: 0.75rem; color: #888; font-weight: 700; margin-top: 4px; text-transform: uppercase; }
+        .online-dot { width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 8px #22c55e; }
+
+        /* Buttons */
         .btn-group { display: flex; flex-direction: column; gap: 12px; }
-        .btn-discord { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 16px; background: #5865F2; color: #fff; text-decoration: none; font-weight: bold; border-radius: 14px; transition: 0.3s; font-size: 15px; box-shadow: 0 4px 15px rgba(88,101,242,0.3); }
-        .btn-discord:hover { background: #4752c4; transform: translateY(-2px); }
-        .btn-join { background: #23272A; border: 1px solid rgba(255,255,255,0.1); }
-        .btn-join:hover { background: #2c2f33; }
+        .btn-discord { 
+            display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; 
+            padding: 16px; background: var(--discord); color: #fff; text-decoration: none; 
+            font-weight: bold; border-radius: 16px; transition: all 0.3s; font-size: 15px; 
+            box-shadow: 0 4px 15px rgba(88,101,242,0.3); border: none;
+        }
+        .btn-discord:hover { background: #4752c4; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(88,101,242,0.4); }
+        .btn-join { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); color: #fff; }
+        .btn-join:hover { background: rgba(255, 255, 255, 0.1); }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="discord-icon"><i class="fa-brands fa-discord"></i></div>
-        <h1>Discord Verification</h1>
-        <p>You must join our server, obtain the required role, and verify your account to continue.</p>
-        <div class="btn-group">
-            <a href="${DISCORD_INVITE_URL}" target="_blank" class="btn-discord btn-join">
-                <i class="fa-solid fa-right-to-bracket"></i> 1. Join Discord Server
-            </a>
-            <a href="${discordAuthUrl}" class="btn-discord">
-                <i class="fa-solid fa-user-check"></i> 2. Verify Role & Link Account
-            </a>
+        <div class="server-banner"></div>
+        <div class="logo-wrapper">
+            <img src="${DISCORD_LOGO_URL}" alt="Server Logo" class="server-logo">
+        </div>
+        
+        <div class="content-body">
+            <h1>Discord Verification</h1>
+            <p class="subtitle">Join our Discord server and complete verification to unlock access.</p>
+
+            <!-- Server Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value"><i class="fa-solid fa-users" style="color: #5865F2;"></i> ${stats.totalMembers}</div>
+                    <div class="stat-label">Total Members</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value"><span class="online-dot"></span> ${stats.onlineMembers}</div>
+                    <div class="stat-label">Online Members</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="btn-group">
+                <a href="${DISCORD_INVITE_URL}" target="_blank" class="btn-discord btn-join">
+                    <i class="fa-solid fa-right-to-bracket"></i> 1. Join Discord Server
+                </a>
+                <a href="${discordAuthUrl}" class="btn-discord">
+                    <i class="fa-solid fa-user-check"></i> 2. Verify Role & Link
+                </a>
+            </div>
         </div>
     </div>
 </body>
@@ -98,12 +167,9 @@ const discordAuthUI = (discordAuthUrl) => `
 const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
     const host = req.headers.host || "";
     const protocol = host.includes("localhost") ? "http" : "https";
-    const fullImageUrl = host ? `${protocol}://${host}/logo.png` : "/logo.png";
-    const pageUrl = host ? `${protocol}://${host}/?id=${linkName}` : "";
 
     let actionHtml = '';
 
-    // HTML & CSS الخاص بالأزرار
     const getNetworkButtons = (lootlabsUrl, linkvertiseUrl, nitroLinkUrl) => {
         let buttonsArray = [];
         
@@ -194,56 +260,24 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         .networks-container { display: flex; flex-direction: column; gap: 16px; }
         
         .network-btn {
-            position: relative;
-            width: 100%;
-            padding: 18px 24px;
-            border-radius: 16px;
-            cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
+            position: relative; width: 100%; padding: 18px 24px; border-radius: 16px;
+            cursor: pointer; text-decoration: none; display: flex; flex-direction: row;
+            align-items: center; justify-content: space-between;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            background: rgba(0, 0, 0, 0.3);
-            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.05); background: rgba(0, 0, 0, 0.3); overflow: hidden;
         }
 
-        .btn-text { 
-            font-size: 16px; 
-            font-weight: 800; 
-            z-index: 2; 
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
+        .btn-text { font-size: 16px; font-weight: 800; z-index: 2; display: flex; align-items: center; gap: 10px; }
         .network-logo { height: 24px; object-fit: contain; z-index: 2; max-width: 120px; }
 
         .lootlabs-btn { color: #ffd700; border-color: rgba(255, 215, 0, 0.15); }
-        .lootlabs-btn:hover {
-            transform: translateY(-4px);
-            border-color: rgba(255, 215, 0, 0.5);
-            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15);
-            background: rgba(255, 215, 0, 0.05);
-        }
+        .lootlabs-btn:hover { transform: translateY(-4px); border-color: rgba(255, 215, 0, 0.5); box-shadow: 0 8px 25px rgba(255, 215, 0, 0.15); background: rgba(255, 215, 0, 0.05); }
 
         .linkvertise-btn { color: #4ade80; border-color: rgba(74, 222, 128, 0.15); }
-        .linkvertise-btn:hover {
-            transform: translateY(-4px);
-            border-color: rgba(74, 222, 128, 0.5);
-            box-shadow: 0 8px 25px rgba(74, 222, 128, 0.15);
-            background: rgba(74, 222, 128, 0.05);
-        }
+        .linkvertise-btn:hover { transform: translateY(-4px); border-color: rgba(74, 222, 128, 0.5); box-shadow: 0 8px 25px rgba(74, 222, 128, 0.15); background: rgba(74, 222, 128, 0.05); }
 
         .nitrolink-btn { color: #ff5722; border-color: rgba(255, 87, 34, 0.15); }
-        .nitrolink-btn:hover {
-            transform: translateY(-4px);
-            border-color: rgba(255, 87, 34, 0.5);
-            box-shadow: 0 8px 25px rgba(255, 87, 34, 0.15);
-            background: rgba(255, 87, 34, 0.05);
-        }
+        .nitrolink-btn:hover { transform: translateY(-4px); border-color: rgba(255, 87, 34, 0.5); box-shadow: 0 8px 25px rgba(255, 87, 34, 0.15); background: rgba(255, 87, 34, 0.05); }
 
         .or-divider { text-align: center; margin: 10px 0; position: relative; }
         .or-divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.1); z-index: 1; }
@@ -252,25 +286,15 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         .default-btn { width: 100%; padding: 18px; border-radius: 16px; cursor: pointer; font-size: 17px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; color: #000; background: linear-gradient(135deg, var(--primary) 0%, #b89b00 100%); border: none; transition: transform 0.3s; }
         .default-btn:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2); }
 
-        .text-container {
-            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 16px; padding: 15px; margin-bottom: 20px; text-align: left;
-        }
-        textarea {
-            width: 100%; background: transparent; border: none; color: var(--text-main);
-            font-size: 16px; resize: none; outline: none; font-family: inherit; line-height: 1.5;
-        }
-        .copy-btn {
-            width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary) 0%, #b89b00 100%);
-            color: #000; border: none; border-radius: 16px; cursor: pointer; font-size: 18px; font-weight: 800;
-            display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s;
-        }
+        .text-container { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 15px; margin-bottom: 20px; text-align: left; }
+        textarea { width: 100%; background: transparent; border: none; color: var(--text-main); font-size: 16px; resize: none; outline: none; font-family: inherit; line-height: 1.5; }
+        .copy-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary) 0%, #b89b00 100%); color: #000; border: none; border-radius: 16px; cursor: pointer; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.3s; }
         .copy-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255, 215, 0, 0.25); background: linear-gradient(135deg, #ffea00 0%, #c9a900 100%); }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="logo-container"><img src="/logo.png" alt="Logo"></div>
+        <div class="logo-container"><img src="${DISCORD_LOGO_URL}" alt="Logo"></div>
         <h1><i class="fa-solid fa-shield-halved"></i> ${messageTitle}</h1>
         <div class="desc">Content ID: <strong>${linkName}</strong></div>
         ${actionHtml}
@@ -340,7 +364,6 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "GET") {
-        // 🛡️ فحص الـ VPN / Proxy أولاً لحماية الوصول للروابط
         const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
         let isVPN = false;
         
@@ -363,17 +386,16 @@ export default async function handler(req, res) {
         const id = req.query.id;
         const cookieHeader = req.headers.cookie || '';
 
-        // التقاط الـ HWID المستهدف
         let userHwid = req.query.hwid || req.query.state || null;
         if (!userHwid) {
             const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
             if (hwidMatch) userHwid = hwidMatch[1];
         }
-        if (!userHwid && id) userHwid = id; // HWID fallback بناءً على رابط المحتوى
+        if (!userHwid && id) userHwid = id;
 
         const host = req.headers.host || "";
         const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
-        const redirectUri = `${protocol}://${host}/api/keysystem`; // أو رابط صفحة العودة الخاصة بك
+        const redirectUri = `${protocol}://${host}/api/keysystem`;
 
         let cookieArray = [];
         if (userHwid) {
@@ -381,7 +403,7 @@ export default async function handler(req, res) {
         }
 
         // ========================================================
-        // 🟢 معالجة الكود الآتي من ديسكورد OAuth2
+        // 🟢 معالجة كود الديسكورد OAuth2
         // ========================================================
         if (req.query.code) {
             const code = req.query.code;
@@ -406,7 +428,6 @@ export default async function handler(req, res) {
                     let isMember = false;
                     let hasRole = false;
 
-                    // 1. الفحص بـ User Access Token أولاً
                     try {
                         const userGuildMemberRes = await axios.get(`https://discord.com/api/users/@me/guilds/${DISCORD_SERVER_ID}/member`, {
                             headers: { authorization: `Bearer ${tokenData.access_token}` }
@@ -419,7 +440,6 @@ export default async function handler(req, res) {
                             }
                         }
                     } catch (e) {
-                        // 2. الفحص البديل بـ Bot Token
                         if (DISCORD_BOT_TOKEN) {
                             try {
                                 const botMemberRes = await axios.get(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
@@ -471,7 +491,7 @@ export default async function handler(req, res) {
             }
         }
 
-        // 🟢 الفحص الحي لحالة التوثيق قبل عرض الصفحة
+        // 🟢 الفحص الحي لحالة التوثيق
         let isDiscordVerified = false;
         if (userHwid) {
             const linkCheck = await db.collection("discord_links").doc(userHwid).get();
@@ -502,12 +522,25 @@ export default async function handler(req, res) {
             }
         }
 
-        // إذا لم يكن موثقاً بـ Discord، نعرض عليه واجهة ربط الديسكورد أولاً
+        // 📊 جلب إحصائيات السيرفر فورياً للواجهة
+        let serverStats = { totalMembers: "--", onlineMembers: "--" };
+        if (!isDiscordVerified && DISCORD_BOT_TOKEN && DISCORD_SERVER_ID) {
+            try {
+                const guildRes = await axios.get(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}?with_counts=true`, {
+                    headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` }
+                });
+                if (guildRes.status === 200) {
+                    serverStats.totalMembers = guildRes.data.approximate_member_count || "--";
+                    serverStats.onlineMembers = guildRes.data.approximate_presence_count || "--";
+                }
+            } catch (err) {}
+        }
+
         if (!isDiscordVerified && DISCORD_CLIENT_ID !== "YOUR_DISCORD_CLIENT_ID") {
             const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds%20guilds.members.read&state=${userHwid || ''}`;
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             if (cookieArray.length > 0) res.setHeader('Set-Cookie', cookieArray);
-            return res.status(200).send(discordAuthUI(discordAuthUrl));
+            return res.status(200).send(discordAuthUI(discordAuthUrl, serverStats));
         }
 
         if (cookieArray.length > 0) res.setHeader('Set-Cookie', cookieArray);
@@ -589,4 +622,4 @@ export default async function handler(req, res) {
     }
 
     return res.status(405).send("Method Not Allowed");
-}
+                }
