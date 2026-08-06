@@ -1,4 +1,3 @@
-
 import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
@@ -13,6 +12,7 @@ const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240"
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "fJ2SyQX5I_DY2IHUzn8EYnw6Pm6YFHAB"; 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; // ضع توكن البوت هنا لفحص خروج الأعضاء
 const DISCORD_SERVER_ID = process.env.DISCORD_SERVER_ID || "1135848445471629393";
+const DISCORD_INVITE_LINK = "https://discord.gg/hematech-1135848445471629393"; // رابط دعوة السيرفر
 
 const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkXp0_d1132x_fP2GnuorVPs0";
 const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY || "6Lc31mwtAAAAALgsx7eKJwIIK-2uJkCp7-ERc__1";
@@ -80,7 +80,7 @@ const vpnBlockUI = `
 </html>
 `;
 
-const discordAuthUI = (discordAuthUrl) => `
+const discordAuthUI = (discordAuthUrl, inviteLink) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -97,17 +97,23 @@ const discordAuthUI = (discordAuthUrl) => `
         h1 { color: #5865F2; margin-bottom: 15px; font-size: 1.6rem; font-weight: 800; }
         p { color: #aaa; font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
         .discord-icon { font-size: 65px; color: #5865F2; margin-bottom: 20px; text-shadow: 0 0 20px rgba(88, 101, 242, 0.4); }
-        .btn-discord { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 16px; background: #5865F2; color: #fff; text-decoration: none; font-weight: bold; border-radius: 14px; transition: 0.3s; font-size: 16px; box-shadow: 0 4px 15px rgba(88,101,242,0.3); }
-        .btn-discord:hover { background: #4752c4; transform: translateY(-2px); }
+        .btn { width: 100%; padding: 16px; border-radius: 14px; cursor: pointer; font-size: 15px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 12px; border: none; transition: 0.3s; margin-bottom: 12px; }
+        .discord-btn { background: #5865F2; color: #fff; box-shadow: 0 4px 15px rgba(88,101,242,0.3); }
+        .discord-btn:hover { background: #4752c4; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(88,101,242,0.4); }
+        .join-btn { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
+        .join-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="discord-icon"><i class="fa-brands fa-discord"></i></div>
         <h1>Discord Verification</h1>
-        <p>You must link your Discord account and join our server to use the SubX Key System.</p>
-        <a href="${discordAuthUrl}" class="btn-discord">
-            <i class="fa-brands fa-discord"></i> Verify & Link Discord
+        <p>You must link your Discord account and join our community server to unlock this content.</p>
+        <a href="${inviteLink}" target="_blank" class="btn join-btn">
+            <i class="fa-brands fa-discord"></i> 1. Join Discord Server
+        </a>
+        <a href="${discordAuthUrl}" class="btn discord-btn">
+            <i class="fa-solid fa-right-to-bracket"></i> 2. Verify Membership
         </a>
     </div>
 </body>
@@ -217,36 +223,32 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
-// واجهة المستخدم لتوليد المفتاح مع نظام LinkJust المزدوج
-const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage, requiresClientApi = false, targetUrl = "") => {
+// واجهة المستخدم لتوليد المفتاح 
+const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, errorMessage) => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
 
     if (activeKey) {
         actionHtml = `
             <div class="success-box">
-                <i class="fa-solid fa-circle-check"></i> Your Key is Active! (${streakCount} Day(s) Streak 🔥)
+                <i class="fa-solid fa-circle-check"></i> Your Key is Active!
             </div>
             <div class="key-display">
                 <input type="text" id="finalKey" value="${activeKey}" readonly>
                 <button onclick="copyKey()"><i class="fa-solid fa-copy"></i></button>
             </div>
-            <div class="countdown-box">
-                <i class="fa-solid fa-hourglass-half"></i> Time Remaining: <span id="liveTimer" style="color: #ffd700; font-weight: bold;">Calculated...</span>
+            <div class="countdown-box" style="margin-top:15px;">
+                <i class="fa-solid fa-hourglass-half"></i> Time Remaining: <span id="liveTimer" style="color: #4ade80; font-weight: bold;">Calculated...</span>
             </div>
         `;
-    } else if (keyStep >= 1) {
-        let streakBonusText = streakCount === 6 
-            ? `<div class="streak-badge" style="color: #ffd700;"><i class="fa-solid fa-fire"></i> This is your 7th Day! You will get a FREE 3-Day Key!</div>` 
-            : `<div class="streak-badge"><i class="fa-solid fa-fire" style="color: #f97316;"></i> Current Streak: ${streakCount + 1}/7 Days</div>`;
-
+    } else if (keyStep >= 3) {
         actionHtml = `
             <div class="steps-container">
-                <div class="step done"><i class="fa-solid fa-check"></i> Task Completed</div>
+                <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 1 Completed</div>
+                <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 2 Completed</div>
+                <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 3 Completed</div>
             </div>
             
-            ${streakBonusText}
-
             <div style="display: flex; justify-content: center; margin-bottom: 20px;">
                 <div class="g-recaptcha" data-sitekey="${RECAPTCHA_SITE_KEY}" data-theme="dark"></div>
             </div>
@@ -256,53 +258,25 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
             </button>
         `;
     } else {
-        let taskButton = '';
-        
-        // 🟢 الحل العبقري: لو السيرفر اتعمله بلوك من كلاودفلير، المتصفح هيولد الرابط بنفسه
-        if (requiresClientApi) {
-            taskButton = `
-            <a href="javascript:void(0)" onclick="generateLinkClientSide()" class="btn continue-btn" id="taskBtn">
-                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Click to Complete Task</span> 
-                <i class="fa-solid fa-arrow-right"></i>
-            </a>
-            <script>
-                async function generateLinkClientSide() {
-                    const btn = document.getElementById('taskBtn');
-                    btn.innerHTML = '<span><i class="fa-solid fa-spinner fa-spin"></i> Loading Secure Link...</span>';
-                    btn.style.pointerEvents = 'none';
+        const step1Class = keyStep > 0 ? 'done' : (keyStep === 0 ? 'active' : 'locked');
+        const step2Class = keyStep > 1 ? 'done' : (keyStep === 1 ? 'active' : 'locked');
+        const step3Class = keyStep > 2 ? 'done' : (keyStep === 2 ? 'active' : 'locked');
 
-                    const target = "${targetUrl}";
-                    const apiUrl = "https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=" + encodeURIComponent(target);
-                    
-                    try {
-                        const res = await fetch(apiUrl);
-                        const data = await res.json();
-                        if(data.status === 'success' && data.shortenedUrl) {
-                            window.location.href = data.shortenedUrl;
-                            return;
-                        }
-                    } catch(err) {
-                        console.error("Browser API blocked, routing direct to target", err);
-                    }
-                    window.location.href = target;
-                }
-            </script>
-            `;
-        } else {
-            taskButton = `
-            <a href="${currentTaskUrl}" class="btn continue-btn">
-                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Click to Complete Task</span> 
-                <i class="fa-solid fa-arrow-right"></i>
-            </a>
-            `;
-        }
+        const step1Icon = keyStep > 0 ? 'fa-check' : (keyStep === 0 ? 'fa-spinner fa-spin' : 'fa-lock');
+        const step2Icon = keyStep > 1 ? 'fa-check' : (keyStep === 1 ? 'fa-spinner fa-spin' : 'fa-lock');
+        const step3Icon = keyStep > 2 ? 'fa-check' : (keyStep === 2 ? 'fa-spinner fa-spin' : 'fa-lock');
 
         actionHtml = `
             <div class="steps-container">
-                <div class="step active"><i class="fa-solid fa-spinner fa-spin"></i> Required Task</div>
+                <div class="step ${step1Class}"><i class="fa-solid ${step1Icon}"></i> Checkpoint 1</div>
+                <div class="step ${step2Class}"><i class="fa-solid ${step2Icon}"></i> Checkpoint 2</div>
+                <div class="step ${step3Class}"><i class="fa-solid ${step3Icon}"></i> Checkpoint 3</div>
             </div>
-            ${taskButton}
-            <p class="timer-text"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Streak Progress: ${streakCount}/7 Days (Keep it up!)</p>
+            <a href="${currentTaskUrl}" class="btn continue-btn">
+                <span><i class="fa-solid fa-link" style="color:#00e676; margin-right:6px;"></i> Continue with Linkvertise</span> 
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            <p class="timer-text">Complete Linkvertise checkpoints to unlock your key.</p>
         `;
     }
 
@@ -349,51 +323,33 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #4ade80; --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --glass-border: rgba(255, 215, 0, 0.15); --text-main: #ffffff; }
+        :root { --primary: #4ade80; --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --glass-border: rgba(255, 215, 0, 0.15); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
-        .logo-container img { max-width: 140px; margin-bottom: 20px; filter: drop-shadow(0 0 12px rgba(255,215,0,0.25)); }
+        .logo-container img { max-width: 130px; margin-bottom: 15px; filter: drop-shadow(0 0 10px rgba(255,215,0,0.2)); }
         h1 { color: #fff; margin-bottom: 20px; font-size: 1.6rem; font-weight: 800; }
         
-        .steps-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left; }
+        .steps-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 25px; text-align: left; }
         .step { padding: 15px 18px; border-radius: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; font-size: 14px; transition: 0.3s; }
+        .step.locked { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.04); color: #555; }
         .step.active { background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80; box-shadow: 0 0 15px rgba(74, 222, 128, 0.08); }
         .step.done { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: #fff; }
         .step.done i { color: #4ade80; }
 
         .btn { width: 100%; padding: 16px; border-radius: 14px; cursor: pointer; font-size: 15px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: space-between; border: none; transition: 0.3s; }
-        .continue-btn { 
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); 
-            color: #fff; 
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
-            justify-content: center;
-            gap: 10px;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(255, 107, 107, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
-        }
-        .continue-btn:hover { 
-            transform: translateY(-3px) scale(1.02); 
-            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.5); 
-            background: linear-gradient(135deg, #ff6b6b 0%, #d63031 100%);
-        }
+        .continue-btn { background: linear-gradient(135deg, #ffffff 0%, #e2e8f0); color: #000; box-shadow: 0 4px 15px rgba(255,255,255,0.1); }
+        .continue-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,255,255,0.2); }
         .generate-btn { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%); color: #000; justify-content: center; gap: 10px; }
         .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(74,222,128,0.35); }
         
-        .timer-text { margin-top: 15px; font-size: 12px; color: #aaa; font-weight: 600; }
-        .streak-badge { background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); color: #f97316; padding: 10px; border-radius: 10px; margin-bottom: 20px; font-size: 13px; font-weight: bold; }
-        .countdown-box { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 12px; font-size: 13px; color: #ccc; margin-bottom: 15px; }
-
-        .key-display { display: flex; gap: 10px; margin-bottom: 12px; }
+        .timer-text { margin-top: 18px; font-size: 12px; color: #888; font-weight: 600; }
+        .key-display { display: flex; gap: 10px; margin-bottom: 15px; }
         .key-display input { flex: 1; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.6); border: 1px solid var(--primary); color: var(--primary); font-family: monospace; font-size: 15px; font-weight: bold; text-align: center; outline: none; }
         .key-display button { padding: 0 20px; border-radius: 12px; background: var(--primary); color: #000; border: none; cursor: pointer; font-size: 16px; transition: 0.3s; }
         .key-display button:hover { transform: scale(1.05); }
         
-        .success-box { background: rgba(74, 222, 128, 0.1); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.2); padding: 12px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; font-size: 13px; }
+        .success-box { background: rgba(74, 222, 128, 0.1); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.2); padding: 12px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; font-size: 14px; }
         .error-box { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 12px; font-weight: 600; }
     </style>
 </head>
@@ -456,14 +412,11 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 };
 
 // ==========================================
-// الكود الأساسي والمنطق 
+// الكود الأساسي (الخادم)
 // ==========================================
 export default async function handler(req, res) {
     const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
-    const userAgent = req.headers["user-agent"] || "Unknown Device";
-    
     let isVPN = false;
-    let countryName = "Unknown";
     
     if (clientIp && clientIp !== "::1" && clientIp !== "127.0.0.1") {
         try {
@@ -472,14 +425,8 @@ export default async function handler(req, res) {
             if (text.trim() === 'Y') {
                 isVPN = true;
             }
-
-            const ipInfoRes = await fetch(`http://ip-api.com/json/${clientIp}`);
-            const ipInfoData = await ipInfoRes.json();
-            if (ipInfoData && ipInfoData.country) {
-                countryName = ipInfoData.country;
-            }
         } catch (error) {
-            console.error("VPN or IP check failed");
+            console.error("VPN check failed");
         }
     }
 
@@ -490,19 +437,18 @@ export default async function handler(req, res) {
 
     const cookieHeader = req.headers.cookie || '';
     
-    // التقاط الـ HWID 
     let userHwid = req.query.hwid || null;
     if (!userHwid) {
         const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
         if (hwidMatch) userHwid = hwidMatch[1];
     }
 
-    // تحديد رابط العودة تلقائياً
+    // 🟢 ضبط رابط العودة بشكل يضمن عدم تعارضه مع الديسكورد
     const host = req.headers.host;
     const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
     const redirectUri = `${protocol}://${host}/api/keysystem`;
 
-    // 🟢 استرجاع الـ HWID من الديسكورد عبر المتغير state عشان ميدخلش في لوب
+    // 🟢 استرجاع الـ HWID من الديسكورد عبر المتغير state لإصلاح مشكلة اللوب (العودة لصفحة الديسكورد مجدداً)
     if (req.method === "GET" && req.query.code && req.query.state) {
         userHwid = req.query.state;
     }
@@ -525,7 +471,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================
-    // 🟢 نظام ديسكورد للتحقق من العضوية والانضمام
+    // 🟢 1. التحقق من عودة المستخدم من ديسكورد وربط الحساب بـ HWID
     // ========================================================
     if (req.method === "GET" && req.query.code) {
         const code = req.query.code;
@@ -550,6 +496,7 @@ export default async function handler(req, res) {
                 const userData = await userRes.json();
                 const discordUserId = userData.id;
 
+                // إدخال المستخدم إلى السيرفر تلقائياً
                 if (DISCORD_BOT_TOKEN) {
                     await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
                         method: "PUT",
@@ -561,6 +508,7 @@ export default async function handler(req, res) {
                     });
                 }
 
+                // 🟢 ربط بصمة روبلوكس (HWID) بحساب ديسكورد في قاعدة البيانات
                 await db.collection("discord_links").doc(userHwid).set({
                     discordId: discordUserId,
                     username: userData.username,
@@ -570,8 +518,10 @@ export default async function handler(req, res) {
                 cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
                 res.setHeader('Set-Cookie', cookieArray);
                 
+                // إعادة التوجيه للرابط النظيف مع الحفاظ على الـ hwid
                 return res.redirect(302, `/api/keysystem?hwid=${userHwid}`);
             } else {
+                console.error("Discord Auth Failed, Token Data:", tokenData);
                 res.setHeader("Content-Type", "text/html; charset=utf-8");
                 return res.status(400).send(`
                     <!DOCTYPE html>
@@ -595,13 +545,14 @@ export default async function handler(req, res) {
         }
     }
 
-    // 🟢 الفحص الحي (Live Check) لخروج المستخدمين من السيرفر
+    // 🟢 الفحص الحي (Live Check) للعضوية في السيرفر لمنع خروج المستخدمين
     let isDiscordVerified = false;
     const linkCheck = await db.collection("discord_links").doc(userHwid).get();
     
     if (linkCheck.exists) {
         const discordUserId = linkCheck.data().discordId;
         
+        // التحقق المباشر من ديسكورد إذا كان البوت يمتلك التوكن
         if (DISCORD_BOT_TOKEN && discordUserId) {
             try {
                 const memberRes = await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
@@ -609,13 +560,16 @@ export default async function handler(req, res) {
                 });
                 
                 if (memberRes.status === 200) {
+                    // ✅ المستخدم ما زال موجود في السيرفر
                     isDiscordVerified = true; 
                     cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
                 } else if (memberRes.status === 404) {
+                    // 🚫 المستخدم خرج من السيرفر!
                     console.log(`User ${discordUserId} left the server. Forcing re-verification.`);
-                    await db.collection("discord_links").doc(userHwid).delete(); 
-                    cookieArray.push(`discord_verified=; Max-Age=0; Path=/`); 
+                    await db.collection("discord_links").doc(userHwid).delete(); // مسحه من قاعدة البيانات
+                    cookieArray.push(`discord_verified=; Max-Age=0; Path=/`); // مسح الكوكي
                 } else {
+                    // في حال عطل مؤقت في ديسكورد
                     isDiscordVerified = true;
                 }
             } catch (err) {
@@ -623,6 +577,7 @@ export default async function handler(req, res) {
                 isDiscordVerified = true; 
             }
         } else {
+            // اعتماد على قاعدة البيانات في حال عدم توفر توكن البوت
             isDiscordVerified = true;
             cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
         }
@@ -630,29 +585,18 @@ export default async function handler(req, res) {
         cookieArray.push(`discord_verified=; Max-Age=0; Path=/`);
     }
 
+    // إظهار واجهة ديسكورد (بزرارين: دخول وتحقق) للمستخدمين غير المسجلين
     if (!isDiscordVerified && DISCORD_CLIENT_ID !== "YOUR_DISCORD_CLIENT_ID") {
         const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds.join&state=${userHwid}`;
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader('Set-Cookie', cookieArray);
-        return res.status(200).send(discordAuthUI(discordAuthUrl));
+        return res.status(200).send(discordAuthUI(discordAuthUrl, DISCORD_INVITE_LINK));
+    } else if (isDiscordVerified && !cookieArray.includes(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`)) {
+        cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
     }
 
     res.setHeader('Set-Cookie', cookieArray);
     // ========================================================
-
-    let streakCount = 0;
-    let lastKeyDate = 0;
-    const streakDocRef = db.collection("user_streaks").doc(userHwid);
-    try {
-        const streakDoc = await streakDocRef.get();
-        if (streakDoc.exists) {
-            const data = streakDoc.data();
-            streakCount = data.streakCount || 0;
-            lastKeyDate = data.lastKeyDate || 0;
-        }
-    } catch (e) {
-        console.error("Streak fetch error:", e);
-    }
 
     let keyStep = 0;
     const stepMatch = cookieHeader.match(/key_step=(\d+)/);
@@ -668,7 +612,7 @@ export default async function handler(req, res) {
             const keyDoc = await db.collection("keys").doc(activeKey).get();
             if (!keyDoc.exists) {
                 activeKey = null;
-                errorMessage = "Your key has expired or been deleted. Please generate a new key!";
+                errorMessage = "Your key has expired or been deleted. Please get a new key!";
                 cookieArray.push(`active_key=; Max-Age=0; Path=/`);
                 cookieArray.push(`key_step=0; Max-Age=0; Path=/`);
                 res.setHeader('Set-Cookie', cookieArray);
@@ -677,7 +621,7 @@ export default async function handler(req, res) {
                 
                 // 🟢 مسح المفتاح تلقائياً من قاعدة البيانات إذا انتهت صلاحيته
                 if (keyData.expiresAt < Date.now()) {
-                    await db.collection("keys").doc(activeKey).delete();
+                    await db.collection("keys").doc(activeKey).delete(); // الحذف من فايربيز
                     
                     activeKey = null;
                     errorMessage = "Your key has expired and was removed from our system. Please get a new key!";
@@ -698,8 +642,8 @@ export default async function handler(req, res) {
         try {
             const decoded = jwt.verify(req.query.token, JWT_SECRET);
             
-            if (decoded.hwid === userHwid && decoded.targetStep === 1) {
-                keyStep = 1;
+            if (decoded.hwid === userHwid && decoded.targetStep === keyStep + 1 && decoded.targetStep <= 3) {
+                keyStep = decoded.targetStep;
                 
                 cookieArray.push(`key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`);
                 res.setHeader('Set-Cookie', cookieArray);
@@ -717,7 +661,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST" && req.body.action === "generate") {
-        if (keyStep < 1) return res.status(403).json({ success: false, message: "You must complete the task first!" });
+        if (keyStep < 3) return res.status(403).json({ success: false, message: "You must complete all tasks first!" });
 
         const { recaptchaToken } = req.body;
         if (!recaptchaToken) {
@@ -737,51 +681,20 @@ export default async function handler(req, res) {
             return res.status(500).json({ success: false, message: "Captcha validation server error." });
         }
 
-        const nowTime = Date.now();
-        const oneDayMs = 24 * 60 * 60 * 1000;
-        let newStreak = streakCount;
-
-        if (lastKeyDate === 0) {
-            newStreak = 1;
-        } else {
-            const diffDays = (nowTime - lastKeyDate) / oneDayMs;
-            if (diffDays >= 1 && diffDays <= 2.5) {
-                newStreak += 1;
-            } else if (diffDays > 2.5) {
-                newStreak = 1;
-            }
-        }
-
-        let keyDuration = 24 * 60 * 60 * 1000;
-        let isBonusKey = false;
-
-        if (newStreak >= 7) {
-            keyDuration = 3 * 24 * 60 * 60 * 1000;
-            newStreak = 0;
-            isBonusKey = true;
-        }
-
-        try {
-            await streakDocRef.set({
-                streakCount: newStreak,
-                lastKeyDate: nowTime
-            }, { merge: true });
-        } catch (e) {}
-
         const uniqueKey = "SUBX-" + nanoid(10).toUpperCase();
-        const expiresAt = nowTime + keyDuration; 
+        const expiresAt = Date.now() + (24 * 60 * 60 * 1000); 
 
         try {
+            // جلب معلومات ديسكورد المرتبطة بهذا الـ HWID لإضافتها في تقرير ديسكورد
             const linkDoc = await db.collection("discord_links").doc(userHwid).get();
             const discordUsername = linkDoc.exists ? linkDoc.data().username : "Unknown";
 
             await db.collection("keys").doc(uniqueKey).set({
                 key: uniqueKey,
-                createdAt: nowTime,
+                createdAt: Date.now(),
                 expiresAt: expiresAt,
                 hwid: userHwid,
-                ip: clientIp || "Unknown",
-                country: countryName
+                ip: clientIp || "Unknown"
             });
 
             if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL.startsWith("http")) {
@@ -791,18 +704,15 @@ export default async function handler(req, res) {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             embeds: [{
-                                title: isBonusKey ? "🎁 7-Day Streak Bonus! 3-Day Key Generated!" : "🎉 New Key Generated Successfully!",
-                                color: isBonusKey ? 16766720 : 4906624, 
+                                title: "🎉 New Key Generated (Discord Linked & Verified)!",
+                                color: 4906624, 
                                 fields: [
-                                    { name: "🔑 Generated Key", value: `\`${uniqueKey}\``, inline: false },
-                                    { name: "💬 Discord User", value: `\`${discordUsername}\``, inline: true },
-                                    { name: "🔥 Streak Status", value: isBonusKey ? "Completed 7 Days! (Rewarded 3 Days Free)" : `Day ${newStreak} of 7`, inline: true },
-                                    { name: "🌍 Country", value: `\`${countryName}\``, inline: true },
+                                    { name: "🔑 Key", value: `\`${uniqueKey}\``, inline: false },
+                                    { name: "💬 Discord User", value: `\`${discordUsername}\``, inline: false },
                                     { name: "💻 HWID", value: `\`${userHwid}\``, inline: false },
-                                    { name: "🌐 IP Address", value: `\`${clientIp || "Unknown"}\``, inline: true },
-                                    { name: "📱 User Agent", value: `\`${userAgent.substring(0, 80)}...\``, inline: false }
+                                    { name: "🌐 IP Address", value: `\`${clientIp || "Unknown"}\``, inline: false }
                                 ],
-                                footer: { text: "SubX Advanced Logger" },
+                                footer: { text: "SubX Premium System" },
                                 timestamp: new Date().toISOString()
                             }]
                         })
@@ -822,36 +732,21 @@ export default async function handler(req, res) {
 
     if (req.method === "GET") {
         let currentTaskUrl = "#";
-        let targetUrl = "";
-        let requiresClientApi = false;
-
-        if (keyStep < 1 && !activeKey) {
+        if (keyStep < 3 && !activeKey) {
             const sessionToken = jwt.sign(
-                { hwid: userHwid, targetStep: 1 }, 
+                { hwid: userHwid, targetStep: keyStep + 1 }, 
                 JWT_SECRET, 
                 { expiresIn: '15m' } 
             );
 
-            targetUrl = `${redirectUri}?token=${sessionToken}`;
-            
-            try {
-                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
-                const response = await fetch(linkJustApiUrl);
-                const data = await response.json();
-                
-                if (data && data.status === 'success' && data.shortenedUrl) {
-                    currentTaskUrl = data.shortenedUrl; 
-                } else {
-                    requiresClientApi = true; 
-                }
-            } catch (err) {
-                console.error("LinkJust Server API Blocked:", err);
-                requiresClientApi = true; 
-            }
+            const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
+            const base64Url = Buffer.from(targetUrl).toString('base64');
+            const randomString = Math.random().toString(36).substring(7);
+            currentTaskUrl = `https://link-to.net/${LINKVERTISE_USER_ID}/${randomString}/dynamic?r=${base64Url}`;
         }
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage, requiresClientApi, targetUrl));
+        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, errorMessage));
     }
 
     return res.status(405).send("Method Not Allowed");
