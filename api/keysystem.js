@@ -7,12 +7,15 @@ const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/153131315360065137
 
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
 
-// 🔴 إعدادات ديسكورد: تأكد من وضع الـ Client Secret الصحيح وتوكن البوت
+// 🔴 إعدادات ديسكورد
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240";
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "fJ2SyQX5I_DY2IHUzn8EYnw6Pm6YFHAB"; 
-const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; // ضع توكن البوت هنا لفحص خروج الأعضاء
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; // توكن البوت ضروري لقراءة رتب الأعضاء
 const DISCORD_SERVER_ID = process.env.DISCORD_SERVER_ID || "1135848445471629393";
-const DISCORD_INVITE_LINK = "https://discord.gg/hematech-1135848445471629393"; // رابط دعوة السيرفر
+const DISCORD_INVITE_LINK = "https://discord.gg/hematech-1135848445471629393";
+
+// 👑 ايدي الرتبة المطلوبة (ضع الـ Role ID هنا)
+const REQUIRED_ROLE_ID = "1271181175305797652"; // استبدل هذا بـ ID الرتبة المطلوبة
 
 const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkXp0_d1132x_fP2GnuorVPs0";
 const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY || "6Lc31mwtAAAAALgsx7eKJwIIK-2uJkCp7-ERc__1";
@@ -80,7 +83,7 @@ const vpnBlockUI = `
 </html>
 `;
 
-const discordAuthUI = (discordAuthUrl, inviteLink) => `
+const discordAuthUI = (discordAuthUrl, inviteLink, roleError = false) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -102,18 +105,20 @@ const discordAuthUI = (discordAuthUrl, inviteLink) => `
         .discord-btn:hover { background: #4752c4; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(88,101,242,0.4); }
         .join-btn { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); }
         .join-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
+        .error-badge { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.3); padding: 12px; border-radius: 12px; margin-bottom: 20px; font-weight: bold; font-size: 13px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="discord-icon"><i class="fa-brands fa-discord"></i></div>
         <h1>Discord Verification</h1>
-        <p>You must link your Discord account and join our community server to unlock this content.</p>
+        ${roleError ? `<div class="error-badge"><i class="fa-solid fa-lock"></i> You do not have the required Role in our Discord Server!</div>` : ''}
+        <p>You must join our server and have the required role to access the key system.</p>
         <a href="${inviteLink}" target="_blank" class="btn join-btn">
             <i class="fa-brands fa-discord"></i> 1. Join Discord Server
         </a>
         <a href="${discordAuthUrl}" class="btn discord-btn">
-            <i class="fa-solid fa-right-to-bracket"></i> 2. Verify Membership
+            <i class="fa-solid fa-right-to-bracket"></i> 2. Verify Role & Membership
         </a>
     </div>
 </body>
@@ -130,7 +135,7 @@ const tokenErrorUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(248, 113, 113, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
@@ -161,7 +166,7 @@ const verifyingTaskUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(74, 222, 128, 0.3); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
@@ -202,7 +207,7 @@ const bannedUserUI = (hwid) => `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
+        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.75); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
         .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(248, 113, 113, 0.5); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
@@ -223,7 +228,6 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
-// واجهة المستخدم لتوليد المفتاح 
 const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, errorMessage) => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
@@ -415,339 +419,330 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, errorMessa
 // الكود الأساسي (الخادم)
 // ==========================================
 export default async function handler(req, res) {
-    const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
-    let isVPN = false;
-    
-    if (clientIp && clientIp !== "::1" && clientIp !== "127.0.0.1") {
-        try {
-            const response = await fetch(`https://blackbox.ipinfo.app/lookup/${clientIp}`);
-            const text = await response.text();
-            if (text.trim() === 'Y') {
-                isVPN = true;
-            }
-        } catch (error) {
-            console.error("VPN check failed");
-        }
-    }
-
-    if (isVPN) {
-        res.setHeader("Content-Type", "text/html; charset=utf-8");
-        return res.status(403).send(vpnBlockUI);
-    }
-
-    const cookieHeader = req.headers.cookie || '';
-    
-    let userHwid = req.query.hwid || null;
-    if (!userHwid) {
-        const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
-        if (hwidMatch) userHwid = hwidMatch[1];
-    }
-
-    // 🟢 ضبط رابط العودة بشكل يضمن عدم تعارضه مع الديسكورد
-    const host = req.headers.host;
-    const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
-    const redirectUri = `${protocol}://${host}/api/keysystem`;
-
-    // 🟢 استرجاع الـ HWID من الديسكورد عبر المتغير state لإصلاح مشكلة اللوب (العودة لصفحة الديسكورد مجدداً)
-    if (req.method === "GET" && req.query.code && req.query.state) {
-        userHwid = req.query.state;
-    }
-
-    if (!userHwid) {
-        res.setHeader("Content-Type", "text/html; charset=utf-8");
-        return res.status(403).send(invalidLinkUI);
-    }
-
-    let cookieArray = [`user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`];
-
     try {
-        const banCheck = await db.collection("banned_users").doc(userHwid).get();
-        if (banCheck.exists) {
-            res.setHeader("Content-Type", "text/html; charset=utf-8");
-            return res.status(403).send(bannedUserUI(userHwid));
-        }
-    } catch (err) {
-        console.error("Ban check failed:", err);
-    }
-
-    // ========================================================
-    // 🟢 1. التحقق من عودة المستخدم من ديسكورد وربط الحساب بـ HWID
-    // ========================================================
-    if (req.method === "GET" && req.query.code) {
-        const code = req.query.code;
-        try {
-            const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
-                method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                body: new URLSearchParams({
-                    client_id: DISCORD_CLIENT_ID,
-                    client_secret: DISCORD_CLIENT_SECRET,
-                    grant_type: "authorization_code",
-                    code: code,
-                    redirect_uri: redirectUri
-                })
-            });
-            const tokenData = await tokenRes.json();
-            
-            if (tokenData.access_token) {
-                const userRes = await fetch("https://discord.com/api/users/@me", {
-                    headers: { authorization: `Bearer ${tokenData.access_token}` }
-                });
-                const userData = await userRes.json();
-                const discordUserId = userData.id;
-
-                // إدخال المستخدم إلى السيرفر تلقائياً
-                if (DISCORD_BOT_TOKEN) {
-                    await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
-                        method: "PUT",
-                        headers: {
-                            Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ access_token: tokenData.access_token })
-                    });
-                }
-
-                // 🟢 ربط بصمة روبلوكس (HWID) بحساب ديسكورد في قاعدة البيانات
-                await db.collection("discord_links").doc(userHwid).set({
-                    discordId: discordUserId,
-                    username: userData.username,
-                    linkedAt: Date.now()
-                }, { merge: true });
-
-                cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
-                res.setHeader('Set-Cookie', cookieArray);
-                
-                // إعادة التوجيه للرابط النظيف مع الحفاظ على الـ hwid
-                return res.redirect(302, `/api/keysystem?hwid=${userHwid}`);
-            } else {
-                console.error("Discord Auth Failed, Token Data:", tokenData);
-                res.setHeader("Content-Type", "text/html; charset=utf-8");
-                return res.status(400).send(`
-                    <!DOCTYPE html>
-                    <html>
-                    <head><meta charset="utf-8"><title>Discord Error</title></head>
-                    <body style="background:#07090f; color:#fff; text-align:center; font-family:sans-serif; padding:50px;">
-                        <h1 style="color:#f87171;">فشل التحقق من ديسكورد ❌</h1>
-                        <p>ديسكورد رفض الطلب، راجع الخطأ ده:</p>
-                        <div style="background:#111; padding:15px; border:1px solid #f87171; display:inline-block; margin:20px; border-radius:10px;">
-                            <code>${tokenData.error_description || tokenData.error || JSON.stringify(tokenData)}</code>
-                        </div>
-                        <p>تأكد من <b>الـ Client Secret</b>، وتأكد إن رابط الـ Redirect مسجل في ديسكورد بشكل صحيح.</p>
-                        <br>
-                        <a href="/api/keysystem?hwid=${userHwid}" style="color:#000; background:#4ade80; padding:10px 20px; text-decoration:none; border-radius:10px; font-weight:bold;">العودة للمحاولة</a>
-                    </body>
-                    </html>
-                `);
-            }
-        } catch (e) {
-            console.error("Discord Auth Error:", e);
-        }
-    }
-
-    // 🟢 الفحص الحي (Live Check) للعضوية في السيرفر لمنع خروج المستخدمين
-    let isDiscordVerified = false;
-    const linkCheck = await db.collection("discord_links").doc(userHwid).get();
-    
-    if (linkCheck.exists) {
-        const discordUserId = linkCheck.data().discordId;
+        const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
+        let isVPN = false;
         
-        // التحقق المباشر من ديسكورد إذا كان البوت يمتلك التوكن
-        if (DISCORD_BOT_TOKEN && discordUserId) {
+        if (clientIp && clientIp !== "::1" && clientIp !== "127.0.0.1") {
             try {
-                const memberRes = await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
-                    headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` }
-                });
-                
-                if (memberRes.status === 200) {
-                    // ✅ المستخدم ما زال موجود في السيرفر
-                    isDiscordVerified = true; 
-                    cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
-                } else if (memberRes.status === 404) {
-                    // 🚫 المستخدم خرج من السيرفر!
-                    console.log(`User ${discordUserId} left the server. Forcing re-verification.`);
-                    await db.collection("discord_links").doc(userHwid).delete(); // مسحه من قاعدة البيانات
-                    cookieArray.push(`discord_verified=; Max-Age=0; Path=/`); // مسح الكوكي
-                } else {
-                    // في حال عطل مؤقت في ديسكورد
-                    isDiscordVerified = true;
+                const response = await fetch(`https://blackbox.ipinfo.app/lookup/${clientIp}`);
+                const text = await response.text();
+                if (text.trim() === 'Y') {
+                    isVPN = true;
                 }
-            } catch (err) {
-                console.error("Live Discord Check Failed:", err);
-                isDiscordVerified = true; 
+            } catch (error) {
+                console.error("VPN check failed");
+            }
+        }
+
+        if (isVPN) {
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            return res.status(403).send(vpnBlockUI);
+        }
+
+        const cookieHeader = req.headers.cookie || '';
+        
+        let userHwid = req.query.hwid || null;
+        if (!userHwid) {
+            const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
+            if (hwidMatch) userHwid = hwidMatch[1];
+        }
+
+        const host = req.headers.host || "subx.click";
+        const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
+        const redirectUri = `${protocol}://${host}/api/keysystem`;
+
+        if (req.method === "GET" && req.query.code && req.query.state) {
+            userHwid = req.query.state;
+        }
+
+        if (!userHwid) {
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            return res.status(403).send(invalidLinkUI);
+        }
+
+        let cookieArray = [`user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`];
+
+        try {
+            const banCheck = await db.collection("banned_users").doc(userHwid).get();
+            if (banCheck.exists) {
+                res.setHeader("Content-Type", "text/html; charset=utf-8");
+                return res.status(403).send(bannedUserUI(userHwid));
+            }
+        } catch (err) {
+            console.error("Ban check failed:", err);
+        }
+
+        // ========================================================
+        // 🟢 1. التحقق من عودة المستخدم من ديسكورد وربط الحساب بـ HWID
+        // ========================================================
+        if (req.method === "GET" && req.query.code) {
+            const code = req.query.code;
+            try {
+                const tokenRes = await fetch("https://discord.com/api/oauth2/token", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams({
+                        client_id: DISCORD_CLIENT_ID,
+                        client_secret: DISCORD_CLIENT_SECRET,
+                        grant_type: "authorization_code",
+                        code: code,
+                        redirect_uri: redirectUri
+                    })
+                });
+                const tokenData = await tokenRes.json();
+                
+                if (tokenData.access_token) {
+                    const userRes = await fetch("https://discord.com/api/users/@me", {
+                        headers: { authorization: `Bearer ${tokenData.access_token}` }
+                    });
+                    const userData = await userRes.json();
+                    const discordUserId = userData.id;
+
+                    // إدخال المستخدم إلى السيرفر تلقائياً
+                    if (DISCORD_BOT_TOKEN) {
+                        try {
+                            await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
+                                method: "PUT",
+                                headers: {
+                                    Authorization: `Bot ${DISCORD_BOT_TOKEN}`,
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({ access_token: tokenData.access_token })
+                            });
+                        } catch (e) {}
+                    }
+
+                    await db.collection("discord_links").doc(userHwid).set({
+                        discordId: discordUserId,
+                        username: userData.username,
+                        linkedAt: Date.now()
+                    }, { merge: true });
+
+                    cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
+                    res.setHeader('Set-Cookie', cookieArray);
+                    
+                    return res.redirect(302, `/api/keysystem?hwid=${userHwid}`);
+                }
+            } catch (e) {
+                console.error("Discord Auth Error:", e);
+            }
+        }
+
+        // 🟢 الفحص الحي (Live Check) للعضوية والرتبة
+        let isDiscordVerified = false;
+        let roleMissingError = false;
+        const linkCheck = await db.collection("discord_links").doc(userHwid).get();
+        
+        if (linkCheck.exists) {
+            const discordUserId = linkCheck.data().discordId;
+            
+            if (DISCORD_BOT_TOKEN && discordUserId) {
+                try {
+                    const memberRes = await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
+                        headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` }
+                    });
+                    
+                    if (memberRes.status === 200) {
+                        const memberData = await memberRes.json();
+                        
+                        // 🟢 الفحص إذا كانت الرتبة المطلوبة محددة وتوجد لدى العضو
+                        if (REQUIRED_ROLE_ID && REQUIRED_ROLE_ID !== "1234567890123456789") {
+                            const userRoles = memberData.roles || [];
+                            if (userRoles.includes(REQUIRED_ROLE_ID)) {
+                                isDiscordVerified = true; 
+                                cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
+                            } else {
+                                isDiscordVerified = false;
+                                roleMissingError = true; // نبه المستخدم بأنه يفتقر للرتبة المطلوبة
+                            }
+                        } else {
+                            // إذا لم توجد رتبة محددة يتم الاكتفاء بتواجده في السيرفر
+                            isDiscordVerified = true; 
+                            cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
+                        }
+
+                    } else if (memberRes.status === 404) {
+                        // العضو خرج من السيرفر
+                        await db.collection("discord_links").doc(userHwid).delete(); 
+                        cookieArray.push(`discord_verified=; Max-Age=0; Path=/`); 
+                    } else {
+                        isDiscordVerified = true;
+                    }
+                } catch (err) {
+                    isDiscordVerified = true; 
+                }
+            } else {
+                isDiscordVerified = true;
+                cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
             }
         } else {
-            // اعتماد على قاعدة البيانات في حال عدم توفر توكن البوت
-            isDiscordVerified = true;
-            cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
+            cookieArray.push(`discord_verified=; Max-Age=0; Path=/`);
         }
-    } else {
-        cookieArray.push(`discord_verified=; Max-Age=0; Path=/`);
-    }
 
-    // إظهار واجهة ديسكورد (بزرارين: دخول وتحقق) للمستخدمين غير المسجلين
-    if (!isDiscordVerified && DISCORD_CLIENT_ID !== "YOUR_DISCORD_CLIENT_ID") {
-        const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds.join&state=${userHwid}`;
-        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        if (!isDiscordVerified && DISCORD_CLIENT_ID !== "YOUR_DISCORD_CLIENT_ID") {
+            const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds.join&state=${userHwid}`;
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            res.setHeader('Set-Cookie', cookieArray);
+            return res.status(200).send(discordAuthUI(discordAuthUrl, DISCORD_INVITE_LINK, roleMissingError));
+        }
+
         res.setHeader('Set-Cookie', cookieArray);
-        return res.status(200).send(discordAuthUI(discordAuthUrl, DISCORD_INVITE_LINK));
-    } else if (isDiscordVerified && !cookieArray.includes(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`)) {
-        cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
-    }
+        // ========================================================
 
-    res.setHeader('Set-Cookie', cookieArray);
-    // ========================================================
+        let keyStep = 0;
+        const stepMatch = cookieHeader.match(/key_step=(\d+)/);
+        if (stepMatch) keyStep = parseInt(stepMatch[1]);
 
-    let keyStep = 0;
-    const stepMatch = cookieHeader.match(/key_step=(\d+)/);
-    if (stepMatch) keyStep = parseInt(stepMatch[1]);
+        const keyMatch = cookieHeader.match(/active_key=([^;]+)/);
+        let activeKey = keyMatch ? keyMatch[1] : null;
+        let activeKeyExpiresAt = null;
+        let errorMessage = null;
 
-    const keyMatch = cookieHeader.match(/active_key=([^;]+)/);
-    let activeKey = keyMatch ? keyMatch[1] : null;
-    let activeKeyExpiresAt = null;
-    let errorMessage = null;
-
-    if (activeKey) {
-        try {
-            const keyDoc = await db.collection("keys").doc(activeKey).get();
-            if (!keyDoc.exists) {
-                activeKey = null;
-                errorMessage = "Your key has expired or been deleted. Please get a new key!";
-                cookieArray.push(`active_key=; Max-Age=0; Path=/`);
-                cookieArray.push(`key_step=0; Max-Age=0; Path=/`);
-                res.setHeader('Set-Cookie', cookieArray);
-            } else {
-                const keyData = keyDoc.data();
-                
-                // 🟢 مسح المفتاح تلقائياً من قاعدة البيانات إذا انتهت صلاحيته
-                if (keyData.expiresAt < Date.now()) {
-                    await db.collection("keys").doc(activeKey).delete(); // الحذف من فايربيز
-                    
+        if (activeKey) {
+            try {
+                const keyDoc = await db.collection("keys").doc(activeKey).get();
+                if (!keyDoc.exists) {
                     activeKey = null;
-                    errorMessage = "Your key has expired and was removed from our system. Please get a new key!";
-                    
+                    errorMessage = "Your key has expired or been deleted. Please get a new key!";
                     cookieArray.push(`active_key=; Max-Age=0; Path=/`);
                     cookieArray.push(`key_step=0; Max-Age=0; Path=/`);
                     res.setHeader('Set-Cookie', cookieArray);
                 } else {
-                    activeKeyExpiresAt = keyData.expiresAt;
+                    const keyData = keyDoc.data();
+                    
+                    if (keyData.expiresAt < Date.now()) {
+                        await db.collection("keys").doc(activeKey).delete(); 
+                        
+                        activeKey = null;
+                        errorMessage = "Your key has expired and was removed from our system. Please get a new key!";
+                        
+                        cookieArray.push(`active_key=; Max-Age=0; Path=/`);
+                        cookieArray.push(`key_step=0; Max-Age=0; Path=/`);
+                        res.setHeader('Set-Cookie', cookieArray);
+                    } else {
+                        activeKeyExpiresAt = keyData.expiresAt;
+                    }
                 }
+            } catch (err) {
+                console.error("Database check error:", err);
             }
-        } catch (err) {
-            console.error("Database check error:", err);
         }
-    }
 
-    if (req.method === "GET" && req.query.token) {
-        try {
-            const decoded = jwt.verify(req.query.token, JWT_SECRET);
-            
-            if (decoded.hwid === userHwid && decoded.targetStep === keyStep + 1 && decoded.targetStep <= 3) {
-                keyStep = decoded.targetStep;
+        if (req.method === "GET" && req.query.token) {
+            try {
+                const decoded = jwt.verify(req.query.token, JWT_SECRET);
                 
-                cookieArray.push(`key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`);
-                res.setHeader('Set-Cookie', cookieArray);
-                
-                res.setHeader("Content-Type", "text/html; charset=utf-8");
-                return res.status(200).send(verifyingTaskUI);
-            } else {
+                if (decoded.hwid === userHwid && decoded.targetStep === keyStep + 1 && decoded.targetStep <= 3) {
+                    keyStep = decoded.targetStep;
+                    
+                    cookieArray.push(`key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`);
+                    res.setHeader('Set-Cookie', cookieArray);
+                    
+                    res.setHeader("Content-Type", "text/html; charset=utf-8");
+                    return res.status(200).send(verifyingTaskUI);
+                } else {
+                    res.setHeader("Content-Type", "text/html; charset=utf-8");
+                    return res.status(403).send(tokenErrorUI);
+                }
+            } catch (err) {
                 res.setHeader("Content-Type", "text/html; charset=utf-8");
                 return res.status(403).send(tokenErrorUI);
             }
-        } catch (err) {
+        }
+
+        if (req.method === "POST" && req.body.action === "generate") {
+            if (keyStep < 3) return res.status(403).json({ success: false, message: "You must complete all tasks first!" });
+
+            const { recaptchaToken } = req.body;
+            if (!recaptchaToken) {
+                return res.status(400).json({ success: false, message: "Please complete the reCAPTCHA verification." });
+            }
+
+            try {
+                const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`;
+                const recaptchaRes = await fetch(verifyUrl, { method: "POST" });
+                const recaptchaData = await recaptchaRes.json();
+
+                if (!recaptchaData.success) {
+                    return res.status(400).json({ success: false, message: "reCAPTCHA verification failed. Please try again." });
+                }
+            } catch (err) {
+                console.error("reCAPTCHA validation error:", err);
+                return res.status(500).json({ success: false, message: "Captcha validation server error." });
+            }
+
+            const uniqueKey = "SUBX-" + nanoid(10).toUpperCase();
+            const expiresAt = Date.now() + (24 * 60 * 60 * 1000); 
+
+            try {
+                const linkDoc = await db.collection("discord_links").doc(userHwid).get();
+                const discordUsername = linkDoc.exists ? linkDoc.data().username : "Unknown";
+
+                await db.collection("keys").doc(uniqueKey).set({
+                    key: uniqueKey,
+                    createdAt: Date.now(),
+                    expiresAt: expiresAt,
+                    hwid: userHwid,
+                    ip: clientIp || "Unknown"
+                });
+
+                if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL.startsWith("http")) {
+                    try {
+                        await fetch(DISCORD_WEBHOOK_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                embeds: [{
+                                    title: "🎉 New Key Generated (Discord Linked & Verified)!",
+                                    color: 4906624, 
+                                    fields: [
+                                        { name: "🔑 Key", value: `\`${uniqueKey}\``, inline: false },
+                                        { name: "💬 Discord User", value: `\`${discordUsername}\``, inline: false },
+                                        { name: "💻 HWID", value: `\`${userHwid}\``, inline: false },
+                                        { name: "🌐 IP Address", value: `\`${clientIp || "Unknown"}\``, inline: false }
+                                    ],
+                                    footer: { text: "SubX Premium System" },
+                                    timestamp: new Date().toISOString()
+                                }]
+                            })
+                        });
+                    } catch (webhookErr) {}
+                }
+
+                cookieArray.push(`key_step=0; Max-Age=0; Path=/`);
+                cookieArray.push(`active_key=${uniqueKey}; Max-Age=86400; Path=/; SameSite=Lax`);
+                res.setHeader('Set-Cookie', cookieArray);
+
+                return res.status(200).json({ success: true, key: uniqueKey });
+            } catch (err) {
+                return res.status(500).json({ success: false, message: "Database Error" });
+            }
+        }
+
+        if (req.method === "GET") {
+            let currentTaskUrl = "#";
+            if (keyStep < 3 && !activeKey) {
+                const sessionToken = jwt.sign(
+                    { hwid: userHwid, targetStep: keyStep + 1 }, 
+                    JWT_SECRET, 
+                    { expiresIn: '15m' } 
+                );
+
+                const targetUrl = `${redirectUri}?token=${sessionToken}`;
+                const base64Url = Buffer.from(targetUrl).toString('base64');
+                const randomString = Math.random().toString(36).substring(7);
+                currentTaskUrl = `https://link-to.net/${LINKVERTISE_USER_ID}/${randomString}/dynamic?r=${base64Url}`;
+            }
+
             res.setHeader("Content-Type", "text/html; charset=utf-8");
-            return res.status(403).send(tokenErrorUI);
-        }
-    }
-
-    if (req.method === "POST" && req.body.action === "generate") {
-        if (keyStep < 3) return res.status(403).json({ success: false, message: "You must complete all tasks first!" });
-
-        const { recaptchaToken } = req.body;
-        if (!recaptchaToken) {
-            return res.status(400).json({ success: false, message: "Please complete the reCAPTCHA verification." });
+            return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, errorMessage));
         }
 
-        try {
-            const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}`;
-            const recaptchaRes = await fetch(verifyUrl, { method: "POST" });
-            const recaptchaData = await recaptchaRes.json();
-
-            if (!recaptchaData.success) {
-                return res.status(400).json({ success: false, message: "reCAPTCHA verification failed. Please try again." });
-            }
-        } catch (err) {
-            console.error("reCAPTCHA validation error:", err);
-            return res.status(500).json({ success: false, message: "Captcha validation server error." });
-        }
-
-        const uniqueKey = "SUBX-" + nanoid(10).toUpperCase();
-        const expiresAt = Date.now() + (24 * 60 * 60 * 1000); 
-
-        try {
-            // جلب معلومات ديسكورد المرتبطة بهذا الـ HWID لإضافتها في تقرير ديسكورد
-            const linkDoc = await db.collection("discord_links").doc(userHwid).get();
-            const discordUsername = linkDoc.exists ? linkDoc.data().username : "Unknown";
-
-            await db.collection("keys").doc(uniqueKey).set({
-                key: uniqueKey,
-                createdAt: Date.now(),
-                expiresAt: expiresAt,
-                hwid: userHwid,
-                ip: clientIp || "Unknown"
-            });
-
-            if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL.startsWith("http")) {
-                try {
-                    await fetch(DISCORD_WEBHOOK_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            embeds: [{
-                                title: "🎉 New Key Generated (Discord Linked & Verified)!",
-                                color: 4906624, 
-                                fields: [
-                                    { name: "🔑 Key", value: `\`${uniqueKey}\``, inline: false },
-                                    { name: "💬 Discord User", value: `\`${discordUsername}\``, inline: false },
-                                    { name: "💻 HWID", value: `\`${userHwid}\``, inline: false },
-                                    { name: "🌐 IP Address", value: `\`${clientIp || "Unknown"}\``, inline: false }
-                                ],
-                                footer: { text: "SubX Premium System" },
-                                timestamp: new Date().toISOString()
-                            }]
-                        })
-                    });
-                } catch (webhookErr) {}
-            }
-
-            cookieArray.push(`key_step=0; Max-Age=0; Path=/`);
-            cookieArray.push(`active_key=${uniqueKey}; Max-Age=86400; Path=/; SameSite=Lax`);
-            res.setHeader('Set-Cookie', cookieArray);
-
-            return res.status(200).json({ success: true, key: uniqueKey });
-        } catch (err) {
-            return res.status(500).json({ success: false, message: "Database Error" });
-        }
-    }
-
-    if (req.method === "GET") {
-        let currentTaskUrl = "#";
-        if (keyStep < 3 && !activeKey) {
-            const sessionToken = jwt.sign(
-                { hwid: userHwid, targetStep: keyStep + 1 }, 
-                JWT_SECRET, 
-                { expiresIn: '15m' } 
-            );
-
-            const targetUrl = `${protocol}://${host}/api/keysystem?token=${sessionToken}`;
-            const base64Url = Buffer.from(targetUrl).toString('base64');
-            const randomString = Math.random().toString(36).substring(7);
-            currentTaskUrl = `https://link-to.net/${LINKVERTISE_USER_ID}/${randomString}/dynamic?r=${base64Url}`;
-        }
-
+        return res.status(405).send("Method Not Allowed");
+    } catch (globalError) {
+        console.error("Fatal Handler Error:", globalError);
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, errorMessage));
+        return res.status(500).send(`<h1>Server Error</h1><p>${globalError.message}</p>`);
     }
-
-    return res.status(405).send("Method Not Allowed");
 }
