@@ -2,6 +2,7 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 
+const LINKVERTISE_USER_ID = "1322389";
 const LINKJUST_API_TOKEN = "944c5ea148b949eb99be07963d8615e6904f460b";
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
@@ -10,12 +11,12 @@ const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#";
 // 🔴 إعدادات ديسكورد
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240";
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "fJ2SyQX5I_DY2IHUzn8EYnw6Pm6YFHAB"; 
-const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; // توكن البوت ضروري لقراءة رتب الأعضاء
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; 
 const DISCORD_SERVER_ID = process.env.DISCORD_SERVER_ID || "1135848445471629393";
 const DISCORD_INVITE_LINK = "https://discord.gg/hematech-1135848445471629393";
 
 // 👑 ايدي الرتبة المطلوبة (ضع الـ Role ID هنا)
-const REQUIRED_ROLE_ID = "1271181175305797652"; // استبدل هذا بـ ID الرتبة المطلوبة
+const REQUIRED_ROLE_ID = "1234567890123456789"; 
 
 const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkXp0_d1132x_fP2GnuorVPs0";
 const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY || "6Lc31mwtAAAAALgsx7eKJwIIK-2uJkCp7-ERc__1";
@@ -228,14 +229,14 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
-const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, errorMessage) => {
+const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage, requiresClientApi = false, targetUrl = "") => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
 
     if (activeKey) {
         actionHtml = `
             <div class="success-box">
-                <i class="fa-solid fa-circle-check"></i> Your Key is Active!
+                <i class="fa-solid fa-circle-check"></i> Your Key is Active! (${streakCount || 0} Day(s) Streak 🔥)
             </div>
             <div class="key-display">
                 <input type="text" id="finalKey" value="${activeKey}" readonly>
@@ -245,12 +246,10 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, errorMessa
                 <i class="fa-solid fa-hourglass-half"></i> Time Remaining: <span id="liveTimer" style="color: #4ade80; font-weight: bold;">Calculated...</span>
             </div>
         `;
-    } else if (keyStep >= 3) {
+    } else if (keyStep >= 1) {
         actionHtml = `
             <div class="steps-container">
-                <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 1 Completed</div>
-                <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 2 Completed</div>
-                <div class="step done"><i class="fa-solid fa-check"></i> Checkpoint 3 Completed</div>
+                <div class="step done"><i class="fa-solid fa-check"></i> Task Completed</div>
             </div>
             
             <div style="display: flex; justify-content: center; margin-bottom: 20px;">
@@ -262,25 +261,50 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, errorMessa
             </button>
         `;
     } else {
-        const step1Class = keyStep > 0 ? 'done' : (keyStep === 0 ? 'active' : 'locked');
-        const step2Class = keyStep > 1 ? 'done' : (keyStep === 1 ? 'active' : 'locked');
-        const step3Class = keyStep > 2 ? 'done' : (keyStep === 2 ? 'active' : 'locked');
+        let taskButton = '';
+        if (requiresClientApi) {
+            taskButton = `
+            <a href="javascript:void(0)" onclick="generateLinkClientSide()" class="btn continue-btn" id="taskBtn">
+                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Click to Complete Task</span> 
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            <script>
+                async function generateLinkClientSide() {
+                    const btn = document.getElementById('taskBtn');
+                    btn.innerHTML = '<span><i class="fa-solid fa-spinner fa-spin"></i> Loading Secure Link...</span>';
+                    btn.style.pointerEvents = 'none';
 
-        const step1Icon = keyStep > 0 ? 'fa-check' : (keyStep === 0 ? 'fa-spinner fa-spin' : 'fa-lock');
-        const step2Icon = keyStep > 1 ? 'fa-check' : (keyStep === 1 ? 'fa-spinner fa-spin' : 'fa-lock');
-        const step3Icon = keyStep > 2 ? 'fa-check' : (keyStep === 2 ? 'fa-spinner fa-spin' : 'fa-lock');
+                    const target = "${targetUrl}";
+                    const apiUrl = "https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=" + encodeURIComponent(target);
+                    
+                    try {
+                        const res = await fetch(apiUrl);
+                        const data = await res.json();
+                        if(data.status === 'success' && data.shortenedUrl) {
+                            window.location.href = data.shortenedUrl;
+                            return;
+                        }
+                    } catch(err) {
+                        console.error("Browser API blocked, routing direct to target", err);
+                    }
+                    window.location.href = target;
+                }
+            </script>
+            `;
+        } else {
+            taskButton = `
+            <a href="${currentTaskUrl}" class="btn continue-btn">
+                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Click to Complete Task</span> 
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+            `;
+        }
 
         actionHtml = `
             <div class="steps-container">
-                <div class="step ${step1Class}"><i class="fa-solid ${step1Icon}"></i> Checkpoint 1</div>
-                <div class="step ${step2Class}"><i class="fa-solid ${step2Icon}"></i> Checkpoint 2</div>
-                <div class="step ${step3Class}"><i class="fa-solid ${step3Icon}"></i> Checkpoint 3</div>
+                <div class="step active"><i class="fa-solid fa-spinner fa-spin"></i> Required Task</div>
             </div>
-            <a href="${currentTaskUrl}" class="btn continue-btn">
-                <span><i class="fa-solid fa-link" style="color:#00e676; margin-right:6px;"></i> Continue with Linkvertise</span> 
-                <i class="fa-solid fa-arrow-right"></i>
-            </a>
-            <p class="timer-text">Complete Linkvertise checkpoints to unlock your key.</p>
+            ${taskButton}
         `;
     }
 
@@ -421,7 +445,9 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, errorMessa
 export default async function handler(req, res) {
     try {
         const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
+        const userAgent = req.headers["user-agent"] || "Unknown Device";
         let isVPN = false;
+        let countryName = "Unknown";
         
         if (clientIp && clientIp !== "::1" && clientIp !== "127.0.0.1") {
             try {
@@ -499,7 +525,6 @@ export default async function handler(req, res) {
                     const userData = await userRes.json();
                     const discordUserId = userData.id;
 
-                    // إدخال المستخدم إلى السيرفر تلقائياً
                     if (DISCORD_BOT_TOKEN) {
                         try {
                             await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
@@ -546,7 +571,7 @@ export default async function handler(req, res) {
                     if (memberRes.status === 200) {
                         const memberData = await memberRes.json();
                         
-                        // 🟢 الفحص إذا كانت الرتبة المطلوبة محددة وتوجد لدى العضو
+                        // الفحص إذا كانت الرتبة المطلوبة محددة وتوجد لدى العضو
                         if (REQUIRED_ROLE_ID && REQUIRED_ROLE_ID !== "1234567890123456789") {
                             const userRoles = memberData.roles || [];
                             if (userRoles.includes(REQUIRED_ROLE_ID)) {
@@ -554,16 +579,14 @@ export default async function handler(req, res) {
                                 cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
                             } else {
                                 isDiscordVerified = false;
-                                roleMissingError = true; // نبه المستخدم بأنه يفتقر للرتبة المطلوبة
+                                roleMissingError = true;
                             }
                         } else {
-                            // إذا لم توجد رتبة محددة يتم الاكتفاء بتواجده في السيرفر
                             isDiscordVerified = true; 
                             cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
                         }
 
                     } else if (memberRes.status === 404) {
-                        // العضو خرج من السيرفر
                         await db.collection("discord_links").doc(userHwid).delete(); 
                         cookieArray.push(`discord_verified=; Max-Age=0; Path=/`); 
                     } else {
@@ -633,8 +656,8 @@ export default async function handler(req, res) {
             try {
                 const decoded = jwt.verify(req.query.token, JWT_SECRET);
                 
-                if (decoded.hwid === userHwid && decoded.targetStep === keyStep + 1 && decoded.targetStep <= 3) {
-                    keyStep = decoded.targetStep;
+                if (decoded.hwid === userHwid && decoded.targetStep === 1) {
+                    keyStep = 1;
                     
                     cookieArray.push(`key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`);
                     res.setHeader('Set-Cookie', cookieArray);
@@ -652,7 +675,7 @@ export default async function handler(req, res) {
         }
 
         if (req.method === "POST" && req.body.action === "generate") {
-            if (keyStep < 3) return res.status(403).json({ success: false, message: "You must complete all tasks first!" });
+            if (keyStep < 1) return res.status(403).json({ success: false, message: "You must complete all tasks first!" });
 
             const { recaptchaToken } = req.body;
             if (!recaptchaToken) {
@@ -722,21 +745,36 @@ export default async function handler(req, res) {
 
         if (req.method === "GET") {
             let currentTaskUrl = "#";
-            if (keyStep < 3 && !activeKey) {
+            let targetUrl = "";
+            let requiresClientApi = false;
+
+            if (keyStep < 1 && !activeKey) {
                 const sessionToken = jwt.sign(
-                    { hwid: userHwid, targetStep: keyStep + 1 }, 
+                    { hwid: userHwid, targetStep: 1 }, 
                     JWT_SECRET, 
                     { expiresIn: '15m' } 
                 );
 
-                const targetUrl = `${redirectUri}?token=${sessionToken}`;
-                const base64Url = Buffer.from(targetUrl).toString('base64');
-                const randomString = Math.random().toString(36).substring(7);
-                currentTaskUrl = `https://link-to.net/${LINKVERTISE_USER_ID}/${randomString}/dynamic?r=${base64Url}`;
+                targetUrl = `${redirectUri}?token=${sessionToken}`;
+                
+                try {
+                    const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
+                    const response = await fetch(linkJustApiUrl);
+                    const data = await response.json();
+                    
+                    if (data && data.status === 'success' && data.shortenedUrl) {
+                        currentTaskUrl = data.shortenedUrl; 
+                    } else {
+                        requiresClientApi = true; 
+                    }
+                } catch (err) {
+                    console.error("LinkJust Server API Blocked:", err);
+                    requiresClientApi = true; 
+                }
             }
 
             res.setHeader("Content-Type", "text/html; charset=utf-8");
-            return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, errorMessage));
+            return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, errorMessage, requiresClientApi, targetUrl));
         }
 
         return res.status(405).send("Method Not Allowed");
