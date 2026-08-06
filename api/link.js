@@ -11,8 +11,8 @@ const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240"
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "fJ2SyQX5I_DY2IHUzn8EYnw6Pm6YFHAB"; 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; 
 const DISCORD_SERVER_ID = process.env.DISCORD_SERVER_ID || "1135848445471629393";
-const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || "https://discord.gg/YOUR_INVITE_CODE"; 
-const REQUIRED_ROLE_ID = process.env.REQUIRED_ROLE_ID || "YOUR_ROLE_ID_HERE"; 
+const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || "https://discord.gg/hematech-1135848445471629393"; 
+const REQUIRED_ROLE_ID = process.env.REQUIRED_ROLE_ID || "1271181175305797652"; 
 
 const cache = new Map();
 const spamCache = new Map(); 
