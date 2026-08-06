@@ -18,7 +18,7 @@ const REQUIRED_ROLE_ID = process.env.REQUIRED_ROLE_ID || "1271181175305797652";
 const DISCORD_SERVER_NAME = process.env.DISCORD_SERVER_NAME || "HT | HemaTech";
 const DISCORD_EST_DATE = process.env.DISCORD_EST_DATE || "Est. Aug 2023";
 const DISCORD_BANNER_URL = process.env.DISCORD_BANNER_URL || "/banner.png"; 
-const DISCORD_LOGO_URL = process.env.DISCORD_LOGO_URL || "/logo.png";     
+const DISCORD_LOGO_URL = process.env.DISCORD_LOGO_URL || "/logos.png";     
 
 const cache = new Map();
 const spamCache = new Map(); 
