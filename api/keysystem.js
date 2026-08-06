@@ -10,10 +10,10 @@ const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#";
 // 🔴 إعدادات ديسكورد
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240";
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "fJ2SyQX5I_DY2IHUzn8EYnw6Pm6YFHAB"; 
-const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; // توكن البوت ضروري لفحص الرتبة
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; 
 const DISCORD_SERVER_ID = process.env.DISCORD_SERVER_ID || "1135848445471629393";
-const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || "https://discord.gg/hematech-1135848445471629393"; // ضع رابط الدعوة لسيرفرك هنا
-const REQUIRED_ROLE_ID = process.env.REQUIRED_ROLE_ID || "1271181175305797652"; // 🔴 ضع ID الرتبة المطلوبة هنا
+const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || "https://discord.gg/YOUR_INVITE_CODE"; 
+const REQUIRED_ROLE_ID = process.env.REQUIRED_ROLE_ID || "YOUR_ROLE_ID_HERE"; 
 
 const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkXp0_d1132x_fP2GnuorVPs0";
 const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY || "6Lc31mwtAAAAALgsx7eKJwIIK-2uJkCp7-ERc__1";
@@ -81,7 +81,6 @@ const vpnBlockUI = `
 </html>
 `;
 
-// 🟢 تعديل واجهة ديسكورد لتحتوي على زرين: الانضمام للسيرفر + التحقق من الرتبة
 const discordAuthUI = (discordAuthUrl) => `
 <!DOCTYPE html>
 <html lang="en">
@@ -227,7 +226,6 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
-// واجهة المستخدم لتوليد المفتاح مع نظام LinkJust المزدوج
 const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage, requiresClientApi = false, targetUrl = "") => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
@@ -499,19 +497,16 @@ export default async function handler(req, res) {
 
     const cookieHeader = req.headers.cookie || '';
     
-    // التقاط الـ HWID 
     let userHwid = req.query.hwid || null;
     if (!userHwid) {
         const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
         if (hwidMatch) userHwid = hwidMatch[1];
     }
 
-    // تحديد رابط العودة تلقائياً
     const host = req.headers.host;
     const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
     const redirectUri = `${protocol}://${host}/api/keysystem`;
 
-    // 🟢 استرجاع الـ HWID من الديسكورد عبر المتغير state عشان ميدخلش في لوب
     if (req.method === "GET" && req.query.code && req.query.state) {
         userHwid = req.query.state;
     }
@@ -534,7 +529,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================
-    // 🟢 نظام ديسكورد للتحقق من العضوية والرتبة
+    // 🟢 نظام ديسكورد الهجين (فحص بـ User Access Token + Bot Token)
     // ========================================================
     if (req.method === "GET" && req.query.code) {
         const code = req.query.code;
@@ -559,19 +554,30 @@ export default async function handler(req, res) {
                 const userData = await userRes.json();
                 const discordUserId = userData.id;
 
-                // التحقق من وجود العضو في السيرفر وتوفره على الرتبة المطلوبة
-                let hasRole = false;
                 let isMember = false;
+                let hasRole = false;
 
-                if (DISCORD_BOT_TOKEN) {
-                    const memberRes = await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
+                // 1. محاولة الفحص بواسطة User Access Token أولاً (أسرع وأضمن)
+                const userGuildMemberRes = await fetch(`https://discord.com/api/users/@me/guilds/${DISCORD_SERVER_ID}/member`, {
+                    headers: { authorization: `Bearer ${tokenData.access_token}` }
+                });
+
+                if (userGuildMemberRes.status === 200) {
+                    isMember = true;
+                    const memberData = await userGuildMemberRes.json();
+                    if (REQUIRED_ROLE_ID === "YOUR_ROLE_ID_HERE" || !REQUIRED_ROLE_ID || memberData.roles.includes(REQUIRED_ROLE_ID)) {
+                        hasRole = true;
+                    }
+                } else if (DISCORD_BOT_TOKEN) {
+                    // 2. المحاولة البديلة بـ Bot Token في حال تعذر الحصول على استجابة
+                    const botMemberRes = await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
                         headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` }
                     });
 
-                    if (memberRes.status === 200) {
+                    if (botMemberRes.status === 200) {
                         isMember = true;
-                        const memberData = await memberRes.json();
-                        if (REQUIRED_ROLE_ID === "YOUR_ROLE_ID_HERE" || memberData.roles.includes(REQUIRED_ROLE_ID)) {
+                        const memberData = await botMemberRes.json();
+                        if (REQUIRED_ROLE_ID === "YOUR_ROLE_ID_HERE" || !REQUIRED_ROLE_ID || memberData.roles.includes(REQUIRED_ROLE_ID)) {
                             hasRole = true;
                         }
                     }
@@ -597,10 +603,9 @@ export default async function handler(req, res) {
                         <head><meta charset="utf-8"><title>Discord Verification Failed</title></head>
                         <body style="background:#07090f; color:#fff; text-align:center; font-family:sans-serif; padding:50px;">
                             <h1 style="color:#f87171;">فشل التحقق من ديسكورد ❌</h1>
-                            <p style="font-size:18px;">${failReason}</p>
-                            <br>
-                            <a href="${DISCORD_INVITE_URL}" target="_blank" style="color:#fff; background:#5865F2; padding:12px 25px; text-decoration:none; border-radius:10px; font-weight:bold; margin-right:10px;">انضم للسيرفر أولاً</a>
-                            <a href="/api/keysystem?hwid=${userHwid}" style="color:#000; background:#4ade80; padding:12px 25px; text-decoration:none; border-radius:10px; font-weight:bold;">محاولة التحقق مجدداً</a>
+                            <p style="font-size:18px; margin-bottom: 20px;">${failReason}</p>
+                            <a href="${DISCORD_INVITE_URL}" target="_blank" style="color:#fff; background:#5865F2; padding:12px 25px; text-decoration:none; border-radius:10px; font-weight:bold; margin-right:10px; display:inline-block;">1. انضم للسيرفر أولاً</a>
+                            <a href="/api/keysystem?hwid=${userHwid}" style="color:#000; background:#4ade80; padding:12px 25px; text-decoration:none; border-radius:10px; font-weight:bold; display:inline-block; margin-top: 15px;">2. محاولة التحقق مجدداً</a>
                         </body>
                         </html>
                     `);
@@ -617,7 +622,6 @@ export default async function handler(req, res) {
                         <div style="background:#111; padding:15px; border:1px solid #f87171; display:inline-block; margin:20px; border-radius:10px;">
                             <code>${tokenData.error_description || tokenData.error || JSON.stringify(tokenData)}</code>
                         </div>
-                        <p>تأكد من <b>الـ Client Secret</b>، وتأكد إن رابط الـ Redirect مسجل في ديسكورد بشكل صحيح.</p>
                         <br>
                         <a href="/api/keysystem?hwid=${userHwid}" style="color:#000; background:#4ade80; padding:10px 20px; text-decoration:none; border-radius:10px; font-weight:bold;">العودة للمحاولة</a>
                     </body>
@@ -629,7 +633,7 @@ export default async function handler(req, res) {
         }
     }
 
-    // 🟢 الفحص الحي (Live Check) لخروج المستخدمين أو سحب الرتبة منهم
+    // 🟢 الفحص الحي للخروج أو فقدان الرتبة
     let isDiscordVerified = false;
     const linkCheck = await db.collection("discord_links").doc(userHwid).get();
     
@@ -644,23 +648,20 @@ export default async function handler(req, res) {
                 
                 if (memberRes.status === 200) {
                     const memberData = await memberRes.json();
-                    if (REQUIRED_ROLE_ID === "YOUR_ROLE_ID_HERE" || memberData.roles.includes(REQUIRED_ROLE_ID)) {
+                    if (REQUIRED_ROLE_ID === "YOUR_ROLE_ID_HERE" || !REQUIRED_ROLE_ID || memberData.roles.includes(REQUIRED_ROLE_ID)) {
                         isDiscordVerified = true; 
                         cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
                     } else {
-                        console.log(`User ${discordUserId} lost the required role. Forcing re-verification.`);
                         await db.collection("discord_links").doc(userHwid).delete(); 
                         cookieArray.push(`discord_verified=; Max-Age=0; Path=/`);
                     }
                 } else if (memberRes.status === 404) {
-                    console.log(`User ${discordUserId} left the server. Forcing re-verification.`);
                     await db.collection("discord_links").doc(userHwid).delete(); 
                     cookieArray.push(`discord_verified=; Max-Age=0; Path=/`); 
                 } else {
                     isDiscordVerified = true;
                 }
             } catch (err) {
-                console.error("Live Discord Check Failed:", err);
                 isDiscordVerified = true; 
             }
         } else {
@@ -672,7 +673,8 @@ export default async function handler(req, res) {
     }
 
     if (!isDiscordVerified && DISCORD_CLIENT_ID !== "YOUR_DISCORD_CLIENT_ID") {
-        const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds.join&state=${userHwid}`;
+        // تم تحديث Scope إلى identify + guilds + guilds.members.read لقراءة العضوية والرتب بدقة عالية
+        const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds%20guilds.members.read&state=${userHwid}`;
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader('Set-Cookie', cookieArray);
         return res.status(200).send(discordAuthUI(discordAuthUrl));
@@ -716,7 +718,6 @@ export default async function handler(req, res) {
             } else {
                 const keyData = keyDoc.data();
                 
-                // 🟢 مسح المفتاح تلقائياً من قاعدة البيانات إذا انتهت صلاحيته
                 if (keyData.expiresAt < Date.now()) {
                     await db.collection("keys").doc(activeKey).delete();
                     
