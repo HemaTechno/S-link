@@ -12,8 +12,8 @@ const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240"
 const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "fJ2SyQX5I_DY2IHUzn8EYnw6Pm6YFHAB"; 
 const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; // توكن البوت ضروري لفحص الرتبة
 const DISCORD_SERVER_ID = process.env.DISCORD_SERVER_ID || "1135848445471629393";
-const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || "https://discord.gg/YOUR_INVITE_CODE"; // ضع رابط الدعوة لسيرفرك هنا
-const REQUIRED_ROLE_ID = process.env.REQUIRED_ROLE_ID || "YOUR_ROLE_ID_HERE"; // 🔴 ضع ID الرتبة المطلوبة هنا
+const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || "https://discord.gg/hematech-1135848445471629393"; // ضع رابط الدعوة لسيرفرك هنا
+const REQUIRED_ROLE_ID = process.env.REQUIRED_ROLE_ID || "1271181175305797652"; // 🔴 ضع ID الرتبة المطلوبة هنا
 
 const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkXp0_d1132x_fP2GnuorVPs0";
 const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY || "6Lc31mwtAAAAALgsx7eKJwIIK-2uJkCp7-ERc__1";
