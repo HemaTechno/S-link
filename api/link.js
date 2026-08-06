@@ -6,6 +6,14 @@ const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b23
 const LINKVERTISE_USER_ID = "1322389"; // ضع الـ ID الخاص بك هنا
 const NITRO_LINK_API = "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9"; // توكن Nitro Link الخاص بك
 
+// 🔴 إعدادات ديسكورد
+const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "1532480930625884240";
+const DISCORD_CLIENT_SECRET = process.env.DISCORD_CLIENT_SECRET || "fJ2SyQX5I_DY2IHUzn8EYnw6Pm6YFHAB"; 
+const DISCORD_BOT_TOKEN = process.env.DISCORD_BOT_TOKEN || ""; 
+const DISCORD_SERVER_ID = process.env.DISCORD_SERVER_ID || "1135848445471629393";
+const DISCORD_INVITE_URL = process.env.DISCORD_INVITE_URL || "https://discord.gg/YOUR_INVITE_CODE"; 
+const REQUIRED_ROLE_ID = process.env.REQUIRED_ROLE_ID || "YOUR_ROLE_ID_HERE"; 
+
 const cache = new Map();
 const spamCache = new Map(); 
 
@@ -38,6 +46,49 @@ const vpnBlockUI = `
         <h1>VPN / Proxy Detected!</h1>
         <p>We detected that you are using a VPN or Proxy connection.</p>
         <p style="color:#fff; font-weight:bold;">Please turn off your VPN and refresh the page to continue.</p>
+    </div>
+</body>
+</html>
+`;
+
+// 🟢 واجهة طلب دخول السيرفر والتحقق من ديسكورد
+const discordAuthUI = (discordAuthUrl) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Verification Required 🛡️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #0c0d10; --glass-bg: rgba(20, 21, 25, 0.6); --text-main: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
+        .container { width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(88, 101, 242, 0.4); text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.7); }
+        h1 { color: #5865F2; margin-bottom: 15px; font-size: 1.8rem; font-weight: 800; }
+        p { color: #aaa; font-size: 1.1rem; margin-bottom: 25px; line-height: 1.6; }
+        .discord-icon { font-size: 65px; color: #5865F2; margin-bottom: 20px; text-shadow: 0 0 20px rgba(88, 101, 242, 0.4); }
+        .btn-group { display: flex; flex-direction: column; gap: 12px; }
+        .btn-discord { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 16px; background: #5865F2; color: #fff; text-decoration: none; font-weight: bold; border-radius: 14px; transition: 0.3s; font-size: 15px; box-shadow: 0 4px 15px rgba(88,101,242,0.3); }
+        .btn-discord:hover { background: #4752c4; transform: translateY(-2px); }
+        .btn-join { background: #23272A; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-join:hover { background: #2c2f33; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="discord-icon"><i class="fa-brands fa-discord"></i></div>
+        <h1>Discord Verification</h1>
+        <p>You must join our server, obtain the required role, and verify your account to continue.</p>
+        <div class="btn-group">
+            <a href="${DISCORD_INVITE_URL}" target="_blank" class="btn-discord btn-join">
+                <i class="fa-solid fa-right-to-bracket"></i> 1. Join Discord Server
+            </a>
+            <a href="${discordAuthUrl}" class="btn-discord">
+                <i class="fa-solid fa-user-check"></i> 2. Verify Role & Link Account
+            </a>
+        </div>
     </div>
 </body>
 </html>
@@ -80,11 +131,9 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             </a>`);
         }
 
-        // دمج الأزرار بفاصل OR بشكل ذكي
         return `<div class="networks-container">${buttonsArray.join(`<div class="or-divider"><span>OR</span></div>`)}</div>`;
     };
 
-    // في حالة تعطيل الإعلانات من لوحة التحكم، نعرض المحتوى المباشر
     if (urls.text) {
         actionHtml = `
         <div class="text-container">
@@ -105,7 +154,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         </script>`;
     } 
     else if (urls.lootlabs || urls.linkvertise || urls.nitroLink) {
-        // عرض أزرار التخطي المتاحة
         actionHtml = getNetworkButtons(urls.lootlabs, urls.linkvertise, urls.nitroLink);
     } 
     else if (urls.direct) {
@@ -143,7 +191,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         h1 { color: var(--primary); margin-bottom: 15px; font-size: 1.8rem; }
         .desc { color: #a0a0a0; margin-bottom: 30px; font-size: 1.1rem; }
         
-        /* New Button Styles */
         .networks-container { display: flex; flex-direction: column; gap: 16px; }
         
         .network-btn {
@@ -174,7 +221,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         
         .network-logo { height: 24px; object-fit: contain; z-index: 2; max-width: 120px; }
 
-        /* LootLabs Button Styling */
         .lootlabs-btn { color: #ffd700; border-color: rgba(255, 215, 0, 0.15); }
         .lootlabs-btn:hover {
             transform: translateY(-4px);
@@ -183,7 +229,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             background: rgba(255, 215, 0, 0.05);
         }
 
-        /* Linkvertise Button Styling */
         .linkvertise-btn { color: #4ade80; border-color: rgba(74, 222, 128, 0.15); }
         .linkvertise-btn:hover {
             transform: translateY(-4px);
@@ -192,7 +237,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             background: rgba(74, 222, 128, 0.05);
         }
 
-        /* Nitro Link Button Styling */
         .nitrolink-btn { color: #ff5722; border-color: rgba(255, 87, 34, 0.15); }
         .nitrolink-btn:hover {
             transform: translateY(-4px);
@@ -201,7 +245,6 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
             background: rgba(255, 87, 34, 0.05);
         }
 
-        /* OR Divider */
         .or-divider { text-align: center; margin: 10px 0; position: relative; }
         .or-divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.1); z-index: 1; }
         .or-divider span { background: var(--bg-dark); padding: 4px 14px; border-radius: 12px; font-size: 13px; font-weight: 800; color: #a0a0a0; position: relative; z-index: 2; border: 1px solid rgba(255, 255, 255, 0.1); }
@@ -210,7 +253,7 @@ const generatePageHtml = (title, linkName, messageTitle, req, urls) => {
         .default-btn:hover { transform: translateY(-4px); box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2); }
 
         .text-container {
-            background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.08);
             border-radius: 16px; padding: 15px; margin-bottom: 20px; text-align: left;
         }
         textarea {
@@ -303,7 +346,6 @@ export default async function handler(req, res) {
         
         if (clientIp && clientIp !== "::1" && clientIp !== "127.0.0.1") {
             try {
-                // نستخدم axios بما أنه مستورد بالفعل في الكود للتحقق من الآي بي
                 const response = await axios.get(`https://blackbox.ipinfo.app/lookup/${clientIp}`);
                 if (typeof response.data === 'string' && response.data.trim() === 'Y') {
                     isVPN = true;
@@ -313,13 +355,164 @@ export default async function handler(req, res) {
             }
         }
 
-        // إذا كان يمتلك VPN، امنعه من الدخول واعرض رسالة الخطأ
         if (isVPN) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             return res.status(403).send(vpnBlockUI);
         }
 
         const id = req.query.id;
+        const cookieHeader = req.headers.cookie || '';
+
+        // التقاط الـ HWID المستهدف
+        let userHwid = req.query.hwid || req.query.state || null;
+        if (!userHwid) {
+            const hwidMatch = cookieHeader.match(/user_hwid=([^;]+)/);
+            if (hwidMatch) userHwid = hwidMatch[1];
+        }
+        if (!userHwid && id) userHwid = id; // HWID fallback بناءً على رابط المحتوى
+
+        const host = req.headers.host || "";
+        const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
+        const redirectUri = `${protocol}://${host}/api/keysystem`; // أو رابط صفحة العودة الخاصة بك
+
+        let cookieArray = [];
+        if (userHwid) {
+            cookieArray.push(`user_hwid=${userHwid}; Max-Age=86400; Path=/; SameSite=Lax`);
+        }
+
+        // ========================================================
+        // 🟢 معالجة الكود الآتي من ديسكورد OAuth2
+        // ========================================================
+        if (req.query.code) {
+            const code = req.query.code;
+            try {
+                const tokenRes = await axios.post("https://discord.com/api/oauth2/token", new URLSearchParams({
+                    client_id: DISCORD_CLIENT_ID,
+                    client_secret: DISCORD_CLIENT_SECRET,
+                    grant_type: "authorization_code",
+                    code: code,
+                    redirect_uri: redirectUri
+                }), { headers: { "Content-Type": "application/x-www-form-urlencoded" } });
+
+                const tokenData = tokenRes.data;
+
+                if (tokenData.access_token) {
+                    const userRes = await axios.get("https://discord.com/api/users/@me", {
+                        headers: { authorization: `Bearer ${tokenData.access_token}` }
+                    });
+                    const userData = userRes.data;
+                    const discordUserId = userData.id;
+
+                    let isMember = false;
+                    let hasRole = false;
+
+                    // 1. الفحص بـ User Access Token أولاً
+                    try {
+                        const userGuildMemberRes = await axios.get(`https://discord.com/api/users/@me/guilds/${DISCORD_SERVER_ID}/member`, {
+                            headers: { authorization: `Bearer ${tokenData.access_token}` }
+                        });
+                        if (userGuildMemberRes.status === 200) {
+                            isMember = true;
+                            const memberData = userGuildMemberRes.data;
+                            if (REQUIRED_ROLE_ID === "YOUR_ROLE_ID_HERE" || !REQUIRED_ROLE_ID || memberData.roles.includes(REQUIRED_ROLE_ID)) {
+                                hasRole = true;
+                            }
+                        }
+                    } catch (e) {
+                        // 2. الفحص البديل بـ Bot Token
+                        if (DISCORD_BOT_TOKEN) {
+                            try {
+                                const botMemberRes = await axios.get(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
+                                    headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` }
+                                });
+                                if (botMemberRes.status === 200) {
+                                    isMember = true;
+                                    const memberData = botMemberRes.data;
+                                    if (REQUIRED_ROLE_ID === "YOUR_ROLE_ID_HERE" || !REQUIRED_ROLE_ID || memberData.roles.includes(REQUIRED_ROLE_ID)) {
+                                        hasRole = true;
+                                    }
+                                }
+                            } catch (err) {}
+                        }
+                    }
+
+                    if (isMember && hasRole) {
+                        if (userHwid) {
+                            await db.collection("discord_links").doc(userHwid).set({
+                                discordId: discordUserId,
+                                username: userData.username,
+                                linkedAt: Date.now()
+                            }, { merge: true });
+                        }
+
+                        cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
+                        res.setHeader('Set-Cookie', cookieArray);
+                        
+                        return res.redirect(302, id ? `/?id=${id}` : redirectUri);
+                    } else {
+                        let failReason = !isMember ? "لم تنضم إلى سيرفر الديسكورد الخاص بنا بعد!" : "ليس لديك الرتبة المطلوبة في السيرفر!";
+                        res.setHeader("Content-Type", "text/html; charset=utf-8");
+                        return res.status(400).send(`
+                            <!DOCTYPE html>
+                            <html>
+                            <head><meta charset="utf-8"><title>Discord Verification Failed</title></head>
+                            <body style="background:#07090f; color:#fff; text-align:center; font-family:sans-serif; padding:50px;">
+                                <h1 style="color:#f87171;">فشل التحقق من ديسكورد ❌</h1>
+                                <p style="font-size:18px; margin-bottom: 20px;">${failReason}</p>
+                                <a href="${DISCORD_INVITE_URL}" target="_blank" style="color:#fff; background:#5865F2; padding:12px 25px; text-decoration:none; border-radius:10px; font-weight:bold; margin-right:10px; display:inline-block;">1. انضم للسيرفر أولاً</a>
+                                <a href="${id ? `/?id=${id}` : redirectUri}" style="color:#000; background:#4ade80; padding:12px 25px; text-decoration:none; border-radius:10px; font-weight:bold; display:inline-block; margin-top: 15px;">2. محاولة التحقق مجدداً</a>
+                            </body>
+                            </html>
+                        `);
+                    }
+                }
+            } catch (e) {
+                console.error("Discord Auth Error:", e.message);
+            }
+        }
+
+        // 🟢 الفحص الحي لحالة التوثيق قبل عرض الصفحة
+        let isDiscordVerified = false;
+        if (userHwid) {
+            const linkCheck = await db.collection("discord_links").doc(userHwid).get();
+            if (linkCheck.exists) {
+                const discordUserId = linkCheck.data().discordId;
+                if (DISCORD_BOT_TOKEN && discordUserId) {
+                    try {
+                        const memberRes = await axios.get(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
+                            headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` }
+                        });
+                        if (memberRes.status === 200) {
+                            const memberData = memberRes.data;
+                            if (REQUIRED_ROLE_ID === "YOUR_ROLE_ID_HERE" || !REQUIRED_ROLE_ID || memberData.roles.includes(REQUIRED_ROLE_ID)) {
+                                isDiscordVerified = true;
+                                cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
+                            } else {
+                                await db.collection("discord_links").doc(userHwid).delete();
+                                cookieArray.push(`discord_verified=; Max-Age=0; Path=/`);
+                            }
+                        }
+                    } catch (err) {
+                        isDiscordVerified = true; 
+                    }
+                } else {
+                    isDiscordVerified = true;
+                    cookieArray.push(`discord_verified=true; Max-Age=86400; Path=/; SameSite=Lax`);
+                }
+            }
+        }
+
+        // إذا لم يكن موثقاً بـ Discord، نعرض عليه واجهة ربط الديسكورد أولاً
+        if (!isDiscordVerified && DISCORD_CLIENT_ID !== "YOUR_DISCORD_CLIENT_ID") {
+            const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds%20guilds.members.read&state=${userHwid || ''}`;
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            if (cookieArray.length > 0) res.setHeader('Set-Cookie', cookieArray);
+            return res.status(200).send(discordAuthUI(discordAuthUrl));
+        }
+
+        if (cookieArray.length > 0) res.setHeader('Set-Cookie', cookieArray);
+        // ========================================================
+
         try {
             if (!id) return res.status(404).send("Not Found");
 
@@ -340,7 +533,6 @@ export default async function handler(req, res) {
             const lootlabsCompletionUrl = `https://subx.click/api/complete?id=${id}&network=lootlabs&tc=[tc]`;
             const nitroLinkCompletionUrl = `https://subx.click/api/complete?id=${id}&network=nitrolink`;
 
-            const cookieHeader = req.headers.cookie || '';
             const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
 
             const shouldShowLinkvertise = (adSettings.linkvertise !== false) || hasNitroCooldown;
