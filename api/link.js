@@ -10,26 +10,38 @@ const config = {
   nitroLinkApiKey: process.env.NITRO_LINK_API_KEY || "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9",
   linkJustApiToken: process.env.LINKJUST_API_TOKEN || "944c5ea148b949eb99be07963d8615e6904f460b",
   adminKey: process.env.ADMIN_SECRET_KEY || "Hema123i#",
-  rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
-  rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
-  taskDurationSeconds: 7, 
-  minStaySeconds: 5,     
+  taskDurationSeconds: 7, // مدة التايمر الإجمالية
+  minStaySeconds: 5,     // الحد الأدنى الإجباري للبقاء خارج الصفحة
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
-const cache = new Map();
-const spamCache = new Map();
-
 /* ========================== 2) AD NETWORK HANDLERS ========================== */
 
+// توليد رابط الشبكة الربحية مع إرسال رابط التوجيه النهائي لـ /api/complete
 async function resolveUnlockUrl(network, id, req) {
-  const host = req.headers.host || "subx.click";
-  const protocol = host.includes("localhost") ? "http" : "https";
+  const host = req.headers.host || "www.subx.click";
+  const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
   
-  // توليد رابط العودة إلى صفحة complete بعد تخطي شبكة الإعلانات
+  // الرابط النهائي الذي سيتوجه إليه العميل بعد إنهاء الإعلانات
   const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
 
   try {
+    if (network === "just") {
+      const reqUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}`;
+      const res = await axios.get(reqUrl, { timeout: 8000 });
+      if (res.data?.status === "success" && res.data.shortenedUrl) {
+        return res.data.shortenedUrl;
+      }
+    }
+
+    if (network === "nitrolink") {
+      const reqUrl = `https://nitro-link.com/api?api=${config.nitroLinkApiKey}&url=${encodeURIComponent(completionUrl)}`;
+      const res = await axios.get(reqUrl, { timeout: 8000 });
+      if (res.data?.status === "success" && res.data.shortenedUrl) {
+        return res.data.shortenedUrl;
+      }
+    }
+
     if (network === "lootlabs") {
       const res = await axios.post(
         "https://creators.lootlabs.gg/api/public/content_locker",
@@ -44,18 +56,6 @@ async function resolveUnlockUrl(network, id, req) {
       const base64Url = Buffer.from(completionUrl).toString("base64");
       const rnd = Math.random().toString(36).slice(2, 9);
       return `https://link-to.net/${config.linkvertiseUserId}/${rnd}/dynamic?r=${base64Url}`;
-    }
-
-    if (network === "nitrolink") {
-      const reqUrl = `https://nitro-link.com/api?api=${config.nitroLinkApiKey}&url=${encodeURIComponent(completionUrl)}`;
-      const res = await axios.get(reqUrl, { timeout: 8000 });
-      if (res.data?.status === "success" && res.data.shortenedUrl) return res.data.shortenedUrl;
-    }
-
-    if (network === "just") {
-      const reqUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}`;
-      const res = await axios.get(reqUrl, { timeout: 8000 });
-      if (res.data?.status === "success" && res.data.shortenedUrl) return res.data.shortenedUrl;
     }
   } catch (e) {
     console.error(`Ad Network (${network}) Error:`, e.message);
@@ -234,23 +234,29 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     alertBox.style.display = 'none';
 
     if (!taskData[index]) {
-      taskData[index] = { completed: false, clickTime: 0, blurTime: 0, timer: null, remaining: taskDuration };
+      taskData[index] = { completed: false, blurTime: 0, focusTime: 0, timer: null, remaining: taskDuration };
     }
     
     const current = taskData[index];
-    current.clickTime = Date.now();
     current.blurTime = 0;
+    current.focusTime = 0;
     current.remaining = taskDuration;
 
     taskBtn.className = 'task-btn active-timer';
     badge.style.display = 'inline-block';
     timerNum.innerText = current.remaining;
 
-    // تسجيل زمني لمغادرة المستخدم للصفحة فور ضغط الرابط
-    const handleBlur = () => {
-      current.blurTime = Date.now();
+    // تسجيل دقيق جداً باستخدام Performance API عند الخروج والعودة
+    const onBlur = () => {
+      current.blurTime = performance.now();
     };
-    window.addEventListener('blur', handleBlur, { once: true });
+
+    const onFocus = () => {
+      current.focusTime = performance.now();
+    };
+
+    window.addEventListener('blur', onBlur, { once: true });
+    window.addEventListener('focus', onFocus, { once: true });
 
     if (current.timer) clearInterval(current.timer);
 
@@ -261,14 +267,20 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
       if (current.remaining <= 0) {
         clearInterval(current.timer);
         
-        const returnTime = Date.now();
-        // حسابه الوقت الحقيقي المستغرق خارج الصفحة (الفرق بين المغادرة والعودة)
-        const awayTimeSeconds = current.blurTime > 0 ? (returnTime - current.blurTime) / 1000 : (returnTime - current.clickTime) / 1000;
+        // حساب الفارق الزمني الحقيقي المنهي خارج الصفحة
+        let awaySeconds = 0;
+        if (current.blurTime > 0 && current.focusTime > 0) {
+          awaySeconds = (current.focusTime - current.blurTime) / 1000;
+        } else if (current.blurTime > 0) {
+          awaySeconds = (performance.now() - current.blurTime) / 1000;
+        } else {
+          awaySeconds = taskDuration; 
+        }
 
-        if (awayTimeSeconds >= minStay) {
+        if (awaySeconds >= minStay) {
           completeTask(index);
         } else {
-          // إذا رجع الشخص قبل الـ 5 ثوانٍ، تفشل المهمة فوراً
+          // العودة في أقل من 5 ثوانٍ -> إظهار خطأ وإلغاء التكتمل
           taskBtn.className = 'task-btn';
           badge.style.display = 'none';
           alertBox.className = 'task-alert-box error';
@@ -407,7 +419,7 @@ export default async function handler(req, res) {
       const data = doc.data();
       const network = data.monetization || "lootlabs";
       
-      // التوجيه التلقائي عبر زر Unlock نحو رابط complete التابع لشبكة الربح
+      // توجيه زر Unlock لرابط شبكة الأرباح مع التوجه التلقائي لـ /api/complete
       const unlockUrl = await resolveUnlockUrl(network, id, req);
 
       res.setHeader("Content-Type", "text/html; charset=utf-8");
