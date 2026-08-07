@@ -13,16 +13,18 @@ const config = {
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
   taskDurationSeconds: 7, 
-  minStaySeconds: 5,     
+  minStaySeconds: 3,     
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
 /* ========================== 2) AD NETWORK HANDLERS ========================== */
 
+// توليد رابط اختصار لشبكة الأرباح المحددة يوجه بدوره إلى /api/complete[cite: 9]
 async function resolveUnlockUrl(network, id, req) {
-  const host = req.headers.host || "www.subx.click";
+  const host = req.headers.host || "subx.click";
   const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
   
+  // رابط الصفحة التي سيتوجه إليها المستخدم بعد إتمام الإعلان[cite: 9]
   const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
 
   try {
@@ -196,7 +198,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .task-alert-box.error{background:rgba(255,92,92,.12);border:1px solid rgba(255,92,92,.3);color:var(--danger);display:block}
   .task-alert-box.success{background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.3);color:var(--success);display:block}
 
-  /* Toast Notification */
   .toast-container {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
@@ -417,7 +418,7 @@ export default async function handler(req, res) {
         description: description || "",
         image: image || "",
         targetUrl: trimmedUrl,
-        monetization: monetization || "lootlabs",
+        monetization: monetization || "just",
         tasks: Array.isArray(tasks) ? tasks : [],
         createdAt: Date.now(),
         clicks: 0,
@@ -447,8 +448,9 @@ export default async function handler(req, res) {
       }
 
       const data = doc.data();
-      const network = data.monetization || "lootlabs";
+      const network = data.monetization || "just";
       
+      // التوجيه عبر رابط الشبكة الربحية المولد وتوجيهه بعد التخطي إلى /api/complete[cite: 9]
       const unlockUrl = await resolveUnlockUrl(network, id, req);
 
       res.setHeader("Content-Type", "text/html; charset=utf-8");
