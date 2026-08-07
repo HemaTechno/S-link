@@ -35,7 +35,9 @@
         .main-btn {
             width: 100%; padding: 16px; background: linear-gradient(135deg, #ffd700 0%, #b89b00 100%);
             color: #000; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 800; margin-top: 15px;
+            transition: all 0.3s;
         }
+        .main-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,215,0,0.25); }
 
         /* Preview Styles */
         .preview-card { background: rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); }
@@ -44,6 +46,21 @@
         
         /* Auto Fetch Button */
         .btn-fetch { position: absolute; left: 8px; top: 8px; background: var(--primary); color: #000; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
+
+        /* Result Box */
+        .result-box {
+            margin-top: 20px; padding: 15px; background: rgba(74, 222, 128, 0.1);
+            border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 14px; text-align: center; display: none;
+        }
+        .result-box input {
+            background: rgba(0, 0, 0, 0.5); text-align: center; font-weight: bold;
+            color: var(--primary); margin-bottom: 10px; border-color: rgba(255, 215, 0, 0.3);
+        }
+        .copy-btn {
+            width: 100%; padding: 10px; background: #4ade80; color: #000;
+            border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .copy-btn:hover { background: #22c55e; }
     </style>
 </head>
 
@@ -73,11 +90,17 @@
             <i class="fa-solid fa-align-left"></i>
         </div>
 
-        <!-- Target Destination -->
+        <!-- 3. Target Destination -->
         <div class="section-title">3. Destination Content (URL or Text)</div>
         <div class="input-group">
             <input id="targetUrl" type="text" placeholder="Locked URL or Hidden Text">
             <i class="fa-solid fa-lock"></i>
+        </div>
+
+        <!-- Custom Alias -->
+        <div class="input-group">
+            <input id="slug" type="text" maxlength="30" placeholder="Custom Alias (Optional) e.g., my-file">
+            <i class="fa-solid fa-signature"></i>
         </div>
 
         <!-- 4. Dynamic Tasks -->
@@ -89,15 +112,23 @@
         <div class="section-title">5. Profit Network</div>
         <div class="input-group">
             <select id="monetization">
+                <option value="just">LinkJust (Recommended)</option>
                 <option value="lootlabs">LootLabs</option>
                 <option value="linkvertise">Linkvertise</option>
                 <option value="nitrolink">Nitro-Link</option>
-                <option value="just">Just Direct Access (No Ads)</option>
+                <option value="direct">Direct Access (No Ads)</option>
             </select>
             <i class="fa-solid fa-coins"></i>
         </div>
 
         <button id="shortBtn" class="main-btn" onclick="processLock()"><i class="fa-solid fa-link"></i> Create Link</button>
+
+        <!-- Result Box -->
+        <div id="successBox" class="result-box">
+            <p style="color: #4ade80; font-weight: bold; margin-bottom: 8px;"><i class="fa-solid fa-circle-check"></i> Link Created Successfully!</p>
+            <input type="text" id="finalUrl" readonly>
+            <button class="copy-btn" onclick="copyLink()"><i class="fa-solid fa-copy"></i> Copy Link</button>
+        </div>
     </div>
 
     <!-- Live Preview Section -->
