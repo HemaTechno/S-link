@@ -229,7 +229,7 @@ const unlockPage = ({ linkData, unlockUrl, isClientSide, taskDurationSeconds }) 
     </button>
 
     <div class="text-box-container" id="textContentBox">
-      <textarea id="secretText" readonly rows="4">${isTextContent ? unlockUrl : ''}</textarea>
+      <textarea id="secretText" readonly rows="4">${unlockUrl}</textarea>
       <button class="btn default-btn" style="margin-top:10px; padding:12px;" onclick="copySecretText()">
         <i class="fa-solid fa-copy"></i> Copy Hidden Content
       </button>
@@ -257,41 +257,46 @@ const unlockPage = ({ linkData, unlockUrl, isClientSide, taskDurationSeconds }) 
     const alertBox = document.getElementById('alert-' + index);
     alertBox.style.display = 'none';
 
-    if (!taskData[index]) taskData[index] = { completed: false, startTime: 0, interval: null, elapsedSeconds: 0 };
+    if (!taskData[index]) {
+      taskData[index] = { completed: false, startTime: 0, timer: null, seconds: 0 };
+    }
+    
     const current = taskData[index];
     current.startTime = Date.now();
-    current.elapsedSeconds = 0;
+    current.seconds = 0;
 
     taskBtn.className = 'task-btn active-timer';
     badge.style.display = 'inline-block';
     badge.innerText = '0s / ' + taskDuration + 's';
 
-    if (current.interval) clearInterval(current.interval);
-    current.interval = setInterval(() => {
-      current.elapsedSeconds++;
-      badge.innerText = current.elapsedSeconds + 's / ' + taskDuration + 's';
-      if (current.elapsedSeconds >= taskDuration) {
-        clearInterval(current.interval);
+    if (current.timer) clearInterval(current.timer);
+
+    current.timer = setInterval(() => {
+      current.seconds++;
+      badge.innerText = current.seconds + 's / ' + taskDuration + 's';
+
+      if (current.seconds >= taskDuration) {
+        clearInterval(current.timer);
         completeTask(index);
       }
     }, 1000);
 
-    const onFocusCheck = () => {
-      window.removeEventListener('focus', onFocusCheck);
-      setTimeout(() => {
-        if (!current.completed) {
-          const timeSpent = (Date.now() - current.startTime) / 1000;
-          if (timeSpent < taskDuration - 0.2) {
-            clearInterval(current.interval);
-            taskBtn.className = 'task-btn';
-            badge.style.display = 'none';
-            alertBox.className = 'task-alert-box error';
-            alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Task failed! Stay at least ' + taskDuration + ' seconds on page.';
-          }
+    const checkVisibility = () => {
+      if (document.visibilityState === 'visible' && !current.completed) {
+        document.removeEventListener('visibilitychange', checkVisibility);
+        const timeSpent = (Date.now() - current.startTime) / 1000;
+        
+        if (timeSpent < taskDuration) {
+          clearInterval(current.timer);
+          taskBtn.className = 'task-btn';
+          badge.style.display = 'none';
+          alertBox.className = 'task-alert-box error';
+          alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Task failed! Stay at least ' + taskDuration + ' seconds on the task page.';
         }
-      }, 500);
+      }
     };
-    window.addEventListener('focus', onFocusCheck);
+
+    document.addEventListener('visibilitychange', checkVisibility);
   };
 
   function completeTask(index) {
@@ -445,19 +450,95 @@ async function handlePost(req, res) {
     return res.status(400).json({ success: false, message: "Alias already in use" });
   }
 
-  const isTextContent = !targetUrl.trim().startsWith("http://") && !targetUrl.trim().startsWith("https://");
+  // 🛠️ الإصلاح الجذري للروابط والأكواد والمحتويات المقفولة
+  const trimmedUrl = targetUrl.trim();
+  const isTextContent = !trimmedUrl.startsWith("http://") && !trimmedUrl.startsWith("https://");
 
   await db.collection("links").doc(id).set({
     title,
     description: description || "",
     image: image || "",
-    targetUrl,
+    targetUrl: trimmedUrl,
     isTextContent,
     monetization: monetization || "lootlabs",
     tasks: Array.isArray(tasks) ? tasks : [],
     createdAt: Date.now(),
     clicks: 0,
   });
+
+  return res.status(200).json({ success: true, short: `${req.headers.origin}/${id}` });
+}
+
+async function handleGet(req, res) {
+  const ip = getClientIp(req);
+
+  if (await checkIsVpn(ip)) {
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.status(403).send(vpnBlockPage());
+  }
+
+  const id = req.query.id;
+
+  if (id === "RESOLVE") {
+    const target = req.query.target;
+    if (!target) return res.status(400).json({ success: false, message: "Missing target" });
+    const { unlockUrl } = await callLinkJust(target).catch(() => ({ unlockUrl: target }));
+    return res.status(200).json({ success: true, url: unlockUrl });
+  }
+
+  if (!id) {
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.status(404).send(notFoundPage());
+  }
+
+  const doc = await db.collection("links").doc(id).get();
+  if (!doc.exists) {
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.status(404).send(notFoundPage());
+  }
+
+  const data = doc.data();
+  db.collection("links").doc(id).update({ clicks: (data.clicks || 0) + 1 }).catch(() => {});
+
+  let unlockUrl = data.targetUrl;
+  let isClientSide = false;
+
+  // التعامل الصحيح مع الروابط المقفولة مقابل الأكواد والنصوص
+  if (!data.isTextContent) {
+    const network = data.monetization || "lootlabs";
+    const resolved = await resolveUnlockUrl(network, data.targetUrl, id);
+    unlockUrl = resolved.unlockUrl;
+    isClientSide = resolved.isClientSide;
+  }
+
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  return res.status(200).send(
+    unlockPage({ 
+      linkData: data, 
+      unlockUrl, 
+      isClientSide, 
+      taskDurationSeconds: config.taskDurationSeconds 
+    })
+  );
+}
+
+/* ============================== 6) MAIN EXPORT ============================== */
+
+export default async function handler(req, res) {
+  try {
+    if (req.method === "PATCH") return await handlePatch(req, res);
+    if (req.method === "POST") return await handlePost(req, res);
+    if (req.method === "GET") return await handleGet(req, res);
+    return res.status(405).send("Method Not Allowed");
+  } catch (err) {
+    console.error("Handler error:", err);
+    if (req.method === "GET") {
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      return res.status(500).send(notFoundPage());
+    }
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+}
 
   return res.status(200).json({ success: true, short: `${req.headers.origin}/${id}` });
 }
