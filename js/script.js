@@ -28,7 +28,7 @@ function addTaskRow() {
             <option value="discord">Discord</option>
         </select>
         <select class="action-select" onchange="updatePreview()"></select>
-        <input type="url" placeholder="Task Target URL (e.g., https://...)" class="task-link" oninput="updatePreview()">
+        <input type="url" placeholder="Task Target URL (https://...)" class="task-link" oninput="updatePreview()">
         <button type="button" onclick="removeTask('${rowId}')" style="background:#ff4d4d; color:#fff; border:none; padding:8px 12px; border-radius:8px; cursor:pointer; font-weight:bold;">✕</button>
     `;
     tasksList.appendChild(div);
@@ -181,14 +181,13 @@ async function processLock() {
         button.innerText = "إنشاء الرابط";
 
         if (data.success) {
-            alert(`✅ تم إنشاء الرابط بنجاح:\n${data.short}`);
-            
-            // إظهار مربع النتيجة إذا كان موجوداً بالواجهة
             const finalUrlInput = document.getElementById("finalUrl");
             const successBox = document.getElementById("successBox");
             if (finalUrlInput && successBox) {
                 finalUrlInput.value = data.short;
                 successBox.style.display = "block";
+            } else {
+                alert(`✅ تم إنشاء الرابط بنجاح:\n${data.short}`);
             }
         } else {
             alert(`❌ خطأ: ${data.message}`);
@@ -200,7 +199,7 @@ async function processLock() {
     }
 }
 
-// نسخ الرابط إلى الحافظة
+// 7. نسخ الرابط إلى الحافظة
 function copyLink() {
     const copyText = document.getElementById("finalUrl");
     if (!copyText) return;
@@ -208,5 +207,12 @@ function copyLink() {
     copyText.select();
     navigator.clipboard.writeText(copyText.value);
     
-    alert("تم نسخ الرابط بنجاح ✅");
+    const copyBtn = document.querySelector('.copy-btn');
+    if (copyBtn) {
+        const originalText = copyBtn.innerHTML;
+        copyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+        setTimeout(() => {
+            copyBtn.innerHTML = originalText;
+        }, 2000);
+    }
 }
