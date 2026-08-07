@@ -45,9 +45,9 @@ const vpnBlockUI = `
 </html>
 `;
 
-// 🎨 واجهة العرض بالتصميم الأزرق الفاخر ونظام العد التنازلي التفاعلي
+// 🎨 واجهة العرض التفاعلية المعدلة كلياً
 const generatePageHtml = (linkData, unlockUrl, isClientLinkJust = false) => {
-    const { title, description, image, targetUrl, tasks } = linkData;
+    const { title, description, image, tasks } = linkData;
     const totalTasks = tasks ? tasks.length : 0;
 
     let tasksHtml = '';
@@ -57,12 +57,13 @@ const generatePageHtml = (linkData, unlockUrl, isClientLinkJust = false) => {
             <h3><i class="fa-solid fa-list-check"></i> Complete Required Tasks</h3>
             ${tasks.map((task, idx) => `
                 <div class="task-wrapper">
-                    <a href="${task.link}" target="_blank" class="task-btn" id="task-btn-${idx}" onclick="startTaskVerification(${idx})">
-                        <span><i class="fa-brands fa-${task.platform}"></i> ${task.action}</span>
+                    <a href="${task.link}" target="_blank" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(${idx})">
+                        <span class="task-info"><i class="fa-brands fa-${task.platform}"></i> ${task.action}</span>
+                        <span class="task-timer-badge" id="timer-badge-${idx}" style="display:none;">0s / 5s</span>
                         <i class="fa-solid fa-circle-check check-icon" id="check-${idx}" style="display:none; color:#00ff88;"></i>
                         <i class="fa-solid fa-external-link-alt link-icon" id="link-${idx}"></i>
                     </a>
-                    <div class="task-status-text" id="status-${idx}"></div>
+                    <div class="task-alert-box" id="alert-${idx}"></div>
                 </div>
             `).join('')}
         </div>`;
@@ -107,19 +108,27 @@ const generatePageHtml = (linkData, unlockUrl, isClientLinkJust = false) => {
         
         .tasks-container { margin-bottom: 25px; text-align: left; }
         .tasks-container h3 { font-size: 14px; color: var(--accent-cyan); margin-bottom: 12px; font-weight: bold; }
-        .task-wrapper { margin-bottom: 12px; }
+        .task-wrapper { margin-bottom: 14px; }
+        
         .task-btn {
             display: flex; justify-content: space-between; align-items: center;
             background: rgba(15, 28, 48, 0.6); border: 1px solid rgba(0, 240, 255, 0.15);
             padding: 14px 18px; border-radius: 14px; color: #fff; text-decoration: none;
-            font-weight: bold; font-size: 14px; transition: all 0.3s ease;
+            font-weight: bold; font-size: 14px; transition: all 0.3s ease; position: relative;
         }
         .task-btn:hover { background: rgba(0, 136, 255, 0.2); border-color: var(--accent-cyan); box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); }
         .task-btn.completed { border-color: #00ff88; background: rgba(0, 255, 136, 0.1); color: #00ff88; pointer-events: none; }
-        .task-btn.verifying { border-color: #ffaa00; background: rgba(255, 170, 0, 0.1); color: #ffaa00; }
-        .task-status-text { font-size: 12px; margin-top: 4px; padding-left: 5px; font-weight: 600; display: none; }
-        .task-status-text.error { color: #ff4d4d; display: block; }
-        .task-status-text.info { color: #ffaa00; display: block; }
+        .task-btn.active-timer { border-color: #ffaa00; background: rgba(255, 170, 0, 0.1); color: #ffaa00; }
+        
+        .task-timer-badge { background: #ffaa00; color: #000; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 8px; }
+
+        .task-alert-box {
+            font-size: 12px; font-weight: bold; margin-top: 6px; padding: 8px 12px; border-radius: 10px; display: none; animation: fadeIn 0.3s;
+        }
+        .task-alert-box.error { background: rgba(255, 77, 77, 0.15); border: 1px solid rgba(255, 77, 77, 0.3); color: #ff6b6b; display: block; }
+        .task-alert-box.success { background: rgba(0, 255, 136, 0.15); border: 1px solid rgba(0, 255, 136, 0.3); color: #00ff88; display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
         .btn { width: 100%; padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; cursor: pointer; transition: all 0.3s; }
         .default-btn { color: #050811; background: linear-gradient(135deg, #00f0ff 0%, #0077ff 100%); box-shadow: 0 6px 20px rgba(0, 136, 255, 0.3); }
@@ -145,74 +154,95 @@ const generatePageHtml = (linkData, unlockUrl, isClientLinkJust = false) => {
         const unlockTargetUrl = "${unlockUrl}";
         const isClientJust = ${isClientLinkJust};
         
-        let completedCount = 0;
-        const taskStates = {}; 
+        let completedTasksCount = 0;
+        const taskData = {};
 
-        function startTaskVerification(index) {
-            if (taskStates[index] && taskStates[index].done) return;
+        function startTaskTracker(index) {
+            if (taskData[index] && taskData[index].completed) return;
 
             const taskBtn = document.getElementById('task-btn-' + index);
-            const statusText = document.getElementById('status-' + index);
-            
-            taskStates[index] = {
-                clickTime: Date.now(),
-                blurTime: null,
-                focusTime: null,
-                timer: null,
-                done: false
-            };
+            const badge = document.getElementById('timer-badge-' + index);
+            const alertBox = document.getElementById('alert-' + index);
 
-            taskBtn.classList.add('verifying');
-            statusText.className = "task-status-text info";
-            statusText.innerText = "جاري التحقق من إتمام المهمة... (يرجى الانتظار)";
+            alertBox.style.display = 'none';
 
-            const onBlur = () => {
-                if (taskStates[index] && !taskStates[index].done) {
-                    taskStates[index].blurTime = Date.now();
+            if (!taskData[index]) {
+                taskData[index] = {
+                    completed: false,
+                    startTime: 0,
+                    interval: null,
+                    elapsedSeconds: 0
+                };
+            }
+
+            const current = taskData[index];
+            current.startTime = Date.now();
+            current.elapsedSeconds = 0;
+
+            taskBtn.className = "task-btn active-timer";
+            badge.style.display = 'inline-block';
+            badge.innerText = "0s / 5s";
+
+            // بدء العداد فور الضغط
+            if (current.interval) clearInterval(current.interval);
+
+            current.interval = setInterval(() => {
+                current.elapsedSeconds++;
+                badge.innerText = current.elapsedSeconds + "s / 5s";
+
+                if (current.elapsedSeconds >= 5) {
+                    clearInterval(current.interval);
+                    completeTask(index);
                 }
+            }, 1000);
+
+            // عند العودة قبل انتهاء الوقت المضي
+            const onFocusCheck = () => {
+                window.removeEventListener('focus', onFocusCheck);
+
+                setTimeout(() => {
+                    if (!current.completed) {
+                        const timeSpent = (Date.now() - current.startTime) / 1000;
+                        if (timeSpent < 4.8) {
+                            clearInterval(current.interval);
+                            taskBtn.className = "task-btn";
+                            badge.style.display = 'none';
+                            
+                            alertBox.className = "task-alert-box error";
+                            alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> فشلت المهمة! يجب البقاء 5 ثوانٍ على الأقل داخل الصفحة المطلوبة.';
+                        }
+                    }
+                }, 500);
             };
 
-            const onFocus = () => {
-                window.removeEventListener('blur', onBlur);
-                window.removeEventListener('focus', onFocus);
-
-                if (!taskStates[index] || taskStates[index].done) return;
-
-                const state = taskStates[index];
-                state.focusTime = Date.now();
-
-                const awayDuration = (state.focusTime - (state.blurTime || state.clickTime)) / 1000;
-
-                if (awayDuration >= 5) {
-                    // النجاح في المهمة
-                    state.done = true;
-                    completedCount++;
-                    
-                    taskBtn.className = "task-btn completed";
-                    document.getElementById('check-' + index).style.display = 'inline-block';
-                    document.getElementById('link-' + index).style.display = 'none';
-                    statusText.style.display = 'none';
-
-                    checkTasksCompletion();
-                } else {
-                    // الفشل وتكرار الإجراء
-                    taskBtn.classList.remove('verifying');
-                    statusText.className = "task-status-text error";
-                    statusText.innerText = "فشلت المهمة! يجب البقاء 5 ثوانٍ على الأقل في الصفحة المطلوبة.";
-                }
-            };
-
-            window.addEventListener('blur', onBlur);
-            window.addEventListener('focus', onFocus);
+            window.addEventListener('focus', onFocusCheck);
         }
 
-        function checkTasksCompletion() {
-            if (completedCount >= totalTasks) {
+        function completeTask(index) {
+            const taskBtn = document.getElementById('task-btn-' + index);
+            const badge = document.getElementById('timer-badge-' + index);
+            const alertBox = document.getElementById('alert-' + index);
+
+            taskData[index].completed = true;
+            completedTasksCount++;
+
+            taskBtn.className = "task-btn completed";
+            badge.style.display = 'none';
+            document.getElementById('check-' + index).style.display = 'inline-block';
+            document.getElementById('link-' + index).style.display = 'none';
+
+            alertBox.className = "task-alert-box success";
+            alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم إتمام المهمة بنجاح!';
+
+            checkUnlockStatus();
+        }
+
+        function checkUnlockStatus() {
+            if (completedTasksCount >= totalTasks) {
                 const btn = document.getElementById('unlockBtn');
                 if (btn) {
                     btn.classList.remove('disabled');
-                    const unlockIcon = document.getElementById('unlockIcon');
-                    if (unlockIcon) unlockIcon.className = 'fa-solid fa-lock-open';
+                    document.getElementById('unlockIcon').className = 'fa-solid fa-lock-open';
                 }
             }
         }
@@ -246,7 +276,7 @@ const generatePageHtml = (linkData, unlockUrl, isClientLinkJust = false) => {
         }
 
         if (totalTasks === 0) {
-            checkTasksCompletion();
+            checkUnlockStatus();
         }
     </script>
 </body>
