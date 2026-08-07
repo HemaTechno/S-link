@@ -25,13 +25,13 @@ const vpnBlockUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #0c0d10; --glass-bg: rgba(20, 21, 25, 0.6); --text-main: #ffffff; }
+        :root { --bg-dark: #070a12; --glass-bg: rgba(13, 22, 38, 0.75); --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .container { width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255, 165, 0, 0.4); text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.7); }
-        h1 { color: #ffa500; margin-bottom: 15px; font-size: 1.8rem; font-weight: 800; }
+        .container { width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(0, 195, 255, 0.3); text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
+        h1 { color: #00c3ff; margin-bottom: 15px; font-size: 1.8rem; font-weight: 800; }
         p { color: #aaa; font-size: 1.1rem; margin-bottom: 20px; line-height: 1.6; }
-        .error-icon { font-size: 70px; color: #ffa500; margin-bottom: 25px; text-shadow: 0 0 20px rgba(255, 165, 0, 0.4); }
+        .error-icon { font-size: 70px; color: #00c3ff; margin-bottom: 25px; text-shadow: 0 0 20px rgba(0, 195, 255, 0.4); }
     </style>
 </head>
 <body>
@@ -45,64 +45,27 @@ const vpnBlockUI = `
 </html>
 `;
 
-// 🎨 توليد واجهة المستخدم التفاعلية التي تعرض المهام وزر Unlock
+// 🎨 واجهة العرض بالتصميم الأزرق الفاخر ونظام العد التنازلي التفاعلي
 const generatePageHtml = (linkData, unlockUrl, isClientLinkJust = false) => {
     const { title, description, image, targetUrl, tasks } = linkData;
-
-    // بناء كود قائمة المهام
-    let tasksHtml = '';
     const totalTasks = tasks ? tasks.length : 0;
 
+    let tasksHtml = '';
     if (totalTasks > 0) {
         tasksHtml = `
         <div class="tasks-container">
-            <h3><i class="fa-solid fa-list-check"></i> Complete Tasks to Unlock</h3>
+            <h3><i class="fa-solid fa-list-check"></i> Complete Required Tasks</h3>
             ${tasks.map((task, idx) => `
-                <a href="${task.link}" target="_blank" class="task-btn" id="task-btn-${idx}" onclick="markTaskDone(${idx})">
-                    <span><i class="fa-brands fa-${task.platform}"></i> ${task.action}</span>
-                    <i class="fa-solid fa-circle-check check-icon" id="check-${idx}" style="display:none; color:#4ade80;"></i>
-                    <i class="fa-solid fa-external-link-alt link-icon" id="link-${idx}"></i>
-                </a>
+                <div class="task-wrapper">
+                    <a href="${task.link}" target="_blank" class="task-btn" id="task-btn-${idx}" onclick="startTaskVerification(${idx})">
+                        <span><i class="fa-brands fa-${task.platform}"></i> ${task.action}</span>
+                        <i class="fa-solid fa-circle-check check-icon" id="check-${idx}" style="display:none; color:#00ff88;"></i>
+                        <i class="fa-solid fa-external-link-alt link-icon" id="link-${idx}"></i>
+                    </a>
+                    <div class="task-status-text" id="status-${idx}"></div>
+                </div>
             `).join('')}
         </div>`;
-    }
-
-    // بناء زر الـ Unlock التفاعلي
-    let unlockButtonHtml = '';
-    if (isClientLinkJust) {
-        unlockButtonHtml = `
-        <button id="unlockBtn" class="btn default-btn disabled" onclick="unlockClientSideLinkJust()">
-            <i class="fa-solid fa-lock"></i> Unlock Content
-        </button>
-        <script>
-            async function unlockClientSideLinkJust() {
-                const btn = document.getElementById('unlockBtn');
-                if (btn.classList.contains('disabled')) return;
-
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating Short Link...';
-                btn.disabled = true;
-
-                const target = "${unlockUrl}";
-                const apiUrl = "https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=" + encodeURIComponent(target);
-                
-                try {
-                    const res = await fetch(apiUrl);
-                    const data = await res.json();
-                    if(data.status === 'success' && data.shortenedUrl) {
-                        window.location.href = data.shortenedUrl;
-                        return;
-                    }
-                } catch(err) {
-                    console.error("LinkJust Client API Error:", err);
-                }
-                window.location.href = target;
-            }
-        </script>`;
-    } else {
-        unlockButtonHtml = `
-        <a id="unlockBtn" href="${unlockUrl}" class="btn default-btn ${totalTasks > 0 ? 'disabled' : ''}" onclick="checkTasksBeforeUnlock(event)">
-            <i class="fa-solid fa-lock" id="unlockIcon"></i> Unlock Content
-        </a>`;
     }
 
     return `
@@ -115,36 +78,53 @@ const generatePageHtml = (linkData, unlockUrl, isClientLinkJust = false) => {
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #ffd700; --bg-dark: #0c0d10; --glass-bg: rgba(20, 21, 25, 0.7); --text-main: #ffffff; }
+        :root { 
+            --primary-blue: #0088ff; 
+            --accent-cyan: #00f0ff; 
+            --bg-dark: #050811; 
+            --glass-bg: rgba(10, 18, 32, 0.75); 
+            --text-main: #ffffff; 
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
+        body { 
+            background-color: var(--bg-dark); 
+            background-image: 
+                radial-gradient(at 20% 20%, rgba(0, 136, 255, 0.15) 0px, transparent 50%),
+                radial-gradient(at 80% 80%, rgba(0, 240, 255, 0.1) 0px, transparent 50%);
+            display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; 
+        }
         
         .container { 
             width: 480px; max-width: 100%; padding: 35px 25px; border-radius: 28px; 
-            background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); 
-            border: 1px solid rgba(255, 255, 255, 0.08); text-align: center; 
-            box-shadow: 0 25px 50px rgba(0,0,0,0.5); 
+            background: var(--glass-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
+            border: 1px solid rgba(0, 240, 255, 0.15); text-align: center; 
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1); 
         }
         
-        .media-img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1); }
-        h1 { color: var(--primary); margin-bottom: 10px; font-size: 1.6rem; font-weight: 800; }
-        .desc { color: #a0a0a0; margin-bottom: 25px; font-size: 0.95rem; line-height: 1.5; }
+        .media-img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 18px; margin-bottom: 20px; border: 1px solid rgba(0, 240, 255, 0.2); }
+        h1 { color: var(--accent-cyan); margin-bottom: 10px; font-size: 1.6rem; font-weight: 800; text-shadow: 0 0 15px rgba(0, 240, 255, 0.3); }
+        .desc { color: #94a3b8; margin-bottom: 25px; font-size: 0.95rem; line-height: 1.5; }
         
         .tasks-container { margin-bottom: 25px; text-align: left; }
-        .tasks-container h3 { font-size: 14px; color: var(--primary); margin-bottom: 12px; font-weight: bold; }
+        .tasks-container h3 { font-size: 14px; color: var(--accent-cyan); margin-bottom: 12px; font-weight: bold; }
+        .task-wrapper { margin-bottom: 12px; }
         .task-btn {
             display: flex; justify-content: space-between; align-items: center;
-            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 28, 48, 0.6); border: 1px solid rgba(0, 240, 255, 0.15);
             padding: 14px 18px; border-radius: 14px; color: #fff; text-decoration: none;
-            margin-bottom: 10px; font-weight: bold; font-size: 14px; transition: 0.3s;
+            font-weight: bold; font-size: 14px; transition: all 0.3s ease;
         }
-        .task-btn:hover { background: rgba(255, 215, 0, 0.1); border-color: var(--primary); }
-        .task-btn.completed { border-color: #4ade80; background: rgba(74, 222, 128, 0.1); color: #4ade80; }
+        .task-btn:hover { background: rgba(0, 136, 255, 0.2); border-color: var(--accent-cyan); box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); }
+        .task-btn.completed { border-color: #00ff88; background: rgba(0, 255, 136, 0.1); color: #00ff88; pointer-events: none; }
+        .task-btn.verifying { border-color: #ffaa00; background: rgba(255, 170, 0, 0.1); color: #ffaa00; }
+        .task-status-text { font-size: 12px; margin-top: 4px; padding-left: 5px; font-weight: 600; display: none; }
+        .task-status-text.error { color: #ff4d4d; display: block; }
+        .task-status-text.info { color: #ffaa00; display: block; }
 
         .btn { width: 100%; padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; cursor: pointer; transition: all 0.3s; }
-        .default-btn { color: #000; background: linear-gradient(135deg, var(--primary) 0%, #b89b00 100%); box-shadow: 0 6px 20px rgba(255, 215, 0, 0.2); }
-        .default-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(255, 215, 0, 0.35); }
-        .default-btn.disabled { background: rgba(255, 255, 255, 0.1); color: #666; cursor: not-allowed; box-shadow: none; transform: none; }
+        .default-btn { color: #050811; background: linear-gradient(135deg, #00f0ff 0%, #0077ff 100%); box-shadow: 0 6px 20px rgba(0, 136, 255, 0.3); }
+        .default-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 240, 255, 0.4); }
+        .default-btn.disabled { background: rgba(255, 255, 255, 0.08); color: #475569; cursor: not-allowed; box-shadow: none; transform: none; }
     </style>
 </head>
 <body>
@@ -154,29 +134,76 @@ const generatePageHtml = (linkData, unlockUrl, isClientLinkJust = false) => {
         ${description ? `<p class="desc">${description}</p>` : ''}
         
         ${tasksHtml}
-        ${unlockButtonHtml}
+
+        <button id="unlockBtn" class="btn default-btn ${totalTasks > 0 ? 'disabled' : ''}" onclick="handleUnlockClick()">
+            <i class="fa-solid fa-lock" id="unlockIcon"></i> <span id="unlockText">Unlock Content</span>
+        </button>
     </div>
 
     <script>
         const totalTasks = ${totalTasks};
+        const unlockTargetUrl = "${unlockUrl}";
+        const isClientJust = ${isClientLinkJust};
+        
         let completedCount = 0;
-        const taskStatus = {};
+        const taskStates = {}; 
 
-        function markTaskDone(index) {
-            if (!taskStatus[index]) {
-                taskStatus[index] = true;
-                completedCount++;
-                
-                const taskBtn = document.getElementById('task-btn-' + index);
-                const checkIcon = document.getElementById('check-' + index);
-                const linkIcon = document.getElementById('link-' + index);
+        function startTaskVerification(index) {
+            if (taskStates[index] && taskStates[index].done) return;
 
-                if (taskBtn) taskBtn.classList.add('completed');
-                if (checkIcon) checkIcon.style.display = 'inline-block';
-                if (linkIcon) linkIcon.style.display = 'none';
+            const taskBtn = document.getElementById('task-btn-' + index);
+            const statusText = document.getElementById('status-' + index);
+            
+            taskStates[index] = {
+                clickTime: Date.now(),
+                blurTime: null,
+                focusTime: null,
+                timer: null,
+                done: false
+            };
 
-                checkTasksCompletion();
-            }
+            taskBtn.classList.add('verifying');
+            statusText.className = "task-status-text info";
+            statusText.innerText = "جاري التحقق من إتمام المهمة... (يرجى الانتظار)";
+
+            const onBlur = () => {
+                if (taskStates[index] && !taskStates[index].done) {
+                    taskStates[index].blurTime = Date.now();
+                }
+            };
+
+            const onFocus = () => {
+                window.removeEventListener('blur', onBlur);
+                window.removeEventListener('focus', onFocus);
+
+                if (!taskStates[index] || taskStates[index].done) return;
+
+                const state = taskStates[index];
+                state.focusTime = Date.now();
+
+                const awayDuration = (state.focusTime - (state.blurTime || state.clickTime)) / 1000;
+
+                if (awayDuration >= 5) {
+                    // النجاح في المهمة
+                    state.done = true;
+                    completedCount++;
+                    
+                    taskBtn.className = "task-btn completed";
+                    document.getElementById('check-' + index).style.display = 'inline-block';
+                    document.getElementById('link-' + index).style.display = 'none';
+                    statusText.style.display = 'none';
+
+                    checkTasksCompletion();
+                } else {
+                    // الفشل وتكرار الإجراء
+                    taskBtn.classList.remove('verifying');
+                    statusText.className = "task-status-text error";
+                    statusText.innerText = "فشلت المهمة! يجب البقاء 5 ثوانٍ على الأقل في الصفحة المطلوبة.";
+                }
+            };
+
+            window.addEventListener('blur', onBlur);
+            window.addEventListener('focus', onFocus);
         }
 
         function checkTasksCompletion() {
@@ -190,15 +217,34 @@ const generatePageHtml = (linkData, unlockUrl, isClientLinkJust = false) => {
             }
         }
 
-        function checkTasksBeforeUnlock(event) {
+        async function handleUnlockClick() {
             const btn = document.getElementById('unlockBtn');
-            if (btn && btn.classList.contains('disabled')) {
-                event.preventDefault();
+            if (btn.classList.contains('disabled')) {
                 alert('الرجاء إتمام كافة المهام أولاً لفتح الرابط!');
+                return;
             }
+
+            if (isClientJust) {
+                btn.classList.add('disabled');
+                document.getElementById('unlockText').innerText = 'Generating Short Link...';
+                document.getElementById('unlockIcon').className = 'fa-solid fa-spinner fa-spin';
+
+                const apiUrl = "https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=" + encodeURIComponent(unlockTargetUrl);
+                try {
+                    const res = await fetch(apiUrl);
+                    const data = await res.json();
+                    if(data.status === 'success' && data.shortenedUrl) {
+                        window.location.href = data.shortenedUrl;
+                        return;
+                    }
+                } catch(err) {
+                    console.error("LinkJust Client API Error:", err);
+                }
+            }
+
+            window.location.href = unlockTargetUrl;
         }
 
-        // تفعيل الزر تلقائياً في حال عدم وجود مهام
         if (totalTasks === 0) {
             checkTasksCompletion();
         }
@@ -209,7 +255,6 @@ const generatePageHtml = (linkData, unlockUrl, isClientLinkJust = false) => {
 };
 
 export default async function handler(req, res) {
-    // ⚙️ إعدادات الشبكات الإعلانية
     if (req.method === "PATCH") {
         try {
             const { lootlabsEnabled, linkvertiseEnabled, nitrolinkEnabled, adminKey } = req.body;
@@ -228,7 +273,6 @@ export default async function handler(req, res) {
         }
     }
 
-    // ➕ إنشاء الرابط وحفظه في Firebase
     if (req.method === "POST") {
         try {
             const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "unknown";
@@ -268,9 +312,7 @@ export default async function handler(req, res) {
         }
     }
 
-    // 🔗 فتح الرابط وحساب نظام الربح
     if (req.method === "GET") {
-        // 🛡️ فحص الـ VPN / Proxy
         const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
         let isVPN = false;
         
@@ -302,7 +344,6 @@ export default async function handler(req, res) {
             let isClientLinkJust = false;
             const selectedNetwork = data.monetization || "lootlabs";
 
-            // 💰 تحويل زر Unlock بناءً على نظام الربح المختار
             if (selectedNetwork === "lootlabs") {
                 try {
                     const response = await axios.post(
@@ -329,7 +370,6 @@ export default async function handler(req, res) {
                     console.error("Nitro Link API Error:", err.message);
                 }
             } else if (selectedNetwork === "just") {
-                // 🚀 تحويل باستخدام LinkJust API
                 try {
                     const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(data.targetUrl)}`;
                     const response = await axios.get(linkJustApiUrl);
