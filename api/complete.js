@@ -1,13 +1,13 @@
 import db from "./firebase.js";
 
-// ⚠️ تنبيه أمني: يرجى تغيير هذا الرابط فوراً من إعدادات سيرفر ديسكورد لأنك قمت بنشره للعامة!
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
+// ⚠️ يرجى ضبط المفتاح من متغيرات البيئة بدلاً من كتابته صريحة
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
-// نظام لمنع التكرار (Cooldown) لتجنب إرسال الإشعار أو زيادة العداد أكثر من مرة لنفس الشخص
+// نظام منع التكرار (Cooldown)
 const recentCompletions = new Map();
-const COOLDOWN_TIME = 5 * 60 * 1000; // 5 دقائق (لـ IP للشبكات الأخرى)
+const COOLDOWN_TIME = 5 * 60 * 1000; // 5 دقائق
 
-// دالة لحماية النصوص (تمنع الأكواد من إفساد تصميم الصفحة)
+// دالة لحماية النصوص من كسر الـ HTML
 const escapeHTML = (str) => {
     return str.replace(/[&<>'"]/g, 
         tag => ({
@@ -188,19 +188,13 @@ export default async function handler(req, res) {
         return res.status(400).send("Missing Link ID");
     }
 
-    // 1. استخراج الآي بي والدولة
     const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "Unknown";
     
-    // ==========================================
-    // 🛡️ نظام الحماية من التكرار المزدوج (IP + Cookies)
-    // ==========================================
-    
-    // أ- فحص التكرار السريع عبر الـ IP (لمدة 5 دقائق)
+    // فحص التكرار المزدوج
     const cacheKey = `${ip}_${id}`;
     const lastCompleted = recentCompletions.get(cacheKey);
     const isIpDuplicate = lastCompleted && (Date.now() - lastCompleted < COOLDOWN_TIME);
 
-    // ب- فحص متصفح المستخدم للـ Nitro Link (لمدة 24 ساعة) متجاهلاً الـ VPN
     const cookieHeader = req.headers.cookie || '';
     const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
     
@@ -209,16 +203,15 @@ export default async function handler(req, res) {
 
     if (network === 'nitrolink') {
         if (hasNitroCooldown) {
-            isNitroBlocked = true; // المستخدم تخطى رابط نايترو لينك من نفس المتصفح خلال 24 ساعة
+            isNitroBlocked = true;
         } else {
-            shouldSetNitroCookie = true; // المستخدم نظيف، سنسجل له كوكيز جديدة
+            shouldSetNitroCookie = true;
         }
     }
 
-    // إذا كان هناك تكرار (سواء سريع بالآي بي، أو خلال 24 ساعة للنايترو عبر المتصفح) نعطيه المحتوى فقط ونتوقف
     const isDuplicate = isIpDuplicate || isNitroBlocked;
 
-    // تنظيف كاش الـ IP القديم لتجنب استهلاك الذاكرة
+    // تنظيف الكاش القديم
     if (recentCompletions.size > 500) {
         const now = Date.now();
         for (let [key, time] of recentCompletions.entries()) {
@@ -236,27 +229,24 @@ export default async function handler(req, res) {
         }
 
         const data = doc.data();
+        // 🟢 دعم كلاً من targetUrl و url لضمان قراءة النص الصحيحة
+        const finalContent = data.targetUrl || data.url || "";
 
-        // ⛔ إذا كان الطلب مكرراً، نظهر الصفحة ونتخطى باقي الكود (لا قواعد بيانات ولا ديسكورد)
+        // إذا كان الطلب مكرراً، نظهر المحتوى فقط بدون زيادة عدادات
         if (isDuplicate) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
-            return res.status(200).send(generateSuccessPage(data.url));
+            return res.status(200).send(generateSuccessPage(finalContent));
         }
 
-        // تسجيل الطلب الجديد في كاش الـ IP
         recentCompletions.set(cacheKey, Date.now());
 
-        // جلب الدولة
+        // جلب دولة المستخدم
         let country = req.headers["x-vercel-ip-country"] || req.headers["cf-ipcountry"] || ""; 
         if (!country && ip !== "Unknown" && ip !== "::1") {
             try {
                 const geoRes = await fetch(`http://ip-api.com/json/${ip}`);
                 const geoData = await geoRes.json();
-                if (geoData.status === "success") {
-                    country = geoData.country;
-                } else {
-                    country = "Unknown";
-                }
+                country = geoData.status === "success" ? geoData.country : "Unknown";
             } catch (e) {
                 country = "Unknown";
             }
@@ -275,13 +265,14 @@ export default async function handler(req, res) {
             updateData.linkvertiseCompletions = (data.linkvertiseCompletions || 0) + 1;
         } else if (network === 'nitrolink') {
             updateData.nitrolinkCompletions = (data.nitrolinkCompletions || 0) + 1;
+        } else if (network === 'just') {
+            updateData.linkjustCompletions = (data.linkjustCompletions || 0) + 1;
         }
 
         await doc.ref.update(updateData);
 
-        // 2. إرسال إشعار الديسكورد
-        if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL !== "YOUR_DISCORD_WEBHOOK_URL_HERE") {
-            
+        // إرسال إشعار الديسكورد
+        if (DISCORD_WEBHOOK_URL) {
             let networkName = 'Direct Access';
             let embedColor = 2829617; 
             let thumbnailUrl = "https://cdn-icons-png.flaticon.com/512/8451/8451122.png";
@@ -298,6 +289,10 @@ export default async function handler(req, res) {
                 networkName = 'Nitro Link';
                 embedColor = 16734002;
                 thumbnailUrl = "https://i.ibb.co/GQ22bMHN/nitrolink.png";
+            } else if (network === 'just') {
+                networkName = 'LinkJust';
+                embedColor = 65535;
+                thumbnailUrl = "https://cdn-icons-png.flaticon.com/512/2933/2933116.png";
             }
 
             const shareableLink = `https://www.subx.click/?id=${id}`;
@@ -313,9 +308,7 @@ export default async function handler(req, res) {
                         },
                         title: `Content ID: /${id}`,
                         color: embedColor,
-                        thumbnail: {
-                            url: thumbnailUrl
-                        },
+                        thumbnail: { url: thumbnailUrl },
                         fields: [
                             { name: "📡 Network", value: `**${networkName}**`, inline: true },
                             { name: "🌍 Location", value: `**${country}**`, inline: true },
@@ -350,21 +343,21 @@ export default async function handler(req, res) {
             }).catch(err => console.error("Discord Webhook Error:", err));
         }
 
-        // ✅ زرع الكوكيز في متصفح المستخدم لمدة 24 ساعة (86400 ثانية) إذا كان التخطي من نايترو لينك
         if (shouldSetNitroCookie) {
             res.setHeader("Set-Cookie", "nitro_24h_cooldown=1; Max-Age=86400; Path=/; SameSite=Lax");
         }
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        return res.status(200).send(generateSuccessPage(data.url));
+        return res.status(200).send(generateSuccessPage(finalContent));
 
     } catch (err) {
         console.error("Error in completion handler:", err);
         try {
             const doc = await db.collection("links").doc(id).get();
             if (doc.exists) {
+                const data = doc.data();
                 res.setHeader("Content-Type", "text/html; charset=utf-8");
-                return res.status(200).send(generateSuccessPage(doc.data().url));
+                return res.status(200).send(generateSuccessPage(data.targetUrl || data.url || ""));
             }
         } catch {}
         
