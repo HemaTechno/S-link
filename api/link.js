@@ -11,12 +11,10 @@ const config = {
   adminKey: process.env.ADMIN_SECRET_KEY || "Hema123i#",
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
-  taskDurationSeconds: Number(process.env.TASK_DURATION_SECONDS || 5),
+  taskDurationSeconds: 7, // مدة التحقق الكاملة 7 ثوانٍ
+  minStaySeconds: 5,     // الحد الأدنى للبقاء في الصفحة الخارجية 5 ثوانٍ
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
-
-const cache = new Map();
-const spamCache = new Map();
 
 /* ========================== 2) AD NETWORK HANDLERS ========================== */
 
@@ -104,10 +102,9 @@ const notFoundPage = () => `
 <body><div class="box"><h1>404</h1><p>This content does not exist or has been removed.</p></div></body>
 </html>`;
 
-const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds }) => {
+const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds, minStaySeconds }) => {
   const { title, description, image, tasks = [], isTextContent = false } = linkData;
   const totalTasks = tasks.length;
-  const dur = taskDurationSeconds;
 
   const tasksHtml = totalTasks
     ? `
@@ -122,7 +119,7 @@ const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds }) => {
         <div class="task-wrapper">
           <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(${idx})">
             <span class="task-info"><i class="fa-brands fa-${task.platform || "link"}"></i> ${task.action}</span>
-            <span class="task-timer-badge" id="timer-badge-${idx}" style="display:none;">0s / ${dur}s</span>
+            <span class="task-timer-badge" id="timer-badge-${idx}" style="display:none;"><i class="fa-solid fa-spinner fa-spin"></i> جاري التحقق... <span id="timer-num-${idx}">${taskDurationSeconds}</span>s</span>
             <i class="fa-solid fa-circle-check check-icon" id="check-${idx}" style="display:none;"></i>
             <i class="fa-solid fa-arrow-up-right-from-square link-icon" id="link-${idx}"></i>
           </a>
@@ -220,7 +217,8 @@ const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds }) => {
 (function(){
   const totalTasks = ${totalTasks};
   const unlockTargetUrl = ${JSON.stringify(unlockUrl)};
-  const taskDuration = ${dur};
+  const taskDuration = ${taskDurationSeconds};
+  const minStay = ${minStaySeconds};
   const isTextContent = ${Boolean(isTextContent)};
 
   let completedTasksCount = 0;
@@ -232,48 +230,52 @@ const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds }) => {
     const taskBtn = document.getElementById('task-btn-' + index);
     const badge = document.getElementById('timer-badge-' + index);
     const alertBox = document.getElementById('alert-' + index);
+    const timerNum = document.getElementById('timer-num-' + index);
+    
     alertBox.style.display = 'none';
 
     if (!taskData[index]) {
-      taskData[index] = { completed: false, startTime: 0, timer: null, seconds: 0 };
+      taskData[index] = { completed: false, clickTime: 0, leftTime: 0, timer: null, remaining: taskDuration };
     }
     
     const current = taskData[index];
-    current.startTime = Date.now();
-    current.seconds = 0;
+    current.clickTime = Date.now();
+    current.remaining = taskDuration;
 
     taskBtn.className = 'task-btn active-timer';
     badge.style.display = 'inline-block';
-    badge.innerText = '0s / ' + taskDuration + 's';
+    timerNum.innerText = current.remaining;
+
+    // تسجيل زمني لمغادرة العميل للصفحة
+    const handleBlur = () => {
+      current.leftTime = Date.now();
+    };
+    window.addEventListener('blur', handleBlur, { once: true });
 
     if (current.timer) clearInterval(current.timer);
 
     current.timer = setInterval(() => {
-      current.seconds++;
-      badge.innerText = current.seconds + 's / ' + taskDuration + 's';
+      current.remaining--;
+      timerNum.innerText = current.remaining;
 
-      if (current.seconds >= taskDuration) {
+      if (current.remaining <= 0) {
         clearInterval(current.timer);
-        completeTask(index);
-      }
-    }, 1000);
-
-    const checkVisibility = () => {
-      if (document.visibilityState === 'visible' && !current.completed) {
-        document.removeEventListener('visibilitychange', checkVisibility);
-        const timeSpent = (Date.now() - current.startTime) / 1000;
         
-        if (timeSpent < taskDuration) {
-          clearInterval(current.timer);
+        // حساب الوقت الإجمالي المنقضي خارج الصفحة أو أثناء العمل
+        const returnTime = Date.now();
+        const awayTimeSeconds = current.leftTime ? (returnTime - current.leftTime) / 1000 : (returnTime - current.clickTime) / 1000;
+
+        if (awayTimeSeconds >= minStay) {
+          completeTask(index);
+        } else {
+          // فشل بسبب العودة المبكرة (أقل من 5 ثوانٍ)
           taskBtn.className = 'task-btn';
           badge.style.display = 'none';
           alertBox.className = 'task-alert-box error';
-          alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Task failed! Stay at least ' + taskDuration + ' seconds on the task page.';
+          alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> فشل التحقق! لقد عدت سريعاً، يجب البقاء ' + minStay + ' ثوانٍ على الأقل داخل الرابط.';
         }
       }
-    };
-
-    document.addEventListener('visibilitychange', checkVisibility);
+    }, 1000);
   };
 
   function completeTask(index) {
@@ -290,7 +292,7 @@ const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds }) => {
     document.getElementById('link-' + index).style.display = 'none';
 
     alertBox.className = 'task-alert-box success';
-    alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> Task completed!';
+    alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم التكتمل بنجاح!';
 
     updateProgress();
   }
@@ -313,7 +315,7 @@ const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds }) => {
   window.handleUnlockClick = function() {
     const btn = document.getElementById('unlockBtn');
     if (btn.classList.contains('disabled')) {
-      alert('Please complete all required tasks first!');
+      alert('من فضلك إكمال جميع المهام المطلوبة أولاً!');
       return;
     }
 
@@ -330,7 +332,7 @@ const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds }) => {
     const text = document.getElementById("secretText");
     text.select();
     navigator.clipboard.writeText(text.value);
-    alert("Copied to clipboard!");
+    alert("تم النسخ للحافظة!");
   };
 
   if (totalTasks === 0) updateProgress();
@@ -384,7 +386,6 @@ export default async function handler(req, res) {
       const id = slug?.trim() ? slug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") : nanoid(6);
       const trimmedUrl = targetUrl.trim();
       
-      // التمييز التلقائي بين رابط الويب والأكواد/النصوص
       const isTextContent = !trimmedUrl.startsWith("http://") && !trimmedUrl.startsWith("https://");
 
       await db.collection("links").doc(id).set({
@@ -430,7 +431,12 @@ export default async function handler(req, res) {
       }
 
       res.setHeader("Content-Type", "text/html; charset=utf-8");
-      return res.status(200).send(unlockPage({ linkData: data, unlockUrl, taskDurationSeconds: config.taskDurationSeconds }));
+      return res.status(200).send(unlockPage({ 
+        linkData: data, 
+        unlockUrl, 
+        taskDurationSeconds: config.taskDurationSeconds,
+        minStaySeconds: config.minStaySeconds
+      }));
     }
 
     return res.status(405).send("Method Not Allowed");
