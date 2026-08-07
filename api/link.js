@@ -1,21 +1,4 @@
-// index.js
-// ملف واحد فيه كل حاجة: الإعدادات، شبكات الإعلانات، الواجهات، والـ handler الرئيسي.
-//
-// ⚠️ مهم: المفاتيح بقت بتتقرأ من environment variables بدل ما تكون مكتوبة صريحة هنا.
-// اعمل ملف .env جنب الملف ده (أو ظبطهم في إعدادات الـ hosting بتاعك زي Vercel) بالشكل ده:
-//
-//   LOOTLABS_API_KEY=...
-//   LINKVERTISE_USER_ID=...
-//   NITRO_LINK_API_KEY=...
-//   LINKJUST_API_TOKEN=...
-//   ADMIN_SECRET_KEY=...
-//   RATE_LIMIT_WINDOW_MS=60000
-//   RATE_LIMIT_MAX_REQUESTS=5
-//   TASK_DURATION_SECONDS=5
-//   VPN_CHECK_ENABLED=true
-//
-// وماترفعش .env على git أبداً.
-
+// index.js (أو api/link.js)
 import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import axios from "axios";
@@ -34,16 +17,6 @@ const config = {
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
-function validateConfig() {
-  const missing = [];
-  if (!config.adminKey) missing.push("ADMIN_SECRET_KEY");
-  if (!config.lootlabsApiKey) missing.push("LOOTLABS_API_KEY");
-  if (missing.length) {
-    console.warn(`⚠️  متغيرات بيئة ناقصة: ${missing.join(", ")} — بعض الخصائص ممكن ماتشتغلش صح.`);
-  }
-}
-validateConfig();
-
 /* ========================== 2) AD NETWORK ADAPTERS ========================== */
 
 async function callLootLabs(targetUrl, slug) {
@@ -53,7 +26,7 @@ async function callLootLabs(targetUrl, slug) {
     { headers: { Authorization: `Bearer ${config.lootlabsApiKey}`, "Content-Type": "application/json" }, timeout: 8000 }
   );
   const url = response.data?.message?.loot_url || response.data?.loot_url;
-  if (!url) throw new Error("LootLabs لم يرجع رابط صالح");
+  if (!url) throw new Error("LootLabs API Failed");
   return { unlockUrl: url, isClientSide: false };
 }
 
@@ -68,7 +41,7 @@ async function callNitroLink(targetUrl) {
   const reqUrl = `https://nitro-link.com/api?api=${config.nitroLinkApiKey}&url=${encodeURIComponent(targetUrl)}`;
   const response = await axios.get(reqUrl, { timeout: 8000 });
   if (response.data?.status !== "success" || !response.data?.shortenedUrl) {
-    throw new Error("Nitro Link لم يرجع رابط صالح");
+    throw new Error("Nitro Link API Failed");
   }
   return { unlockUrl: response.data.shortenedUrl, isClientSide: false };
 }
@@ -79,7 +52,6 @@ async function callLinkJust(targetUrl) {
   if (response.data?.status === "success" && response.data?.shortenedUrl) {
     return { unlockUrl: response.data.shortenedUrl, isClientSide: false };
   }
-  // فشل السيرفر → المتصفح هيطلب من /api/resolve-link (جوه نفس الملف ده تحت) بدل ما نكشف التوكن للعميل
   return { unlockUrl: targetUrl, isClientSide: true };
 }
 
@@ -88,18 +60,15 @@ const NETWORK_HANDLERS = {
   linkvertise: callLinkvertise,
   nitrolink: callNitroLink,
   just: callLinkJust,
+  direct: async (targetUrl) => ({ unlockUrl: targetUrl, isClientSide: false }),
 };
 
 async function resolveUnlockUrl(network, targetUrl, slug) {
-  const handler = NETWORK_HANDLERS[network];
-  if (!handler) {
-    console.warn(`شبكة غير معروفة: ${network} — هيتم استخدام الرابط الأصلي`);
-    return { unlockUrl: targetUrl, isClientSide: false };
-  }
+  const handler = NETWORK_HANDLERS[network] || NETWORK_HANDLERS.direct;
   try {
     return await handler(targetUrl, slug);
   } catch (err) {
-    console.error(`${network} API Error:`, err.message);
+    console.error(`${network} Network Error:`, err.message);
     return { unlockUrl: targetUrl, isClientSide: network === "just" };
   }
 }
@@ -112,17 +81,17 @@ const vpnBlockPage = () => `
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VPN Detected</title>
+<title>VPN Detected 🛡️</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-  :root{--bg-dark:#070a12;--glass-bg:rgba(13,22,38,.75);--text-main:#fff}
+  :root{--bg-dark:#050811;--glass-bg:rgba(10,18,32,.75);--text-main:#fff}
   *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
   body{background:var(--bg-dark);display:flex;justify-content:center;align-items:center;min-height:100vh;color:var(--text-main);padding:20px}
-  .container{width:480px;max-width:100%;padding:40px 35px;border-radius:28px;background:var(--glass-bg);backdrop-filter:blur(20px);border:1px solid rgba(0,195,255,.3);text-align:center;box-shadow:0 25px 50px rgba(0,0,0,.8)}
-  h1{color:#00c3ff;margin-bottom:15px;font-size:1.8rem;font-weight:800}
+  .container{width:480px;max-width:100%;padding:40px 35px;border-radius:28px;background:var(--glass-bg);backdrop-filter:blur(20px);border:1px solid rgba(0,240,255,.3);text-align:center;box-shadow:0 25px 50px rgba(0,0,0,.8)}
+  h1{color:#00f0ff;margin-bottom:15px;font-size:1.8rem;font-weight:800}
   p{color:#aaa;font-size:1.1rem;margin-bottom:20px;line-height:1.6}
-  .error-icon{font-size:70px;color:#00c3ff;margin-bottom:25px;text-shadow:0 0 20px rgba(0,195,255,.4)}
+  .error-icon{font-size:70px;color:#00f0ff;margin-bottom:25px;text-shadow:0 0 20px rgba(0,240,255,.4)}
 </style>
 </head>
 <body>
@@ -140,7 +109,7 @@ const notFoundPage = () => `
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Not Found</title>
+<title>Not Found 404</title>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800&display=swap" rel="stylesheet">
 <style>
   *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
@@ -150,18 +119,18 @@ const notFoundPage = () => `
   p{color:#64748b;margin-top:8px}
 </style>
 </head>
-<body><div class="box"><h1>404</h1><p>This link doesn't exist or has expired.</p></div></body>
+<body><div class="box"><h1>404</h1><p>This content does not exist or has been removed.</p></div></body>
 </html>`;
 
 const unlockPage = ({ linkData, unlockUrl, isClientSide, taskDurationSeconds }) => {
-  const { title, description, image, tasks = [] } = linkData;
+  const { title, description, image, tasks = [], isTextContent = false } = linkData;
   const totalTasks = tasks.length;
   const dur = taskDurationSeconds;
 
   const tasksHtml = totalTasks
     ? `
     <div class="progress-wrap">
-      <div class="progress-label"><span id="progressText">0 / ${totalTasks} completed</span></div>
+      <div class="progress-label"><span id="progressText">0 / ${totalTasks} Completed</span></div>
       <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
     </div>
     <div class="tasks-container">
@@ -194,13 +163,13 @@ const unlockPage = ({ linkData, unlockUrl, isClientSide, taskDurationSeconds }) 
 <style>
   :root{
     --primary-blue:#0088ff; --accent-cyan:#00f0ff; --bg-dark:#050811;
-    --glass-bg:rgba(10,18,32,.72); --text-main:#fff; --success:#00ff88; --warn:#ffaa00; --danger:#ff5c5c;
+    --glass-bg:rgba(10,18,32,.75); --text-main:#fff; --success:#00ff88; --warn:#ffaa00; --danger:#ff5c5c;
   }
   *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
   body{
     background:var(--bg-dark);
     background-image:radial-gradient(at 15% 15%,rgba(0,136,255,.18) 0,transparent 55%),
-                      radial-gradient(at 85% 85%,rgba(0,240,255,.12) 0,transparent 55%);
+                     radial-gradient(at 85% 85%,rgba(0,240,255,.12) 0,transparent 55%);
     display:flex;justify-content:center;align-items:center;min-height:100vh;color:var(--text-main);padding:20px;
   }
   .container{
@@ -240,6 +209,9 @@ const unlockPage = ({ linkData, unlockUrl, isClientSide, taskDurationSeconds }) 
   .task-alert-box.success{background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.3);color:var(--success);display:block}
   @keyframes fadeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 
+  .text-box-container{display:none;margin-top:15px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,240,255,0.3);border-radius:16px;padding:15px;text-align:left}
+  .text-box-container textarea{width:100%;background:transparent;border:none;color:#fff;font-size:14px;resize:none;outline:none;font-family:monospace}
+
   .btn{width:100%;padding:17px;border-radius:16px;font-size:15.5px;font-weight:800;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:10px;border:none;cursor:pointer;transition:all .25s}
   .default-btn{color:#050811;background:linear-gradient(135deg,#00f0ff 0%,#0077ff 100%);box-shadow:0 6px 20px rgba(0,136,255,.3)}
   .default-btn:hover:not(.disabled){transform:translateY(-2px);box-shadow:0 10px 25px rgba(0,240,255,.4)}
@@ -252,11 +224,21 @@ const unlockPage = ({ linkData, unlockUrl, isClientSide, taskDurationSeconds }) 
     ${image ? `<img src="${image}" class="media-img" alt="Thumbnail" loading="lazy">` : ""}
     <h1>${title || "Locked Content"}</h1>
     ${description ? `<p class="desc">${description}</p>` : ""}
+    
     ${tasksHtml}
+
     <button id="unlockBtn" class="btn default-btn ${totalTasks > 0 ? "disabled" : ""}" onclick="handleUnlockClick()">
       <i class="fa-solid fa-lock" id="unlockIcon"></i> <span id="unlockText">Unlock Content</span>
     </button>
-    <p class="footnote">Stay on each linked page for ${dur}s to complete a task.</p>
+
+    <div class="text-box-container" id="textContentBox">
+      <textarea id="secretText" readonly rows="4">${isTextContent ? unlockUrl : ''}</textarea>
+      <button class="btn default-btn" style="margin-top:10px; padding:12px;" onclick="copySecretText()">
+        <i class="fa-solid fa-copy"></i> Copy Hidden Content
+      </button>
+    </div>
+
+    <p class="footnote">Complete all tasks to gain access.</p>
   </div>
 
 <script>
@@ -265,6 +247,7 @@ const unlockPage = ({ linkData, unlockUrl, isClientSide, taskDurationSeconds }) 
   const unlockTargetUrl = ${JSON.stringify(unlockUrl)};
   const isClientSide = ${Boolean(isClientSide)};
   const taskDuration = ${dur};
+  const isTextContent = ${Boolean(isTextContent)};
 
   let completedTasksCount = 0;
   const taskData = {};
@@ -306,7 +289,7 @@ const unlockPage = ({ linkData, unlockUrl, isClientSide, taskDurationSeconds }) 
             taskBtn.className = 'task-btn';
             badge.style.display = 'none';
             alertBox.className = 'task-alert-box error';
-            alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Task failed — stay on the page for at least ' + taskDuration + 's.';
+            alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Task failed! Stay at least ' + taskDuration + ' seconds on page.';
           }
         }
       }, 500);
@@ -337,7 +320,7 @@ const unlockPage = ({ linkData, unlockUrl, isClientSide, taskDurationSeconds }) 
     const fill = document.getElementById('progressFill');
     const text = document.getElementById('progressText');
     if (fill) fill.style.width = (totalTasks ? (completedTasksCount / totalTasks) * 100 : 100) + '%';
-    if (text) text.innerText = completedTasksCount + ' / ' + totalTasks + ' completed';
+    if (text) text.innerText = completedTasksCount + ' / ' + totalTasks + ' Completed';
 
     if (completedTasksCount >= totalTasks) {
       const btn = document.getElementById('unlockBtn');
@@ -351,13 +334,19 @@ const unlockPage = ({ linkData, unlockUrl, isClientSide, taskDurationSeconds }) 
   window.handleUnlockClick = async function() {
     const btn = document.getElementById('unlockBtn');
     if (btn.classList.contains('disabled')) {
-      alert('Please complete all tasks first!');
+      alert('Please complete all required tasks first!');
+      return;
+    }
+
+    if (isTextContent) {
+      btn.style.display = 'none';
+      document.getElementById('textContentBox').style.display = 'block';
       return;
     }
 
     if (isClientSide) {
       btn.classList.add('disabled');
-      document.getElementById('unlockText').innerText = 'Generating link...';
+      document.getElementById('unlockText').innerText = 'Resolving short link...';
       document.getElementById('unlockIcon').className = 'fa-solid fa-spinner fa-spin';
 
       try {
@@ -372,6 +361,13 @@ const unlockPage = ({ linkData, unlockUrl, isClientSide, taskDurationSeconds }) 
       }
     }
     window.location.href = unlockTargetUrl;
+  };
+
+  window.copySecretText = function() {
+    const text = document.getElementById("secretText");
+    text.select();
+    navigator.clipboard.writeText(text.value);
+    alert("Copied to clipboard!");
   };
 
   if (totalTasks === 0) updateProgress();
@@ -409,13 +405,12 @@ async function checkIsVpn(ip) {
     const response = await axios.get(`https://blackbox.ipinfo.app/lookup/${ip}`, { timeout: 4000 });
     return typeof response.data === "string" && response.data.trim() === "Y";
   } catch {
-    return false; // فشل الفحص لا يعني حظر المستخدم (fail-open)
+    return false;
   }
 }
 
 /* ============================== 5) ROUTE HANDLERS ============================== */
 
-// PATCH: تحديث إعدادات الشبكات (Admin)
 async function handlePatch(req, res) {
   const { lootlabsEnabled, linkvertiseEnabled, nitrolinkEnabled, adminKey } = req.body || {};
 
@@ -434,7 +429,6 @@ async function handlePatch(req, res) {
   return res.status(200).json({ success: true, message: "Settings updated successfully", settings });
 }
 
-// POST: إنشاء رابط جديد
 async function handlePost(req, res) {
   const ip = getClientIp(req);
   if (isRateLimited(ip)) {
@@ -443,14 +437,7 @@ async function handlePost(req, res) {
 
   const { title, description, image, targetUrl, monetization, tasks, slug } = req.body || {};
   if (!targetUrl || !title) {
-    return res.status(400).json({ success: false, message: "Title and Target URL are required" });
-  }
-
-  try {
-    const u = new URL(targetUrl);
-    if (!["http:", "https:"].includes(u.protocol)) throw new Error("bad protocol");
-  } catch {
-    return res.status(400).json({ success: false, message: "targetUrl must be a valid http(s) URL" });
+    return res.status(400).json({ success: false, message: "Title and Target URL / Text are required" });
   }
 
   const id = slug?.trim() ? slug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") : nanoid(6);
@@ -461,11 +448,14 @@ async function handlePost(req, res) {
     return res.status(400).json({ success: false, message: "Alias already in use" });
   }
 
+  const isTextContent = !targetUrl.trim().startsWith("http://") && !targetUrl.trim().startsWith("https://");
+
   await db.collection("links").doc(id).set({
     title,
     description: description || "",
     image: image || "",
     targetUrl,
+    isTextContent,
     monetization: monetization || "lootlabs",
     tasks: Array.isArray(tasks) ? tasks : [],
     createdAt: Date.now(),
@@ -475,7 +465,6 @@ async function handlePost(req, res) {
   return res.status(200).json({ success: true, short: `${req.headers.origin}/${id}` });
 }
 
-// GET: فتح صفحة الرابط — أو resolve للفولباك بتاع LinkJust لو id === "RESOLVE"
 async function handleGet(req, res) {
   const ip = getClientIp(req);
 
@@ -486,16 +475,9 @@ async function handleGet(req, res) {
 
   const id = req.query.id;
 
-  // نداء داخلي من زر "Unlock" في المتصفح — بيرجّع رابط جديد من غير ما التوكن يظهر في الـ HTML
   if (id === "RESOLVE") {
     const target = req.query.target;
     if (!target) return res.status(400).json({ success: false, message: "Missing target" });
-    try {
-      const u = new URL(target);
-      if (!["http:", "https:"].includes(u.protocol)) throw new Error("bad protocol");
-    } catch {
-      return res.status(400).json({ success: false, message: "Invalid target URL" });
-    }
     const { unlockUrl } = await callLinkJust(target).catch(() => ({ unlockUrl: target }));
     return res.status(200).json({ success: true, url: unlockUrl });
   }
@@ -514,12 +496,24 @@ async function handleGet(req, res) {
   const data = doc.data();
   db.collection("links").doc(id).update({ clicks: (data.clicks || 0) + 1 }).catch(() => {});
 
-  const network = data.monetization || "lootlabs";
-  const { unlockUrl, isClientSide } = await resolveUnlockUrl(network, data.targetUrl, id);
+  let unlockUrl = data.targetUrl;
+  let isClientSide = false;
+
+  if (!data.isTextContent) {
+    const network = data.monetization || "lootlabs";
+    const resolved = await resolveUnlockUrl(network, data.targetUrl, id);
+    unlockUrl = resolved.unlockUrl;
+    isClientSide = resolved.isClientSide;
+  }
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   return res.status(200).send(
-    unlockPage({ linkData: data, unlockUrl, isClientSide, taskDurationSeconds: config.taskDurationSeconds })
+    unlockPage({ 
+      linkData: data, 
+      unlockUrl, 
+      isClientSide, 
+      taskDurationSeconds: config.taskDurationSeconds 
+    })
   );
 }
 
