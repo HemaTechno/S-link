@@ -19,36 +19,27 @@ const config = {
 
 /* ========================== 2) AD NETWORK HANDLERS ========================== */
 
-// دالة جلب رابط NitroLink للتحويل الاحتياطي
-async function getNitroLinkFallback(completionUrl) {
-  try {
-    const reqUrl = `https://nitro-link.com/api?api=${config.nitroLinkApiKey}&url=${encodeURIComponent(completionUrl)}`;
-    const res = await axios.get(reqUrl, { timeout: 5000 });
-    if (res.data?.status === "success" && res.data.shortenedUrl) {
-      return res.data.shortenedUrl;
-    }
-  } catch (err) {
-    console.error("NitroLink Fallback Error:", err.message);
-  }
-  return completionUrl;
-}
-
-// توليد رابط اختصار لشبكة الأرباح المحددة مع خيار تحويل مجرب على NitroLink عند حدوث أي خطأ
 async function resolveUnlockUrl(network, id, req) {
   const host = req.headers.host || "www.subx.click";
   const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
   
-  // رابط التوجه النهائي إلى صفحة complete بعد التخطي
+  // الرابط النهائي الذي يوجه المستخدم لصفحة الـ Complete لاستلام المحتوى وتسجيل الإشعار
   const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
 
   try {
     if (network === "just") {
+      // 1. استخدام رابط الـ API المباشر للمطورين لتوليد الاستجابة JSON
       const apiUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}&alias=${id}`;
-      const res = await axios.get(apiUrl, { timeout: 4000 });
-      if (res.data?.status === "success" && res.data.shortenedUrl) {
-        return res.data.shortenedUrl;
+      try {
+        const res = await axios.get(apiUrl, { timeout: 4000 });
+        if (res.data?.status === "success" && res.data.shortenedUrl) {
+          return res.data.shortenedUrl;
+        }
+      } catch (err) {
+        console.warn("LinkJust API fallback to QuickLink mode");
       }
-      throw new Error("LinkJust primary API failed");
+      // 2. استخدام طريقة الرابط القصير السريع في حال حظر السيرفر
+      return `https://linkjust.com/st?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}`;
     }
 
     if (network === "nitrolink") {
@@ -57,7 +48,6 @@ async function resolveUnlockUrl(network, id, req) {
       if (res.data?.status === "success" && res.data.shortenedUrl) {
         return res.data.shortenedUrl;
       }
-      throw new Error("NitroLink primary API failed");
     }
 
     if (network === "lootlabs") {
@@ -67,10 +57,7 @@ async function resolveUnlockUrl(network, id, req) {
         { headers: { Authorization: `Bearer ${config.lootlabsApiKey}`, "Content-Type": "application/json" }, timeout: 5000 }
       );
       const messageData = Array.isArray(res.data?.message) ? res.data.message[0] : res.data?.message;
-      if (messageData?.loot_url || res.data?.loot_url) {
-        return messageData?.loot_url || res.data?.loot_url;
-      }
-      throw new Error("LootLabs primary API failed");
+      return messageData?.loot_url || res.data?.loot_url || completionUrl;
     } 
     
     if (network === "linkvertise") {
@@ -79,12 +66,10 @@ async function resolveUnlockUrl(network, id, req) {
       return `https://link-to.net/${config.linkvertiseUserId}/${rnd}/dynamic?r=${base64Url}`;
     }
   } catch (e) {
-    console.warn(`Primary Ad Network (${network}) failed (${e.message}). Switching to NitroLink fallback...`);
-    // تحويل تلقائي لشبكة NitroLink عند حدوث أي خطأ في الشبكة الأصلية
-    return await getNitroLinkFallback(completionUrl);
+    console.error(`Ad Network (${network}) Exception Suppressed:`, e.message);
   }
   
-  return completionUrl;
+  return completionUrl; // Fallback
 }
 
 /* ============================== 3) TEMPLATES ============================== */
@@ -219,7 +204,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .task-alert-box.error{background:rgba(255,92,92,.12);border:1px solid rgba(255,92,92,.3);color:var(--danger);display:block}
   .task-alert-box.success{background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.3);color:var(--success);display:block}
 
-  /* Toast Notification */
+  /* Toast Notification Popup */
   .toast-container {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
@@ -298,6 +283,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     badge.style.display = 'inline-block';
     timerNum.innerText = current.remaining;
 
+    // تسجيل زمني دقيق باستخدام Performance API عند مغادرة وعودة المستخدم
     const onBlur = () => {
       current.blurTime = performance.now();
     };
@@ -330,6 +316,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         if (awaySeconds >= minStay) {
           completeTask(index);
         } else {
+          // العودة السريعة: إحباط العملية وطلب الإعادة
           taskBtn.className = 'task-btn';
           badge.style.display = 'none';
           
@@ -394,8 +381,23 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
 /* ============================== 4) HELPERS ============================== */
 
+const spamCache = new Map();
+
 function getClientIp(req) {
   return req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket?.remoteAddress || "unknown";
+}
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const entry = spamCache.get(ip) || { count: 0, startTime: now };
+  if (now - entry.startTime > config.rateLimitWindowMs) {
+    entry.count = 1;
+    entry.startTime = now;
+  } else {
+    entry.count++;
+  }
+  spamCache.set(ip, entry);
+  return entry.count > config.rateLimitMaxRequests;
 }
 
 async function checkIsVpn(ip) {
@@ -429,17 +431,25 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST") {
+      const ip = getClientIp(req);
+      if (isRateLimited(ip)) {
+        return res.status(429).json({ success: false, message: "Too many requests, please slow down." });
+      }
+
       const { title, description, image, targetUrl, monetization, tasks, slug } = req.body || {};
       if (!targetUrl || !title) return res.status(400).json({ success: false, message: "Title and targetUrl required" });
 
       const id = slug?.trim() ? slug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") : nanoid(6);
       const trimmedUrl = targetUrl.trim();
 
+      const isTextContent = !trimmedUrl.startsWith("http://") && !trimmedUrl.startsWith("https://");
+
       await db.collection("links").doc(id).set({
         title,
         description: description || "",
         image: image || "",
         targetUrl: trimmedUrl,
+        isTextContent,
         monetization: monetization || "just",
         tasks: Array.isArray(tasks) ? tasks : [],
         createdAt: Date.now(),
@@ -472,7 +482,7 @@ export default async function handler(req, res) {
       const data = doc.data();
       const network = data.monetization || "just";
       
-      // توجيه زر Unlock نحو الرابط الربحي المولد تلقائياً مع تحويل تلقائي نحو NitroLink عند الفشل
+      // توجيه ذكي مباشر للشبكة الربحية مع ضمان التوجه التلقائي لـ /api/complete[cite: 9]
       const unlockUrl = await resolveUnlockUrl(network, id, req);
 
       res.setHeader("Content-Type", "text/html; charset=utf-8");
