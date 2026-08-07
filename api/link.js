@@ -23,12 +23,10 @@ async function resolveUnlockUrl(network, id, req) {
   const host = req.headers.host || "www.subx.click";
   const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
   
-  // الرابط النهائي الذي يوجه المستخدم لصفحة الـ Complete لاستلام المحتوى وتسجيل الإشعار
   const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
 
   try {
     if (network === "just") {
-      // 1. استخدام رابط الـ API المباشر للمطورين لتوليد الاستجابة JSON
       const apiUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}&alias=${id}`;
       try {
         const res = await axios.get(apiUrl, { timeout: 4000 });
@@ -38,7 +36,6 @@ async function resolveUnlockUrl(network, id, req) {
       } catch (err) {
         console.warn("LinkJust API fallback to QuickLink mode");
       }
-      // 2. استخدام طريقة الرابط القصير السريع في حال حظر السيرفر
       return `https://linkjust.com/st?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}`;
     }
 
@@ -69,7 +66,7 @@ async function resolveUnlockUrl(network, id, req) {
     console.error(`Ad Network (${network}) Exception Suppressed:`, e.message);
   }
   
-  return completionUrl; // Fallback
+  return completionUrl;
 }
 
 /* ============================== 3) TEMPLATES ============================== */
@@ -204,7 +201,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .task-alert-box.error{background:rgba(255,92,92,.12);border:1px solid rgba(255,92,92,.3);color:var(--danger);display:block}
   .task-alert-box.success{background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.3);color:var(--success);display:block}
 
-  /* Toast Notification Popup */
+  /* Toast Notification */
   .toast-container {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
@@ -232,14 +229,15 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     
     ${tasksHtml}
 
-    <a id="unlockBtn" href="${unlockUrl}" class="btn default-btn ${totalTasks > 0 ? "disabled" : ""}" onclick="handleUnlockClick(event)">
+    <button id="unlockBtn" class="btn default-btn ${totalTasks > 0 ? "disabled" : ""}" onclick="handleUnlockClick()">
       <i class="fa-solid fa-lock" id="unlockIcon"></i> <span id="unlockText">Unlock Content</span>
-    </a>
+    </button>
   </div>
 
 <script>
 (function(){
   const totalTasks = ${totalTasks};
+  const targetRedirectUrl = ${JSON.stringify(unlockUrl)};
   const taskDuration = ${taskDurationSeconds};
   const minStay = ${minStaySeconds};
 
@@ -283,7 +281,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     badge.style.display = 'inline-block';
     timerNum.innerText = current.remaining;
 
-    // تسجيل زمني دقيق باستخدام Performance API عند مغادرة وعودة المستخدم
     const onBlur = () => {
       current.blurTime = performance.now();
     };
@@ -316,7 +313,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         if (awaySeconds >= minStay) {
           completeTask(index);
         } else {
-          // العودة السريعة: إحباط العملية وطلب الإعادة
           taskBtn.className = 'task-btn';
           badge.style.display = 'none';
           
@@ -364,12 +360,15 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }
   }
 
-  window.handleUnlockClick = function(event) {
+  // استخدام window.location.href للتحويل الصريح وتجنب حظر الشاشة البيضاء about:blank#blocked
+  window.handleUnlockClick = function() {
     const btn = document.getElementById('unlockBtn');
     if (btn.classList.contains('disabled')) {
-      event.preventDefault();
       showToast('من فضلك أكمل كافة المهام المطلوبة أولاً لفتح الرابط!');
+      return;
     }
+    
+    window.location.href = targetRedirectUrl;
   };
 
   if (totalTasks === 0) updateProgress();
@@ -381,23 +380,8 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
 /* ============================== 4) HELPERS ============================== */
 
-const spamCache = new Map();
-
 function getClientIp(req) {
   return req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket?.remoteAddress || "unknown";
-}
-
-function isRateLimited(ip) {
-  const now = Date.now();
-  const entry = spamCache.get(ip) || { count: 0, startTime: now };
-  if (now - entry.startTime > config.rateLimitWindowMs) {
-    entry.count = 1;
-    entry.startTime = now;
-  } else {
-    entry.count++;
-  }
-  spamCache.set(ip, entry);
-  return entry.count > config.rateLimitMaxRequests;
 }
 
 async function checkIsVpn(ip) {
@@ -431,25 +415,17 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST") {
-      const ip = getClientIp(req);
-      if (isRateLimited(ip)) {
-        return res.status(429).json({ success: false, message: "Too many requests, please slow down." });
-      }
-
       const { title, description, image, targetUrl, monetization, tasks, slug } = req.body || {};
       if (!targetUrl || !title) return res.status(400).json({ success: false, message: "Title and targetUrl required" });
 
       const id = slug?.trim() ? slug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") : nanoid(6);
       const trimmedUrl = targetUrl.trim();
 
-      const isTextContent = !trimmedUrl.startsWith("http://") && !trimmedUrl.startsWith("https://");
-
       await db.collection("links").doc(id).set({
         title,
         description: description || "",
         image: image || "",
         targetUrl: trimmedUrl,
-        isTextContent,
         monetization: monetization || "just",
         tasks: Array.isArray(tasks) ? tasks : [],
         createdAt: Date.now(),
@@ -482,7 +458,6 @@ export default async function handler(req, res) {
       const data = doc.data();
       const network = data.monetization || "just";
       
-      // توجيه ذكي مباشر للشبكة الربحية مع ضمان التوجه التلقائي لـ /api/complete[cite: 9]
       const unlockUrl = await resolveUnlockUrl(network, id, req);
 
       res.setHeader("Content-Type", "text/html; charset=utf-8");
