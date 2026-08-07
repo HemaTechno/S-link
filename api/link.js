@@ -12,19 +12,17 @@ const config = {
   adminKey: process.env.ADMIN_SECRET_KEY || "Hema123i#",
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
-  taskDurationSeconds: 7, // إجمالي زمن العداد للتحقق
-  minStaySeconds: 5,     // الحد الأدنى الإجباري للتواجد خارج الصفحة
+  taskDurationSeconds: 7, 
+  minStaySeconds: 5,     
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
 /* ========================== 2) AD NETWORK HANDLERS ========================== */
 
-// ربط زر Unlock بجميع شبكات الربح المتاحة وتوجيهه تلقائياً لـ /api/complete
 async function resolveUnlockUrl(network, id, req) {
   const host = req.headers.host || "www.subx.click";
   const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
   
-  // رابط الصفحة النهائية التي سيتوجه لها العميل بعد تخطي الإعلانات
   const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
 
   try {
@@ -205,7 +203,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   }
   .toast {
     background: rgba(20, 25, 40, 0.95); border: 1px solid var(--danger); color: #fff;
-    padding: 14px 22px; border-radius: 14px; font-size: 13px; font-weight: bold;
+    padding: 14px 22px; border-radius: 14px; font-size: 14px; font-weight: bold;
     display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     backdrop-filter: blur(10px); animation: toastIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
   }
@@ -277,7 +275,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     badge.style.display = 'inline-block';
     timerNum.innerText = current.remaining;
 
-    // قياس زمني دقيق لحظة الخروج والعودة
     const onBlur = () => {
       current.blurTime = performance.now();
     };
@@ -310,15 +307,14 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         if (awaySeconds >= minStay) {
           completeTask(index);
         } else {
-          // الفشل بطلب التكرار عند العودة في أقل من 5 ثوانٍ
           taskBtn.className = 'task-btn';
           badge.style.display = 'none';
           
-          const errorMsg = 'فشل التحقق! عدت سريعاً جداً، يرجى البقاء ' + minStay + ' ثوانٍ على الأقل داخل المهمة والمحاولة مجدداً.';
+          const textMsg = 'لف و ارجع اعمل المهمه 👀';
           alertBox.className = 'task-alert-box error';
-          alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + errorMsg;
+          alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + textMsg;
           
-          showToast(errorMsg);
+          showToast(textMsg);
         }
       }
     }, 1000);
@@ -453,7 +449,6 @@ export default async function handler(req, res) {
       const data = doc.data();
       const network = data.monetization || "lootlabs";
       
-      // توجيه زر Unlock نحو الرابط الربحي المولد تلقائياً مع توجيهه لـ /api/complete
       const unlockUrl = await resolveUnlockUrl(network, id, req);
 
       res.setHeader("Content-Type", "text/html; charset=utf-8");
