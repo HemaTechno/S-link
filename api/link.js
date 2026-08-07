@@ -10,19 +10,21 @@ const config = {
   nitroLinkApiKey: process.env.NITRO_LINK_API_KEY || "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9",
   linkJustApiToken: process.env.LINKJUST_API_TOKEN || "944c5ea148b949eb99be07963d8615e6904f460b",
   adminKey: process.env.ADMIN_SECRET_KEY || "Hema123i#",
-  taskDurationSeconds: 7, // مدة التايمر الإجمالية
-  minStaySeconds: 5,     // الحد الأدنى الإجباري للبقاء خارج الصفحة
+  rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
+  rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
+  taskDurationSeconds: 7, // إجمالي زمن العداد للتحقق
+  minStaySeconds: 5,     // الحد الأدنى الإجباري للتواجد خارج الصفحة
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
 /* ========================== 2) AD NETWORK HANDLERS ========================== */
 
-// توليد رابط الشبكة الربحية مع إرسال رابط التوجيه النهائي لـ /api/complete
+// ربط زر Unlock بجميع شبكات الربح المتاحة وتوجيهه تلقائياً لـ /api/complete
 async function resolveUnlockUrl(network, id, req) {
   const host = req.headers.host || "www.subx.click";
   const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
   
-  // الرابط النهائي الذي سيتوجه إليه العميل بعد إنهاء الإعلانات
+  // رابط الصفحة النهائية التي سيتوجه لها العميل بعد تخطي الإعلانات
   const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
 
   try {
@@ -196,12 +198,27 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .task-alert-box.error{background:rgba(255,92,92,.12);border:1px solid rgba(255,92,92,.3);color:var(--danger);display:block}
   .task-alert-box.success{background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.3);color:var(--success);display:block}
 
+  /* Toast Notification */
+  .toast-container {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+  }
+  .toast {
+    background: rgba(20, 25, 40, 0.95); border: 1px solid var(--danger); color: #fff;
+    padding: 14px 22px; border-radius: 14px; font-size: 13px; font-weight: bold;
+    display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px); animation: toastIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
   .btn{width:100%;padding:17px;border-radius:16px;font-size:15.5px;font-weight:800;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:10px;border:none;cursor:pointer;transition:all .25s}
   .default-btn{color:#050811;background:linear-gradient(135deg,#00f0ff 0%,#0077ff 100%);box-shadow:0 6px 20px rgba(0,136,255,.3)}
   .default-btn.disabled{background:rgba(255,255,255,.08);color:#475569;cursor:not-allowed;box-shadow:none}
 </style>
 </head>
 <body>
+  <div class="toast-container" id="toastBox"></div>
+
   <div class="container">
     ${image ? `<img src="${image}" class="media-img" alt="Thumbnail" loading="lazy">` : ""}
     <h1>${title || "Locked Content"}</h1>
@@ -222,6 +239,20 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
   let completedTasksCount = 0;
   const taskData = {};
+
+  function showToast(message) {
+    const toastBox = document.getElementById('toastBox');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#ff5c5c; font-size:16px;"></i> ' + message;
+    toastBox.appendChild(toast);
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s';
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
 
   window.startTaskTracker = function(index) {
     if (taskData[index] && taskData[index].completed) return;
@@ -246,7 +277,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     badge.style.display = 'inline-block';
     timerNum.innerText = current.remaining;
 
-    // تسجيل دقيق جداً باستخدام Performance API عند الخروج والعودة
+    // قياس زمني دقيق لحظة الخروج والعودة
     const onBlur = () => {
       current.blurTime = performance.now();
     };
@@ -267,7 +298,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
       if (current.remaining <= 0) {
         clearInterval(current.timer);
         
-        // حساب الفارق الزمني الحقيقي المنهي خارج الصفحة
         let awaySeconds = 0;
         if (current.blurTime > 0 && current.focusTime > 0) {
           awaySeconds = (current.focusTime - current.blurTime) / 1000;
@@ -280,11 +310,15 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         if (awaySeconds >= minStay) {
           completeTask(index);
         } else {
-          // العودة في أقل من 5 ثوانٍ -> إظهار خطأ وإلغاء التكتمل
+          // الفشل بطلب التكرار عند العودة في أقل من 5 ثوانٍ
           taskBtn.className = 'task-btn';
           badge.style.display = 'none';
+          
+          const errorMsg = 'فشل التحقق! عدت سريعاً جداً، يرجى البقاء ' + minStay + ' ثوانٍ على الأقل داخل المهمة والمحاولة مجدداً.';
           alertBox.className = 'task-alert-box error';
-          alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> فشل التحقق! لقد عدت سريعاً، يجب البقاء ' + minStay + ' ثوانٍ على الأقل داخل الصفحة المطلوبة.';
+          alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> ' + errorMsg;
+          
+          showToast(errorMsg);
         }
       }
     }, 1000);
@@ -304,7 +338,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     document.getElementById('link-' + index).style.display = 'none';
 
     alertBox.className = 'task-alert-box success';
-    alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم التكتمل بنجاح!';
+    alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم إتمام المهمة بنجاح!';
 
     updateProgress();
   }
@@ -328,7 +362,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     const btn = document.getElementById('unlockBtn');
     if (btn.classList.contains('disabled')) {
       event.preventDefault();
-      alert('من فضلك إكمال جميع المهام المطلوبة أولاً!');
+      showToast('من فضلك أكمل كافة المهام المطلوبة أولاً لفتح الرابط!');
     }
   };
 
@@ -419,7 +453,7 @@ export default async function handler(req, res) {
       const data = doc.data();
       const network = data.monetization || "lootlabs";
       
-      // توجيه زر Unlock لرابط شبكة الأرباح مع التوجه التلقائي لـ /api/complete
+      // توجيه زر Unlock نحو الرابط الربحي المولد تلقائياً مع توجيهه لـ /api/complete
       const unlockUrl = await resolveUnlockUrl(network, id, req);
 
       res.setHeader("Content-Type", "text/html; charset=utf-8");
