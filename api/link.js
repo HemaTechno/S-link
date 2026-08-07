@@ -1,428 +1,542 @@
+// index.js
+// ملف واحد فيه كل حاجة: الإعدادات، شبكات الإعلانات، الواجهات، والـ handler الرئيسي.
+//
+// ⚠️ مهم: المفاتيح بقت بتتقرأ من environment variables بدل ما تكون مكتوبة صريحة هنا.
+// اعمل ملف .env جنب الملف ده (أو ظبطهم في إعدادات الـ hosting بتاعك زي Vercel) بالشكل ده:
+//
+//   LOOTLABS_API_KEY=...
+//   LINKVERTISE_USER_ID=...
+//   NITRO_LINK_API_KEY=...
+//   LINKJUST_API_TOKEN=...
+//   ADMIN_SECRET_KEY=...
+//   RATE_LIMIT_WINDOW_MS=60000
+//   RATE_LIMIT_MAX_REQUESTS=5
+//   TASK_DURATION_SECONDS=5
+//   VPN_CHECK_ENABLED=true
+//
+// وماترفعش .env على git أبداً.
+
 import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import axios from "axios";
 
-// 🔑 مفاتيح الشبكات الحالية
-const LOOTLABS_API = "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
-const LINKVERTISE_USER_ID = "1322389"; 
-const NITRO_LINK_API = "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9"; 
-const LINKJUST_API_TOKEN = "944c5ea148b949eb99be07963d8615e6904f460b";
+/* ============================== 1) CONFIG ============================== */
 
-const cache = new Map();
-const spamCache = new Map(); 
+const config = {
+  lootlabsApiKey: process.env.LOOTLABS_API_KEY || "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81",
+  linkvertiseUserId: process.env.LINKVERTISE_USER_ID || "1322389",
+  nitroLinkApiKey: process.env.NITRO_LINK_API_KEY || "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9",
+  linkJustApiToken: process.env.LINKJUST_API_TOKEN || "944c5ea148b949eb99be07963d8615e6904f460b",
+  adminKey: process.env.ADMIN_SECRET_KEY || "Hema123i#",
+  rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
+  rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
+  taskDurationSeconds: Number(process.env.TASK_DURATION_SECONDS || 5),
+  vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
+};
 
-const RATE_LIMIT_WINDOW = 60 * 1000; 
-const MAX_REQUESTS = 5;
+function validateConfig() {
+  const missing = [];
+  if (!config.adminKey) missing.push("ADMIN_SECRET_KEY");
+  if (!config.lootlabsApiKey) missing.push("LOOTLABS_API_KEY");
+  if (missing.length) {
+    console.warn(`⚠️  متغيرات بيئة ناقصة: ${missing.join(", ")} — بعض الخصائص ممكن ماتشتغلش صح.`);
+  }
+}
+validateConfig();
 
-// 🛡️ واجهة منع الـ VPN
-const vpnBlockUI = `
+/* ========================== 2) AD NETWORK ADAPTERS ========================== */
+
+async function callLootLabs(targetUrl, slug) {
+  const response = await axios.post(
+    "https://creators.lootlabs.gg/api/public/content_locker",
+    { title: slug, url: targetUrl, tier_id: 1, number_of_tasks: 3, theme: 1 },
+    { headers: { Authorization: `Bearer ${config.lootlabsApiKey}`, "Content-Type": "application/json" }, timeout: 8000 }
+  );
+  const url = response.data?.message?.loot_url || response.data?.loot_url;
+  if (!url) throw new Error("LootLabs لم يرجع رابط صالح");
+  return { unlockUrl: url, isClientSide: false };
+}
+
+async function callLinkvertise(targetUrl) {
+  const base64Url = Buffer.from(targetUrl).toString("base64");
+  const randomString = Math.random().toString(36).slice(2, 9);
+  const url = `https://link-to.net/${config.linkvertiseUserId}/${randomString}/dynamic?r=${base64Url}`;
+  return { unlockUrl: url, isClientSide: false };
+}
+
+async function callNitroLink(targetUrl) {
+  const reqUrl = `https://nitro-link.com/api?api=${config.nitroLinkApiKey}&url=${encodeURIComponent(targetUrl)}`;
+  const response = await axios.get(reqUrl, { timeout: 8000 });
+  if (response.data?.status !== "success" || !response.data?.shortenedUrl) {
+    throw new Error("Nitro Link لم يرجع رابط صالح");
+  }
+  return { unlockUrl: response.data.shortenedUrl, isClientSide: false };
+}
+
+async function callLinkJust(targetUrl) {
+  const reqUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${encodeURIComponent(targetUrl)}`;
+  const response = await axios.get(reqUrl, { timeout: 8000 });
+  if (response.data?.status === "success" && response.data?.shortenedUrl) {
+    return { unlockUrl: response.data.shortenedUrl, isClientSide: false };
+  }
+  // فشل السيرفر → المتصفح هيطلب من /api/resolve-link (جوه نفس الملف ده تحت) بدل ما نكشف التوكن للعميل
+  return { unlockUrl: targetUrl, isClientSide: true };
+}
+
+const NETWORK_HANDLERS = {
+  lootlabs: callLootLabs,
+  linkvertise: callLinkvertise,
+  nitrolink: callNitroLink,
+  just: callLinkJust,
+};
+
+async function resolveUnlockUrl(network, targetUrl, slug) {
+  const handler = NETWORK_HANDLERS[network];
+  if (!handler) {
+    console.warn(`شبكة غير معروفة: ${network} — هيتم استخدام الرابط الأصلي`);
+    return { unlockUrl: targetUrl, isClientSide: false };
+  }
+  try {
+    return await handler(targetUrl, slug);
+  } catch (err) {
+    console.error(`${network} API Error:`, err.message);
+    return { unlockUrl: targetUrl, isClientSide: network === "just" };
+  }
+}
+
+/* ============================== 3) TEMPLATES ============================== */
+
+const vpnBlockPage = () => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VPN Detected 🛡️</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { --bg-dark: #070a12; --glass-bg: rgba(13, 22, 38, 0.75); --text-main: #ffffff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .container { width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(0, 195, 255, 0.3); text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
-        h1 { color: #00c3ff; margin-bottom: 15px; font-size: 1.8rem; font-weight: 800; }
-        p { color: #aaa; font-size: 1.1rem; margin-bottom: 20px; line-height: 1.6; }
-        .error-icon { font-size: 70px; color: #00c3ff; margin-bottom: 25px; text-shadow: 0 0 20px rgba(0, 195, 255, 0.4); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VPN Detected</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root{--bg-dark:#070a12;--glass-bg:rgba(13,22,38,.75);--text-main:#fff}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
+  body{background:var(--bg-dark);display:flex;justify-content:center;align-items:center;min-height:100vh;color:var(--text-main);padding:20px}
+  .container{width:480px;max-width:100%;padding:40px 35px;border-radius:28px;background:var(--glass-bg);backdrop-filter:blur(20px);border:1px solid rgba(0,195,255,.3);text-align:center;box-shadow:0 25px 50px rgba(0,0,0,.8)}
+  h1{color:#00c3ff;margin-bottom:15px;font-size:1.8rem;font-weight:800}
+  p{color:#aaa;font-size:1.1rem;margin-bottom:20px;line-height:1.6}
+  .error-icon{font-size:70px;color:#00c3ff;margin-bottom:25px;text-shadow:0 0 20px rgba(0,195,255,.4)}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="error-icon"><i class="fa-solid fa-shield-halved"></i></div>
-        <h1>VPN / Proxy Detected!</h1>
-        <p>We detected that you are using a VPN or Proxy connection.</p>
-        <p style="color:#fff; font-weight:bold;">Please turn off your VPN and refresh the page to continue.</p>
-    </div>
+  <div class="container">
+    <div class="error-icon"><i class="fa-solid fa-shield-halved"></i></div>
+    <h1>VPN / Proxy Detected!</h1>
+    <p>We detected that you are using a VPN or Proxy connection.</p>
+    <p style="color:#fff;font-weight:bold;">Please turn off your VPN and refresh the page to continue.</p>
+  </div>
 </body>
-</html>
-`;
+</html>`;
 
-// 🎨 واجهة العرض التفاعلية المعدلة كلياً
-const generatePageHtml = (linkData, unlockUrl, isClientLinkJust = false) => {
-    const { title, description, image, tasks } = linkData;
-    const totalTasks = tasks ? tasks.length : 0;
+const notFoundPage = () => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Not Found</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
+  body{background:#050811;display:flex;justify-content:center;align-items:center;min-height:100vh;color:#fff}
+  .box{text-align:center}
+  h1{font-size:4rem;background:linear-gradient(135deg,#00f0ff,#0077ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  p{color:#64748b;margin-top:8px}
+</style>
+</head>
+<body><div class="box"><h1>404</h1><p>This link doesn't exist or has expired.</p></div></body>
+</html>`;
 
-    let tasksHtml = '';
-    if (totalTasks > 0) {
-        tasksHtml = `
-        <div class="tasks-container">
-            <h3><i class="fa-solid fa-list-check"></i> Complete Required Tasks</h3>
-            ${tasks.map((task, idx) => `
-                <div class="task-wrapper">
-                    <a href="${task.link}" target="_blank" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(${idx})">
-                        <span class="task-info"><i class="fa-brands fa-${task.platform}"></i> ${task.action}</span>
-                        <span class="task-timer-badge" id="timer-badge-${idx}" style="display:none;">0s / 5s</span>
-                        <i class="fa-solid fa-circle-check check-icon" id="check-${idx}" style="display:none; color:#00ff88;"></i>
-                        <i class="fa-solid fa-external-link-alt link-icon" id="link-${idx}"></i>
-                    </a>
-                    <div class="task-alert-box" id="alert-${idx}"></div>
-                </div>
-            `).join('')}
-        </div>`;
-    }
+const unlockPage = ({ linkData, unlockUrl, isClientSide, taskDurationSeconds }) => {
+  const { title, description, image, tasks = [] } = linkData;
+  const totalTasks = tasks.length;
+  const dur = taskDurationSeconds;
 
-    return `
+  const tasksHtml = totalTasks
+    ? `
+    <div class="progress-wrap">
+      <div class="progress-label"><span id="progressText">0 / ${totalTasks} completed</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="tasks-container">
+      ${tasks
+        .map(
+          (task, idx) => `
+        <div class="task-wrapper">
+          <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(${idx})">
+            <span class="task-info"><i class="fa-brands fa-${task.platform || "link"}"></i> ${task.action}</span>
+            <span class="task-timer-badge" id="timer-badge-${idx}" style="display:none;">0s / ${dur}s</span>
+            <i class="fa-solid fa-circle-check check-icon" id="check-${idx}" style="display:none;"></i>
+            <i class="fa-solid fa-arrow-up-right-from-square link-icon" id="link-${idx}"></i>
+          </a>
+          <div class="task-alert-box" id="alert-${idx}"></div>
+        </div>`
+        )
+        .join("")}
+    </div>`
+    : "";
+
+  return `
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${title || "Unlock Content"}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root { 
-            --primary-blue: #0088ff; 
-            --accent-cyan: #00f0ff; 
-            --bg-dark: #050811; 
-            --glass-bg: rgba(10, 18, 32, 0.75); 
-            --text-main: #ffffff; 
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { 
-            background-color: var(--bg-dark); 
-            background-image: 
-                radial-gradient(at 20% 20%, rgba(0, 136, 255, 0.15) 0px, transparent 50%),
-                radial-gradient(at 80% 80%, rgba(0, 240, 255, 0.1) 0px, transparent 50%);
-            display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; 
-        }
-        
-        .container { 
-            width: 480px; max-width: 100%; padding: 35px 25px; border-radius: 28px; 
-            background: var(--glass-bg); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); 
-            border: 1px solid rgba(0, 240, 255, 0.15); text-align: center; 
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.1); 
-        }
-        
-        .media-img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 18px; margin-bottom: 20px; border: 1px solid rgba(0, 240, 255, 0.2); }
-        h1 { color: var(--accent-cyan); margin-bottom: 10px; font-size: 1.6rem; font-weight: 800; text-shadow: 0 0 15px rgba(0, 240, 255, 0.3); }
-        .desc { color: #94a3b8; margin-bottom: 25px; font-size: 0.95rem; line-height: 1.5; }
-        
-        .tasks-container { margin-bottom: 25px; text-align: left; }
-        .tasks-container h3 { font-size: 14px; color: var(--accent-cyan); margin-bottom: 12px; font-weight: bold; }
-        .task-wrapper { margin-bottom: 14px; }
-        
-        .task-btn {
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(15, 28, 48, 0.6); border: 1px solid rgba(0, 240, 255, 0.15);
-            padding: 14px 18px; border-radius: 14px; color: #fff; text-decoration: none;
-            font-weight: bold; font-size: 14px; transition: all 0.3s ease; position: relative;
-        }
-        .task-btn:hover { background: rgba(0, 136, 255, 0.2); border-color: var(--accent-cyan); box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); }
-        .task-btn.completed { border-color: #00ff88; background: rgba(0, 255, 136, 0.1); color: #00ff88; pointer-events: none; }
-        .task-btn.active-timer { border-color: #ffaa00; background: rgba(255, 170, 0, 0.1); color: #ffaa00; }
-        
-        .task-timer-badge { background: #ffaa00; color: #000; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 8px; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${title || "Unlock Content"}</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root{
+    --primary-blue:#0088ff; --accent-cyan:#00f0ff; --bg-dark:#050811;
+    --glass-bg:rgba(10,18,32,.72); --text-main:#fff; --success:#00ff88; --warn:#ffaa00; --danger:#ff5c5c;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
+  body{
+    background:var(--bg-dark);
+    background-image:radial-gradient(at 15% 15%,rgba(0,136,255,.18) 0,transparent 55%),
+                      radial-gradient(at 85% 85%,rgba(0,240,255,.12) 0,transparent 55%);
+    display:flex;justify-content:center;align-items:center;min-height:100vh;color:var(--text-main);padding:20px;
+  }
+  .container{
+    width:480px;max-width:100%;padding:36px 26px;border-radius:28px;
+    background:var(--glass-bg);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);
+    border:1px solid rgba(0,240,255,.15);text-align:center;
+    box-shadow:0 25px 55px rgba(0,0,0,.6),inset 0 1px 1px rgba(255,255,255,.08);
+    animation:riseIn .5s ease;
+  }
+  @keyframes riseIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  .media-img{width:100%;max-height:200px;object-fit:cover;border-radius:18px;margin-bottom:20px;border:1px solid rgba(0,240,255,.2)}
+  h1{color:var(--accent-cyan);margin-bottom:8px;font-size:1.55rem;font-weight:800;text-shadow:0 0 15px rgba(0,240,255,.3)}
+  .desc{color:#94a3b8;margin-bottom:22px;font-size:.94rem;line-height:1.5}
 
-        .task-alert-box {
-            font-size: 12px; font-weight: bold; margin-top: 6px; padding: 8px 12px; border-radius: 10px; display: none; animation: fadeIn 0.3s;
-        }
-        .task-alert-box.error { background: rgba(255, 77, 77, 0.15); border: 1px solid rgba(255, 77, 77, 0.3); color: #ff6b6b; display: block; }
-        .task-alert-box.success { background: rgba(0, 255, 136, 0.15); border: 1px solid rgba(0, 255, 136, 0.3); color: #00ff88; display: block; }
+  .progress-wrap{margin-bottom:18px;text-align:left}
+  .progress-label{font-size:12px;color:#94a3b8;margin-bottom:6px;font-weight:700}
+  .progress-track{height:8px;border-radius:8px;background:rgba(255,255,255,.08);overflow:hidden}
+  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary-blue),var(--accent-cyan));transition:width .4s ease;border-radius:8px}
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+  .tasks-container{margin-bottom:22px;text-align:left}
+  .task-wrapper{margin-bottom:12px}
+  .task-btn{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    background:rgba(15,28,48,.6);border:1px solid rgba(0,240,255,.15);
+    padding:14px 16px;border-radius:14px;color:#fff;text-decoration:none;
+    font-weight:700;font-size:13.5px;transition:all .25s ease;
+  }
+  .task-btn:hover{background:rgba(0,136,255,.2);border-color:var(--accent-cyan);box-shadow:0 0 15px rgba(0,240,255,.2)}
+  .task-btn.completed{border-color:var(--success);background:rgba(0,255,136,.08);color:var(--success);pointer-events:none}
+  .task-btn.active-timer{border-color:var(--warn);background:rgba(255,170,0,.08);color:var(--warn)}
+  .task-info{display:flex;align-items:center;gap:8px}
+  .task-timer-badge{background:var(--warn);color:#000;font-size:11px;font-weight:800;padding:2px 8px;border-radius:8px;flex-shrink:0}
+  .check-icon{color:var(--success)}
 
-        .btn { width: 100%; padding: 18px; border-radius: 16px; font-size: 16px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; border: none; cursor: pointer; transition: all 0.3s; }
-        .default-btn { color: #050811; background: linear-gradient(135deg, #00f0ff 0%, #0077ff 100%); box-shadow: 0 6px 20px rgba(0, 136, 255, 0.3); }
-        .default-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 240, 255, 0.4); }
-        .default-btn.disabled { background: rgba(255, 255, 255, 0.08); color: #475569; cursor: not-allowed; box-shadow: none; transform: none; }
-    </style>
+  .task-alert-box{font-size:12px;font-weight:700;margin-top:6px;padding:8px 12px;border-radius:10px;display:none;animation:fadeIn .3s}
+  .task-alert-box.error{background:rgba(255,92,92,.12);border:1px solid rgba(255,92,92,.3);color:var(--danger);display:block}
+  .task-alert-box.success{background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.3);color:var(--success);display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+
+  .btn{width:100%;padding:17px;border-radius:16px;font-size:15.5px;font-weight:800;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:10px;border:none;cursor:pointer;transition:all .25s}
+  .default-btn{color:#050811;background:linear-gradient(135deg,#00f0ff 0%,#0077ff 100%);box-shadow:0 6px 20px rgba(0,136,255,.3)}
+  .default-btn:hover:not(.disabled){transform:translateY(-2px);box-shadow:0 10px 25px rgba(0,240,255,.4)}
+  .default-btn.disabled{background:rgba(255,255,255,.08);color:#475569;cursor:not-allowed;box-shadow:none;transform:none}
+  .footnote{margin-top:14px;font-size:11px;color:#475569}
+</style>
 </head>
 <body>
-    <div class="container">
-        ${image ? `<img src="${image}" class="media-img" alt="Thumbnail">` : ''}
-        <h1>${title || "Locked Content"}</h1>
-        ${description ? `<p class="desc">${description}</p>` : ''}
-        
-        ${tasksHtml}
+  <div class="container">
+    ${image ? `<img src="${image}" class="media-img" alt="Thumbnail" loading="lazy">` : ""}
+    <h1>${title || "Locked Content"}</h1>
+    ${description ? `<p class="desc">${description}</p>` : ""}
+    ${tasksHtml}
+    <button id="unlockBtn" class="btn default-btn ${totalTasks > 0 ? "disabled" : ""}" onclick="handleUnlockClick()">
+      <i class="fa-solid fa-lock" id="unlockIcon"></i> <span id="unlockText">Unlock Content</span>
+    </button>
+    <p class="footnote">Stay on each linked page for ${dur}s to complete a task.</p>
+  </div>
 
-        <button id="unlockBtn" class="btn default-btn ${totalTasks > 0 ? 'disabled' : ''}" onclick="handleUnlockClick()">
-            <i class="fa-solid fa-lock" id="unlockIcon"></i> <span id="unlockText">Unlock Content</span>
-        </button>
-    </div>
+<script>
+(function(){
+  const totalTasks = ${totalTasks};
+  const unlockTargetUrl = ${JSON.stringify(unlockUrl)};
+  const isClientSide = ${Boolean(isClientSide)};
+  const taskDuration = ${dur};
 
-    <script>
-        const totalTasks = ${totalTasks};
-        const unlockTargetUrl = "${unlockUrl}";
-        const isClientJust = ${isClientLinkJust};
-        
-        let completedTasksCount = 0;
-        const taskData = {};
+  let completedTasksCount = 0;
+  const taskData = {};
 
-        function startTaskTracker(index) {
-            if (taskData[index] && taskData[index].completed) return;
+  window.startTaskTracker = function(index) {
+    if (taskData[index] && taskData[index].completed) return;
 
-            const taskBtn = document.getElementById('task-btn-' + index);
-            const badge = document.getElementById('timer-badge-' + index);
-            const alertBox = document.getElementById('alert-' + index);
+    const taskBtn = document.getElementById('task-btn-' + index);
+    const badge = document.getElementById('timer-badge-' + index);
+    const alertBox = document.getElementById('alert-' + index);
+    alertBox.style.display = 'none';
 
-            alertBox.style.display = 'none';
+    if (!taskData[index]) taskData[index] = { completed: false, startTime: 0, interval: null, elapsedSeconds: 0 };
+    const current = taskData[index];
+    current.startTime = Date.now();
+    current.elapsedSeconds = 0;
 
-            if (!taskData[index]) {
-                taskData[index] = {
-                    completed: false,
-                    startTime: 0,
-                    interval: null,
-                    elapsedSeconds: 0
-                };
-            }
+    taskBtn.className = 'task-btn active-timer';
+    badge.style.display = 'inline-block';
+    badge.innerText = '0s / ' + taskDuration + 's';
 
-            const current = taskData[index];
-            current.startTime = Date.now();
-            current.elapsedSeconds = 0;
+    if (current.interval) clearInterval(current.interval);
+    current.interval = setInterval(() => {
+      current.elapsedSeconds++;
+      badge.innerText = current.elapsedSeconds + 's / ' + taskDuration + 's';
+      if (current.elapsedSeconds >= taskDuration) {
+        clearInterval(current.interval);
+        completeTask(index);
+      }
+    }, 1000);
 
-            taskBtn.className = "task-btn active-timer";
-            badge.style.display = 'inline-block';
-            badge.innerText = "0s / 5s";
-
-            // بدء العداد فور الضغط
-            if (current.interval) clearInterval(current.interval);
-
-            current.interval = setInterval(() => {
-                current.elapsedSeconds++;
-                badge.innerText = current.elapsedSeconds + "s / 5s";
-
-                if (current.elapsedSeconds >= 5) {
-                    clearInterval(current.interval);
-                    completeTask(index);
-                }
-            }, 1000);
-
-            // عند العودة قبل انتهاء الوقت المضي
-            const onFocusCheck = () => {
-                window.removeEventListener('focus', onFocusCheck);
-
-                setTimeout(() => {
-                    if (!current.completed) {
-                        const timeSpent = (Date.now() - current.startTime) / 1000;
-                        if (timeSpent < 4.8) {
-                            clearInterval(current.interval);
-                            taskBtn.className = "task-btn";
-                            badge.style.display = 'none';
-                            
-                            alertBox.className = "task-alert-box error";
-                            alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> فشلت المهمة! يجب البقاء 5 ثوانٍ على الأقل داخل الصفحة المطلوبة.';
-                        }
-                    }
-                }, 500);
-            };
-
-            window.addEventListener('focus', onFocusCheck);
-        }
-
-        function completeTask(index) {
-            const taskBtn = document.getElementById('task-btn-' + index);
-            const badge = document.getElementById('timer-badge-' + index);
-            const alertBox = document.getElementById('alert-' + index);
-
-            taskData[index].completed = true;
-            completedTasksCount++;
-
-            taskBtn.className = "task-btn completed";
+    const onFocusCheck = () => {
+      window.removeEventListener('focus', onFocusCheck);
+      setTimeout(() => {
+        if (!current.completed) {
+          const timeSpent = (Date.now() - current.startTime) / 1000;
+          if (timeSpent < taskDuration - 0.2) {
+            clearInterval(current.interval);
+            taskBtn.className = 'task-btn';
             badge.style.display = 'none';
-            document.getElementById('check-' + index).style.display = 'inline-block';
-            document.getElementById('link-' + index).style.display = 'none';
-
-            alertBox.className = "task-alert-box success";
-            alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم إتمام المهمة بنجاح!';
-
-            checkUnlockStatus();
+            alertBox.className = 'task-alert-box error';
+            alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Task failed — stay on the page for at least ' + taskDuration + 's.';
+          }
         }
+      }, 500);
+    };
+    window.addEventListener('focus', onFocusCheck);
+  };
 
-        function checkUnlockStatus() {
-            if (completedTasksCount >= totalTasks) {
-                const btn = document.getElementById('unlockBtn');
-                if (btn) {
-                    btn.classList.remove('disabled');
-                    document.getElementById('unlockIcon').className = 'fa-solid fa-lock-open';
-                }
-            }
+  function completeTask(index) {
+    const taskBtn = document.getElementById('task-btn-' + index);
+    const badge = document.getElementById('timer-badge-' + index);
+    const alertBox = document.getElementById('alert-' + index);
+
+    taskData[index].completed = true;
+    completedTasksCount++;
+
+    taskBtn.className = 'task-btn completed';
+    badge.style.display = 'none';
+    document.getElementById('check-' + index).style.display = 'inline-block';
+    document.getElementById('link-' + index).style.display = 'none';
+
+    alertBox.className = 'task-alert-box success';
+    alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> Task completed!';
+
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const fill = document.getElementById('progressFill');
+    const text = document.getElementById('progressText');
+    if (fill) fill.style.width = (totalTasks ? (completedTasksCount / totalTasks) * 100 : 100) + '%';
+    if (text) text.innerText = completedTasksCount + ' / ' + totalTasks + ' completed';
+
+    if (completedTasksCount >= totalTasks) {
+      const btn = document.getElementById('unlockBtn');
+      if (btn) {
+        btn.classList.remove('disabled');
+        document.getElementById('unlockIcon').className = 'fa-solid fa-lock-open';
+      }
+    }
+  }
+
+  window.handleUnlockClick = async function() {
+    const btn = document.getElementById('unlockBtn');
+    if (btn.classList.contains('disabled')) {
+      alert('Please complete all tasks first!');
+      return;
+    }
+
+    if (isClientSide) {
+      btn.classList.add('disabled');
+      document.getElementById('unlockText').innerText = 'Generating link...';
+      document.getElementById('unlockIcon').className = 'fa-solid fa-spinner fa-spin';
+
+      try {
+        const res = await fetch('/api/link?id=RESOLVE&target=' + encodeURIComponent(unlockTargetUrl));
+        const data = await res.json();
+        if (data.success && data.url) {
+          window.location.href = data.url;
+          return;
         }
+      } catch (err) {
+        console.error('Resolve error:', err);
+      }
+    }
+    window.location.href = unlockTargetUrl;
+  };
 
-        async function handleUnlockClick() {
-            const btn = document.getElementById('unlockBtn');
-            if (btn.classList.contains('disabled')) {
-                alert('الرجاء إتمام كافة المهام أولاً لفتح الرابط!');
-                return;
-            }
-
-            if (isClientJust) {
-                btn.classList.add('disabled');
-                document.getElementById('unlockText').innerText = 'Generating Short Link...';
-                document.getElementById('unlockIcon').className = 'fa-solid fa-spinner fa-spin';
-
-                const apiUrl = "https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=" + encodeURIComponent(unlockTargetUrl);
-                try {
-                    const res = await fetch(apiUrl);
-                    const data = await res.json();
-                    if(data.status === 'success' && data.shortenedUrl) {
-                        window.location.href = data.shortenedUrl;
-                        return;
-                    }
-                } catch(err) {
-                    console.error("LinkJust Client API Error:", err);
-                }
-            }
-
-            window.location.href = unlockTargetUrl;
-        }
-
-        if (totalTasks === 0) {
-            checkUnlockStatus();
-        }
-    </script>
+  if (totalTasks === 0) updateProgress();
+})();
+</script>
 </body>
-</html>
-    `;
+</html>`;
 };
 
+/* ============================== 4) HELPERS ============================== */
+
+const spamCache = new Map();
+const settingsCache = new Map();
+
+function getClientIp(req) {
+  return req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket?.remoteAddress || "unknown";
+}
+
+function isRateLimited(ip) {
+  const now = Date.now();
+  const entry = spamCache.get(ip) || { count: 0, startTime: now };
+  if (now - entry.startTime > config.rateLimitWindowMs) {
+    entry.count = 1;
+    entry.startTime = now;
+  } else {
+    entry.count++;
+  }
+  spamCache.set(ip, entry);
+  return entry.count > config.rateLimitMaxRequests;
+}
+
+async function checkIsVpn(ip) {
+  if (!config.vpnCheckEnabled || !ip || ip === "::1" || ip === "127.0.0.1") return false;
+  try {
+    const response = await axios.get(`https://blackbox.ipinfo.app/lookup/${ip}`, { timeout: 4000 });
+    return typeof response.data === "string" && response.data.trim() === "Y";
+  } catch {
+    return false; // فشل الفحص لا يعني حظر المستخدم (fail-open)
+  }
+}
+
+/* ============================== 5) ROUTE HANDLERS ============================== */
+
+// PATCH: تحديث إعدادات الشبكات (Admin)
+async function handlePatch(req, res) {
+  const { lootlabsEnabled, linkvertiseEnabled, nitrolinkEnabled, adminKey } = req.body || {};
+
+  if (!config.adminKey || adminKey !== config.adminKey) {
+    return res.status(401).json({ success: false, message: "Unauthorized" });
+  }
+
+  const settings = {
+    lootlabs: Boolean(lootlabsEnabled),
+    linkvertise: Boolean(linkvertiseEnabled),
+    nitrolink: Boolean(nitrolinkEnabled),
+  };
+
+  await db.collection("settings").doc("adNetworks").set(settings);
+  settingsCache.set("adSettings", settings);
+  return res.status(200).json({ success: true, message: "Settings updated successfully", settings });
+}
+
+// POST: إنشاء رابط جديد
+async function handlePost(req, res) {
+  const ip = getClientIp(req);
+  if (isRateLimited(ip)) {
+    return res.status(429).json({ success: false, message: "Too many requests, please slow down." });
+  }
+
+  const { title, description, image, targetUrl, monetization, tasks, slug } = req.body || {};
+  if (!targetUrl || !title) {
+    return res.status(400).json({ success: false, message: "Title and Target URL are required" });
+  }
+
+  try {
+    const u = new URL(targetUrl);
+    if (!["http:", "https:"].includes(u.protocol)) throw new Error("bad protocol");
+  } catch {
+    return res.status(400).json({ success: false, message: "targetUrl must be a valid http(s) URL" });
+  }
+
+  const id = slug?.trim() ? slug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") : nanoid(6);
+  if (!id) return res.status(400).json({ success: false, message: "Invalid alias" });
+
+  const existing = await db.collection("links").doc(id).get();
+  if (existing.exists) {
+    return res.status(400).json({ success: false, message: "Alias already in use" });
+  }
+
+  await db.collection("links").doc(id).set({
+    title,
+    description: description || "",
+    image: image || "",
+    targetUrl,
+    monetization: monetization || "lootlabs",
+    tasks: Array.isArray(tasks) ? tasks : [],
+    createdAt: Date.now(),
+    clicks: 0,
+  });
+
+  return res.status(200).json({ success: true, short: `${req.headers.origin}/${id}` });
+}
+
+// GET: فتح صفحة الرابط — أو resolve للفولباك بتاع LinkJust لو id === "RESOLVE"
+async function handleGet(req, res) {
+  const ip = getClientIp(req);
+
+  if (await checkIsVpn(ip)) {
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.status(403).send(vpnBlockPage());
+  }
+
+  const id = req.query.id;
+
+  // نداء داخلي من زر "Unlock" في المتصفح — بيرجّع رابط جديد من غير ما التوكن يظهر في الـ HTML
+  if (id === "RESOLVE") {
+    const target = req.query.target;
+    if (!target) return res.status(400).json({ success: false, message: "Missing target" });
+    try {
+      const u = new URL(target);
+      if (!["http:", "https:"].includes(u.protocol)) throw new Error("bad protocol");
+    } catch {
+      return res.status(400).json({ success: false, message: "Invalid target URL" });
+    }
+    const { unlockUrl } = await callLinkJust(target).catch(() => ({ unlockUrl: target }));
+    return res.status(200).json({ success: true, url: unlockUrl });
+  }
+
+  if (!id) {
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.status(404).send(notFoundPage());
+  }
+
+  const doc = await db.collection("links").doc(id).get();
+  if (!doc.exists) {
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.status(404).send(notFoundPage());
+  }
+
+  const data = doc.data();
+  db.collection("links").doc(id).update({ clicks: (data.clicks || 0) + 1 }).catch(() => {});
+
+  const network = data.monetization || "lootlabs";
+  const { unlockUrl, isClientSide } = await resolveUnlockUrl(network, data.targetUrl, id);
+
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  return res.status(200).send(
+    unlockPage({ linkData: data, unlockUrl, isClientSide, taskDurationSeconds: config.taskDurationSeconds })
+  );
+}
+
+/* ============================== 6) MAIN EXPORT ============================== */
+
 export default async function handler(req, res) {
-    if (req.method === "PATCH") {
-        try {
-            const { lootlabsEnabled, linkvertiseEnabled, nitrolinkEnabled, adminKey } = req.body;
-            if (adminKey !== "MY_SECRET_ADMIN_PASSWORD") return res.status(401).json({ success: false, message: "Unauthorized" });
-
-            const settings = { 
-                lootlabs: Boolean(lootlabsEnabled), 
-                linkvertise: Boolean(linkvertiseEnabled),
-                nitrolink: Boolean(nitrolinkEnabled)
-            };
-            await db.collection("settings").doc("adNetworks").set(settings);
-            cache.set("adSettings", settings);
-            return res.status(200).json({ success: true, message: "Settings updated successfully", settings });
-        } catch (err) {
-            return res.status(500).json({ success: false, message: err.message });
-        }
-    }
-
-    if (req.method === "POST") {
-        try {
-            const ip = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket.remoteAddress || "unknown";
-            const currentTime = Date.now();
-            const userSpamData = spamCache.get(ip) || { count: 0, startTime: currentTime };
-
-            if (currentTime - userSpamData.startTime > RATE_LIMIT_WINDOW) {
-                userSpamData.count = 1;
-                userSpamData.startTime = currentTime;
-            } else {
-                userSpamData.count++;
-            }
-            spamCache.set(ip, userSpamData);
-
-            if (userSpamData.count > MAX_REQUESTS) return res.status(429).json({ success: false, message: "Too many requests!" });
-
-            const { title, description, image, targetUrl, monetization, tasks, slug } = req.body;
-            if (!targetUrl || !title) return res.status(400).json({ success: false, message: "Title and Target URL are required" });
-
-            let id = (slug && slug.trim() !== "") ? slug.trim().toLowerCase() : nanoid(6);
-            const exists = await db.collection("links").doc(id).get();
-            if (exists.exists) return res.status(400).json({ success: false, message: "Alias in use" });
-
-            await db.collection("links").doc(id).set({
-                title,
-                description: description || "",
-                image: image || "",
-                targetUrl,
-                monetization: monetization || "lootlabs",
-                tasks: tasks || [],
-                createdAt: Date.now()
-            });
-
-            return res.status(200).json({ success: true, short: `${req.headers.origin}/${id}` });
-        } catch (err) {
-            return res.status(500).json({ success: false, message: err.message });
-        }
-    }
-
-    if (req.method === "GET") {
-        const clientIp = req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress;
-        let isVPN = false;
-        
-        if (clientIp && clientIp !== "::1" && clientIp !== "127.0.0.1") {
-            try {
-                const response = await axios.get(`https://blackbox.ipinfo.app/lookup/${clientIp}`);
-                if (typeof response.data === 'string' && response.data.trim() === 'Y') {
-                    isVPN = true;
-                }
-            } catch (error) {
-                console.error("VPN check failed");
-            }
-        }
-
-        if (isVPN) {
-            res.setHeader("Content-Type", "text/html; charset=utf-8");
-            return res.status(403).send(vpnBlockUI);
-        }
-
-        const id = req.query.id;
-        try {
-            if (!id) return res.status(404).send("Not Found");
-
-            const doc = await db.collection("links").doc(id).get();
-            if (!doc.exists) return res.status(404).send("Content not found");
-            const data = doc.data();
-
-            let unlockUrl = data.targetUrl; 
-            let isClientLinkJust = false;
-            const selectedNetwork = data.monetization || "lootlabs";
-
-            if (selectedNetwork === "lootlabs") {
-                try {
-                    const response = await axios.post(
-                        "https://creators.lootlabs.gg/api/public/content_locker",
-                        { title: id, url: data.targetUrl, tier_id: 1, number_of_tasks: 3, theme: 1 },
-                        { headers: { Authorization: `Bearer ${LOOTLABS_API}`, "Content-Type": "application/json" } }
-                    );
-                    unlockUrl = response.data?.message?.loot_url || response.data?.loot_url || data.targetUrl;
-                } catch (err) {
-                    console.error("LootLabs API Error:", err.message);
-                }
-            } else if (selectedNetwork === "linkvertise") {
-                const base64Url = Buffer.from(data.targetUrl).toString('base64');
-                const randomString = Math.random().toString(36).substring(7);
-                unlockUrl = `https://link-to.net/${LINKVERTISE_USER_ID}/${randomString}/dynamic?r=${base64Url}`;
-            } else if (selectedNetwork === "nitrolink") {
-                try {
-                    const reqUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API}&url=${encodeURIComponent(data.targetUrl)}`;
-                    const response = await axios.get(reqUrl);
-                    if (response.data && response.data.status === 'success') {
-                        unlockUrl = response.data.shortenedUrl;
-                    }
-                } catch (err) {
-                    console.error("Nitro Link API Error:", err.message);
-                }
-            } else if (selectedNetwork === "just") {
-                try {
-                    const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(data.targetUrl)}`;
-                    const response = await axios.get(linkJustApiUrl);
-                    if (response.data && response.data.status === 'success' && response.data.shortenedUrl) {
-                        unlockUrl = response.data.shortenedUrl;
-                    } else {
-                        isClientLinkJust = true;
-                    }
-                } catch (err) {
-                    console.error("LinkJust Server API Error:", err.message);
-                    isClientLinkJust = true;
-                }
-            }
-
-            res.setHeader("Content-Type", "text/html; charset=utf-8");
-            return res.status(200).send(generatePageHtml(data, unlockUrl, isClientLinkJust));
-
-        } catch (err) {
-            console.error("Error Details:", err.message);
-            res.setHeader("Content-Type", "text/html; charset=utf-8");
-            return res.status(500).send("Internal Server Error");
-        }
-    }
-
+  try {
+    if (req.method === "PATCH") return await handlePatch(req, res);
+    if (req.method === "POST") return await handlePost(req, res);
+    if (req.method === "GET") return await handleGet(req, res);
     return res.status(405).send("Method Not Allowed");
+  } catch (err) {
+    console.error("Handler error:", err);
+    if (req.method === "GET") {
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      return res.status(500).send(notFoundPage());
+    }
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
 }
