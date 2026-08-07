@@ -9,9 +9,14 @@ const config = {
   nitroLinkApiKey: process.env.NITRO_LINK_API_KEY || "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9",
   linkJustApiToken: process.env.LINKJUST_API_TOKEN || "944c5ea148b949eb99be07963d8615e6904f460b",
   adminKey: process.env.ADMIN_SECRET_KEY || "Hema123i#",
+  rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
+  rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
   taskDurationSeconds: Number(process.env.TASK_DURATION_SECONDS || 5),
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
+
+const cache = new Map();
+const spamCache = new Map();
 
 /* ========================== 2) AD NETWORK HANDLERS ========================== */
 
@@ -45,12 +50,41 @@ async function resolveUnlockUrl(network, targetUrl, slug) {
       if (data?.status === "success" && data.shortenedUrl) return data.shortenedUrl;
     }
   } catch (e) {
-    console.error("Ad Network Exception Suppressed:", e.message);
+    console.error("Ad Network Error:", e.message);
   }
   return targetUrl;
 }
 
 /* ============================== 3) TEMPLATES ============================== */
+
+const vpnBlockUI = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN Detected 🛡️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --bg-dark: #0c0d10; --glass-bg: rgba(20, 21, 25, 0.6); --text-main: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
+        .container { width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255, 165, 0, 0.4); text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.7); }
+        h1 { color: #ffa500; margin-bottom: 15px; font-size: 1.8rem; font-weight: 800; }
+        p { color: #aaa; font-size: 1.1rem; margin-bottom: 20px; line-height: 1.6; }
+        .error-icon { font-size: 70px; color: #ffa500; margin-bottom: 25px; text-shadow: 0 0 20px rgba(255, 165, 0, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h1>VPN / Proxy Detected!</h1>
+        <p>We detected that you are using a VPN or Proxy connection.</p>
+        <p style="color:#fff; font-weight:bold;">Please turn off your VPN and refresh the page to continue.</p>
+    </div>
+</body>
+</html>`;
 
 const notFoundPage = () => `
 <!DOCTYPE html>
@@ -306,16 +340,51 @@ const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds }) => {
 </html>`;
 };
 
-/* ============================== 4) API HANDLER ============================== */
+/* ============================== 4) HELPERS ============================== */
+
+function getClientIp(req) {
+  return req.headers["x-forwarded-for"]?.split(",")[0]?.trim() || req.socket?.remoteAddress || "unknown";
+}
+
+async function checkIsVpn(ip) {
+  if (!config.vpnCheckEnabled || !ip || ip === "::1" || ip === "127.0.0.1") return false;
+  try {
+    const response = await fetch(`https://blackbox.ipinfo.app/lookup/${ip}`);
+    const text = await response.text();
+    return text.trim() === "Y";
+  } catch {
+    return false;
+  }
+}
+
+/* ============================== 5) API HANDLER ============================== */
 
 export default async function handler(req, res) {
   try {
+    if (req.method === "PATCH") {
+      const { lootlabsEnabled, linkvertiseEnabled, nitrolinkEnabled, adminKey } = req.body || {};
+      if (!config.adminKey || adminKey !== config.adminKey) {
+        return res.status(401).json({ success: false, message: "Unauthorized" });
+      }
+
+      const settings = {
+        lootlabs: Boolean(lootlabsEnabled),
+        linkvertise: Boolean(linkvertiseEnabled),
+        nitrolink: Boolean(nitrolinkEnabled),
+      };
+
+      await db.collection("settings").doc("adNetworks").set(settings);
+      return res.status(200).json({ success: true, message: "Settings updated successfully", settings });
+    }
+
     if (req.method === "POST") {
       const { title, description, image, targetUrl, monetization, tasks, slug } = req.body || {};
       if (!targetUrl || !title) return res.status(400).json({ success: false, message: "Title and targetUrl required" });
 
       const id = slug?.trim() ? slug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") : nanoid(6);
       const trimmedUrl = targetUrl.trim();
+      
+      // التمييز التلقائي بين رابط الويب والأكواد/النصوص
       const isTextContent = !trimmedUrl.startsWith("http://") && !trimmedUrl.startsWith("https://");
 
       await db.collection("links").doc(id).set({
@@ -334,6 +403,13 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "GET") {
+      const ip = getClientIp(req);
+
+      if (await checkIsVpn(ip)) {
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        return res.status(403).send(vpnBlockUI);
+      }
+
       const id = req.query.id;
       if (!id) {
         res.setHeader("Content-Type", "text/html; charset=utf-8");
