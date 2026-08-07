@@ -13,45 +13,64 @@ const config = {
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
   taskDurationSeconds: 7, 
-  minStaySeconds: 3,     
+  minStaySeconds: 5,     
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
 /* ========================== 2) AD NETWORK HANDLERS ========================== */
 
-// توليد رابط اختصار لشبكة الأرباح المحددة يوجه بدوره إلى /api/complete[cite: 9]
+// دالة جلب رابط NitroLink للتحويل الاحتياطي
+async function getNitroLinkFallback(completionUrl) {
+  try {
+    const reqUrl = `https://nitro-link.com/api?api=${config.nitroLinkApiKey}&url=${encodeURIComponent(completionUrl)}`;
+    const res = await axios.get(reqUrl, { timeout: 5000 });
+    if (res.data?.status === "success" && res.data.shortenedUrl) {
+      return res.data.shortenedUrl;
+    }
+  } catch (err) {
+    console.error("NitroLink Fallback Error:", err.message);
+  }
+  return completionUrl;
+}
+
+// توليد رابط اختصار لشبكة الأرباح المحددة مع خيار تحويل مجرب على NitroLink عند حدوث أي خطأ
 async function resolveUnlockUrl(network, id, req) {
-  const host = req.headers.host || "subx.click";
+  const host = req.headers.host || "www.subx.click";
   const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
   
-  // رابط الصفحة التي سيتوجه إليها المستخدم بعد إتمام الإعلان[cite: 9]
+  // رابط التوجه النهائي إلى صفحة complete بعد التخطي
   const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
 
   try {
     if (network === "just") {
-      const reqUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}`;
-      const res = await axios.get(reqUrl, { timeout: 8000 });
+      const apiUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}&alias=${id}`;
+      const res = await axios.get(apiUrl, { timeout: 4000 });
       if (res.data?.status === "success" && res.data.shortenedUrl) {
         return res.data.shortenedUrl;
       }
+      throw new Error("LinkJust primary API failed");
     }
 
     if (network === "nitrolink") {
       const reqUrl = `https://nitro-link.com/api?api=${config.nitroLinkApiKey}&url=${encodeURIComponent(completionUrl)}`;
-      const res = await axios.get(reqUrl, { timeout: 8000 });
+      const res = await axios.get(reqUrl, { timeout: 5000 });
       if (res.data?.status === "success" && res.data.shortenedUrl) {
         return res.data.shortenedUrl;
       }
+      throw new Error("NitroLink primary API failed");
     }
 
     if (network === "lootlabs") {
       const res = await axios.post(
         "https://creators.lootlabs.gg/api/public/content_locker",
         { title: id, url: completionUrl, tier_id: 1, number_of_tasks: 3, theme: 1 },
-        { headers: { Authorization: `Bearer ${config.lootlabsApiKey}`, "Content-Type": "application/json" }, timeout: 8000 }
+        { headers: { Authorization: `Bearer ${config.lootlabsApiKey}`, "Content-Type": "application/json" }, timeout: 5000 }
       );
       const messageData = Array.isArray(res.data?.message) ? res.data.message[0] : res.data?.message;
-      return messageData?.loot_url || res.data?.loot_url || completionUrl;
+      if (messageData?.loot_url || res.data?.loot_url) {
+        return messageData?.loot_url || res.data?.loot_url;
+      }
+      throw new Error("LootLabs primary API failed");
     } 
     
     if (network === "linkvertise") {
@@ -60,7 +79,9 @@ async function resolveUnlockUrl(network, id, req) {
       return `https://link-to.net/${config.linkvertiseUserId}/${rnd}/dynamic?r=${base64Url}`;
     }
   } catch (e) {
-    console.error(`Ad Network (${network}) Error:`, e.message);
+    console.warn(`Primary Ad Network (${network}) failed (${e.message}). Switching to NitroLink fallback...`);
+    // تحويل تلقائي لشبكة NitroLink عند حدوث أي خطأ في الشبكة الأصلية
+    return await getNitroLinkFallback(completionUrl);
   }
   
   return completionUrl;
@@ -198,6 +219,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .task-alert-box.error{background:rgba(255,92,92,.12);border:1px solid rgba(255,92,92,.3);color:var(--danger);display:block}
   .task-alert-box.success{background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.3);color:var(--success);display:block}
 
+  /* Toast Notification */
   .toast-container {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
@@ -450,7 +472,7 @@ export default async function handler(req, res) {
       const data = doc.data();
       const network = data.monetization || "just";
       
-      // التوجيه عبر رابط الشبكة الربحية المولد وتوجيهه بعد التخطي إلى /api/complete[cite: 9]
+      // توجيه زر Unlock نحو الرابط الربحي المولد تلقائياً مع تحويل تلقائي نحو NitroLink عند الفشل
       const unlockUrl = await resolveUnlockUrl(network, id, req);
 
       res.setHeader("Content-Type", "text/html; charset=utf-8");
