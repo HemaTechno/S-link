@@ -1,5 +1,6 @@
 import db from "./firebase.js";
 import { nanoid } from "nanoid";
+import axios from "axios";
 
 /* ============================== 1) CONFIG ============================== */
 
@@ -11,46 +12,56 @@ const config = {
   adminKey: process.env.ADMIN_SECRET_KEY || "Hema123i#",
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
-  taskDurationSeconds: 7, // مدة التحقق الكاملة 7 ثوانٍ
-  minStaySeconds: 5,     // الحد الأدنى للبقاء في الصفحة الخارجية 5 ثوانٍ
+  taskDurationSeconds: 7, 
+  minStaySeconds: 5,     
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
+const cache = new Map();
+const spamCache = new Map();
+
 /* ========================== 2) AD NETWORK HANDLERS ========================== */
 
-async function resolveUnlockUrl(network, targetUrl, slug) {
+async function resolveUnlockUrl(network, id, req) {
+  const host = req.headers.host || "subx.click";
+  const protocol = host.includes("localhost") ? "http" : "https";
+  
+  // توليد رابط العودة إلى صفحة complete بعد تخطي شبكة الإعلانات
+  const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
+
   try {
     if (network === "lootlabs") {
-      const res = await fetch("https://creators.lootlabs.gg/api/public/content_locker", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${config.lootlabsApiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ title: slug, url: targetUrl, tier_id: 1, number_of_tasks: 3, theme: 1 }),
-      });
-      const data = await res.json();
-      return data?.message?.loot_url || data?.loot_url || targetUrl;
+      const res = await axios.post(
+        "https://creators.lootlabs.gg/api/public/content_locker",
+        { title: id, url: completionUrl, tier_id: 1, number_of_tasks: 3, theme: 1 },
+        { headers: { Authorization: `Bearer ${config.lootlabsApiKey}`, "Content-Type": "application/json" }, timeout: 8000 }
+      );
+      const messageData = Array.isArray(res.data?.message) ? res.data.message[0] : res.data?.message;
+      return messageData?.loot_url || res.data?.loot_url || completionUrl;
     } 
     
     if (network === "linkvertise") {
-      const base64Url = Buffer.from(targetUrl).toString("base64");
+      const base64Url = Buffer.from(completionUrl).toString("base64");
       const rnd = Math.random().toString(36).slice(2, 9);
       return `https://link-to.net/${config.linkvertiseUserId}/${rnd}/dynamic?r=${base64Url}`;
     }
 
     if (network === "nitrolink") {
-      const res = await fetch(`https://nitro-link.com/api?api=${config.nitroLinkApiKey}&url=${encodeURIComponent(targetUrl)}`);
-      const data = await res.json();
-      if (data?.status === "success" && data.shortenedUrl) return data.shortenedUrl;
+      const reqUrl = `https://nitro-link.com/api?api=${config.nitroLinkApiKey}&url=${encodeURIComponent(completionUrl)}`;
+      const res = await axios.get(reqUrl, { timeout: 8000 });
+      if (res.data?.status === "success" && res.data.shortenedUrl) return res.data.shortenedUrl;
     }
 
     if (network === "just") {
-      const res = await fetch(`https://linkjust.com/api?api=${config.linkJustApiToken}&url=${encodeURIComponent(targetUrl)}`);
-      const data = await res.json();
-      if (data?.status === "success" && data.shortenedUrl) return data.shortenedUrl;
+      const reqUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}`;
+      const res = await axios.get(reqUrl, { timeout: 8000 });
+      if (res.data?.status === "success" && res.data.shortenedUrl) return res.data.shortenedUrl;
     }
   } catch (e) {
-    console.error("Ad Network Error:", e.message);
+    console.error(`Ad Network (${network}) Error:`, e.message);
   }
-  return targetUrl;
+  
+  return completionUrl;
 }
 
 /* ============================== 3) TEMPLATES ============================== */
@@ -102,8 +113,8 @@ const notFoundPage = () => `
 <body><div class="box"><h1>404</h1><p>This content does not exist or has been removed.</p></div></body>
 </html>`;
 
-const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds, minStaySeconds }) => {
-  const { title, description, image, tasks = [], isTextContent = false } = linkData;
+const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySeconds) => {
+  const { title, description, image, tasks = [] } = linkData;
   const totalTasks = tasks.length;
 
   const tasksHtml = totalTasks
@@ -185,9 +196,6 @@ const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds, minStaySeconds }
   .task-alert-box.error{background:rgba(255,92,92,.12);border:1px solid rgba(255,92,92,.3);color:var(--danger);display:block}
   .task-alert-box.success{background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.3);color:var(--success);display:block}
 
-  .text-box-container{display:none;margin-top:15px;background:rgba(0,0,0,0.4);border:1px solid rgba(0,240,255,0.3);border-radius:16px;padding:15px;text-align:left}
-  .text-box-container textarea{width:100%;background:transparent;border:none;color:#fff;font-size:14px;resize:none;outline:none;font-family:monospace}
-
   .btn{width:100%;padding:17px;border-radius:16px;font-size:15.5px;font-weight:800;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:10px;border:none;cursor:pointer;transition:all .25s}
   .default-btn{color:#050811;background:linear-gradient(135deg,#00f0ff 0%,#0077ff 100%);box-shadow:0 6px 20px rgba(0,136,255,.3)}
   .default-btn.disabled{background:rgba(255,255,255,.08);color:#475569;cursor:not-allowed;box-shadow:none}
@@ -201,25 +209,16 @@ const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds, minStaySeconds }
     
     ${tasksHtml}
 
-    <button id="unlockBtn" class="btn default-btn ${totalTasks > 0 ? "disabled" : ""}" onclick="handleUnlockClick()">
+    <a id="unlockBtn" href="${unlockUrl}" class="btn default-btn ${totalTasks > 0 ? "disabled" : ""}" onclick="handleUnlockClick(event)">
       <i class="fa-solid fa-lock" id="unlockIcon"></i> <span id="unlockText">Unlock Content</span>
-    </button>
-
-    <div class="text-box-container" id="textContentBox">
-      <textarea id="secretText" readonly rows="4">${unlockUrl}</textarea>
-      <button class="btn default-btn" style="margin-top:10px; padding:12px;" onclick="copySecretText()">
-        <i class="fa-solid fa-copy"></i> Copy Hidden Content
-      </button>
-    </div>
+    </a>
   </div>
 
 <script>
 (function(){
   const totalTasks = ${totalTasks};
-  const unlockTargetUrl = ${JSON.stringify(unlockUrl)};
   const taskDuration = ${taskDurationSeconds};
   const minStay = ${minStaySeconds};
-  const isTextContent = ${Boolean(isTextContent)};
 
   let completedTasksCount = 0;
   const taskData = {};
@@ -235,20 +234,21 @@ const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds, minStaySeconds }
     alertBox.style.display = 'none';
 
     if (!taskData[index]) {
-      taskData[index] = { completed: false, clickTime: 0, leftTime: 0, timer: null, remaining: taskDuration };
+      taskData[index] = { completed: false, clickTime: 0, blurTime: 0, timer: null, remaining: taskDuration };
     }
     
     const current = taskData[index];
     current.clickTime = Date.now();
+    current.blurTime = 0;
     current.remaining = taskDuration;
 
     taskBtn.className = 'task-btn active-timer';
     badge.style.display = 'inline-block';
     timerNum.innerText = current.remaining;
 
-    // تسجيل زمني لمغادرة العميل للصفحة
+    // تسجيل زمني لمغادرة المستخدم للصفحة فور ضغط الرابط
     const handleBlur = () => {
-      current.leftTime = Date.now();
+      current.blurTime = Date.now();
     };
     window.addEventListener('blur', handleBlur, { once: true });
 
@@ -261,18 +261,18 @@ const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds, minStaySeconds }
       if (current.remaining <= 0) {
         clearInterval(current.timer);
         
-        // حساب الوقت الإجمالي المنقضي خارج الصفحة أو أثناء العمل
         const returnTime = Date.now();
-        const awayTimeSeconds = current.leftTime ? (returnTime - current.leftTime) / 1000 : (returnTime - current.clickTime) / 1000;
+        // حسابه الوقت الحقيقي المستغرق خارج الصفحة (الفرق بين المغادرة والعودة)
+        const awayTimeSeconds = current.blurTime > 0 ? (returnTime - current.blurTime) / 1000 : (returnTime - current.clickTime) / 1000;
 
         if (awayTimeSeconds >= minStay) {
           completeTask(index);
         } else {
-          // فشل بسبب العودة المبكرة (أقل من 5 ثوانٍ)
+          // إذا رجع الشخص قبل الـ 5 ثوانٍ، تفشل المهمة فوراً
           taskBtn.className = 'task-btn';
           badge.style.display = 'none';
           alertBox.className = 'task-alert-box error';
-          alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> فشل التحقق! لقد عدت سريعاً، يجب البقاء ' + minStay + ' ثوانٍ على الأقل داخل الرابط.';
+          alertBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> فشل التحقق! لقد عدت سريعاً، يجب البقاء ' + minStay + ' ثوانٍ على الأقل داخل الصفحة المطلوبة.';
         }
       }
     }, 1000);
@@ -312,27 +312,12 @@ const unlockPage = ({ linkData, unlockUrl, taskDurationSeconds, minStaySeconds }
     }
   }
 
-  window.handleUnlockClick = function() {
+  window.handleUnlockClick = function(event) {
     const btn = document.getElementById('unlockBtn');
     if (btn.classList.contains('disabled')) {
+      event.preventDefault();
       alert('من فضلك إكمال جميع المهام المطلوبة أولاً!');
-      return;
     }
-
-    if (isTextContent) {
-      btn.style.display = 'none';
-      document.getElementById('textContentBox').style.display = 'block';
-      return;
-    }
-
-    window.location.href = unlockTargetUrl;
-  };
-
-  window.copySecretText = function() {
-    const text = document.getElementById("secretText");
-    text.select();
-    navigator.clipboard.writeText(text.value);
-    alert("تم النسخ للحافظة!");
   };
 
   if (totalTasks === 0) updateProgress();
@@ -351,9 +336,8 @@ function getClientIp(req) {
 async function checkIsVpn(ip) {
   if (!config.vpnCheckEnabled || !ip || ip === "::1" || ip === "127.0.0.1") return false;
   try {
-    const response = await fetch(`https://blackbox.ipinfo.app/lookup/${ip}`);
-    const text = await response.text();
-    return text.trim() === "Y";
+    const response = await axios.get(`https://blackbox.ipinfo.app/lookup/${ip}`, { timeout: 4000 });
+    return typeof response.data === "string" && response.data.trim() === "Y";
   } catch {
     return false;
   }
@@ -385,15 +369,12 @@ export default async function handler(req, res) {
 
       const id = slug?.trim() ? slug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") : nanoid(6);
       const trimmedUrl = targetUrl.trim();
-      
-      const isTextContent = !trimmedUrl.startsWith("http://") && !trimmedUrl.startsWith("https://");
 
       await db.collection("links").doc(id).set({
         title,
         description: description || "",
         image: image || "",
         targetUrl: trimmedUrl,
-        isTextContent,
         monetization: monetization || "lootlabs",
         tasks: Array.isArray(tasks) ? tasks : [],
         createdAt: Date.now(),
@@ -424,19 +405,18 @@ export default async function handler(req, res) {
       }
 
       const data = doc.data();
-      let unlockUrl = data.targetUrl;
-
-      if (!data.isTextContent) {
-        unlockUrl = await resolveUnlockUrl(data.monetization || "lootlabs", data.targetUrl, id);
-      }
+      const network = data.monetization || "lootlabs";
+      
+      // التوجيه التلقائي عبر زر Unlock نحو رابط complete التابع لشبكة الربح
+      const unlockUrl = await resolveUnlockUrl(network, id, req);
 
       res.setHeader("Content-Type", "text/html; charset=utf-8");
-      return res.status(200).send(unlockPage({ 
-        linkData: data, 
+      return res.status(200).send(generatePageHtml(
+        data, 
         unlockUrl, 
-        taskDurationSeconds: config.taskDurationSeconds,
-        minStaySeconds: config.minStaySeconds
-      }));
+        config.taskDurationSeconds,
+        config.minStaySeconds
+      ));
     }
 
     return res.status(405).send("Method Not Allowed");
