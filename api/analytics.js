@@ -1,7 +1,7 @@
 import db from "./firebase.js";
 
 export default async function handler(req, res) {
-    // 1. GET Method: Fetch all data for the dashboard
+    // 1) GET Method: جلب المحتوى وإحصائيات كافة الشبكات مع الدعم المزدوج للروابط
     if (req.method === "GET") {
         try {
             const snapshot = await db.collection("links").get();
@@ -11,20 +11,20 @@ export default async function handler(req, res) {
                 const data = doc.data();
                 linksData.push({
                     id: doc.id,
-                    url: data.url || "",
+                    targetUrl: data.targetUrl || data.url || "",
+                    url: data.targetUrl || data.url || "",
                     clicks: data.clicks || 0,
                     completedTasksCount: data.completedTasksCount || 0, 
-                    lootlabsCompletions: data.lootlabsCompletions || 0,       // تم إضافة عداد LootLabs
-                    linkvertiseCompletions: data.linkvertiseCompletions || 0, // تم إضافة عداد Linkvertise
-                    nitrolinkCompletions: data.nitrolinkCompletions || 0,     // تم إضافة عداد Nitro Link
+                    linkjustCompletions: data.linkjustCompletions || 0,  // عداد LinkJust
+                    lootlabsCompletions: data.lootlabsCompletions || 0,  // عداد LootLabs
+                    linkvertiseCompletions: data.linkvertiseCompletions || 0, // عداد Linkvertise
+                    nitrolinkCompletions: data.nitrolinkCompletions || 0,     // عداد Nitro Link
                     createdAt: data.createdAt || Date.now(),
-                    tier: data.tier || 1,
-                    tasks: data.tasks || 3,
-                    analyticsSummary: data.analyticsSummary || []
+                    tasks: data.tasks || []
                 });
             });
 
-            // Sort by newest first by default
+            // الترتيب من الأحدث للأقدم
             linksData.sort((a, b) => b.createdAt - a.createdAt);
 
             return res.status(200).json({
@@ -42,7 +42,7 @@ export default async function handler(req, res) {
         }
     }
 
-    // 2. PUT Method: Update content/URL from the dashboard
+    // 2) PUT Method: تحديث المحتوى الأصلي (الرابط أو نص السكربت)
     if (req.method === "PUT") {
         try {
             const { id, url } = req.body;
@@ -58,7 +58,11 @@ export default async function handler(req, res) {
                 return res.status(404).json({ success: false, message: "Content not found in database" });
             }
 
-            await docRef.update({ url: url });
+            // تحديث الحقلين لضمان عمل كافة الملفات القديمة والحديثة
+            await docRef.update({ 
+                targetUrl: url,
+                url: url 
+            });
             
             return res.status(200).json({ success: true, message: "Content updated successfully" });
 
@@ -68,7 +72,7 @@ export default async function handler(req, res) {
         }
     }
 
-    // 3. DELETE Method: Delete content from the dashboard
+    // 3) DELETE Method: حذف الرابط من قاعدة البيانات
     if (req.method === "DELETE") {
         try {
             const { id } = req.body;
@@ -94,8 +98,7 @@ export default async function handler(req, res) {
         }
     }
 
-    // Fallback if the method isn't GET, PUT, or DELETE
-    return  res.status(405).json({
+    return res.status(405).json({
         success: false,
         message: "Method Not Allowed"
     });
