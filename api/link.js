@@ -13,7 +13,7 @@ const config = {
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
   taskDurationSeconds: 7, 
-  minStaySeconds: 4,     
+  minStaySeconds: 5,     
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
@@ -192,7 +192,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${title || "Content Locked"}</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   :root {
@@ -217,7 +217,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
   body {
     background-color: var(--bg-dark);
-    /* 1) شبكة خلفية أوضح وبشكل بارز مميز */
     background-image: radial-gradient(rgba(0, 135, 252, 0.28) 1.6px, transparent 1.6px);
     background-size: 22px 22px;
     min-height: 100vh;
@@ -412,19 +411,20 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .task-alert-box.error { color: var(--danger); display: block; }
   .task-alert-box.success { color: var(--success); display: block; }
 
-  /* 2) تصميم نوتفكيشن احترافي متطور بأسلوب Glassmorphism */
+  /* Toast Notification Structure */
   .toast-container {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+    width: 350px; max-width: 90%;
   }
   .toast {
-    background: rgba(18, 22, 32, 0.92); 
-    border: 1px solid rgba(239, 68, 68, 0.4); 
-    border-left: 4px solid var(--danger);
+    background: rgba(18, 22, 32, 0.95); 
+    border: 1px solid rgba(0, 135, 252, 0.4); 
+    border-left: 4px solid var(--theme-blue);
     color: #fff;
-    padding: 13px 20px; 
+    padding: 13px 18px; 
     border-radius: 14px; 
-    font-size: 12.5px; 
+    font-size: 13px; 
     font-weight: 700;
     display: flex; 
     align-items: center; 
@@ -433,6 +433,11 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     animation: toastIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    direction: rtl;
+  }
+  .toast.error-toast {
+    border-color: rgba(239, 68, 68, 0.4);
+    border-left-color: var(--danger);
   }
   @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -25px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
@@ -504,7 +509,29 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   let completedTasksCount = 0;
   const taskData = {};
 
-  // 3) نظام المؤثرات الصوتية (Web Audio API)
+  // 1) إشعار ونطق الصلاة على النبي عند دخول الصفحة مباشرة
+  function speakSalawat() {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const msg = new SpeechSynthesisUtterance("اللهم صل وسلم على نبينا محمد");
+      msg.lang = 'ar-SA';
+      msg.rate = 0.9;
+      msg.pitch = 1.0;
+      window.speechSynthesis.speak(msg);
+    }
+  }
+
+  function triggerInitialSalawat() {
+    showToast("✨ اللهم صلي وسلم على نبينا محمد ﷺ", false);
+    speakSalawat();
+  }
+
+  // تفعيل عند الدخول المباشر أو التفاعل الأول مع الصفحة
+  window.addEventListener('load', () => {
+    setTimeout(triggerInitialSalawat, 500);
+  });
+
+  // 2) نظام الصوتيات التفاعلي القوي (مستوى صوت مرتفع وواضح)
   const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
   function playSound(type) {
@@ -518,28 +545,28 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
       const now = audioCtx.currentTime;
 
       if (type === 'click') {
-        osc.frequency.setValueAtTime(600, now);
-        osc.frequency.exponentialRampToValueAtTime(1000, now + 0.08);
-        gain.gain.setValueAtTime(0.12, now);
+        osc.frequency.setValueAtTime(700, now);
+        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
+        gain.gain.setValueAtTime(0.4, now); // رفع مستوى الصوت
         gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
         osc.start(now);
         osc.stop(now + 0.08);
       } else if (type === 'success') {
-        osc.frequency.setValueAtTime(520, now);
-        osc.frequency.setValueAtTime(660, now + 0.08);
-        osc.frequency.setValueAtTime(880, now + 0.16);
-        gain.gain.setValueAtTime(0.15, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.frequency.setValueAtTime(580, now);
+        osc.frequency.setValueAtTime(750, now + 0.09);
+        osc.frequency.setValueAtTime(980, now + 0.18);
+        gain.gain.setValueAtTime(0.5, now); // رفع مستوى الصوت
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
         osc.start(now);
-        osc.stop(now + 0.25);
+        osc.stop(now + 0.3);
       } else if (type === 'error') {
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(220, now);
-        osc.frequency.setValueAtTime(180, now + 0.12);
-        gain.gain.setValueAtTime(0.15, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.frequency.setValueAtTime(260, now);
+        osc.frequency.setValueAtTime(200, now + 0.12);
+        gain.gain.setValueAtTime(0.45, now); // رفع مستوى الصوت
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
         osc.start(now);
-        osc.stop(now + 0.25);
+        osc.stop(now + 0.28);
       }
     } catch(e) {}
   }
@@ -555,19 +582,23 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }
   }
 
-  function showToast(message) {
-    playSound('error');
+  function showToast(message, isError = true) {
+    if (isError) playSound('error');
     const toastBox = document.getElementById('toastBox');
     const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:15px;"></i> ' + message;
+    toast.className = 'toast' + (isError ? ' error-toast' : '');
+    
+    const icon = isError ? 'fa-triangle-exclamation' : 'fa-kaaba';
+    const iconColor = isError ? '#ef4444' : '#0087FC';
+    
+    toast.innerHTML = '<i class="fa-solid ' + icon + '" style="color:' + iconColor + '; font-size:16px;"></i> ' + message;
     toastBox.appendChild(toast);
 
     setTimeout(() => {
       toast.style.opacity = '0';
       toast.style.transition = 'opacity 0.3s';
       setTimeout(() => toast.remove(), 300);
-    }, 4000);
+    }, 4500);
   }
 
   window.startTaskTracker = function(event, index) {
