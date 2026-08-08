@@ -12,12 +12,13 @@ const platformPresets = {
   link: ["Visit Website", "Read Article", "Download File"]
 };
 
-// 1. إضافة كارت مهمة جديد بأسلوب الكروت واسعة المساحة والمنصات التفاعلية
+// 1. إضافة كارت مهمة جديد بحماية كاملة من الأخطاء
 function addTaskCard() {
-  taskCounter++;
-  const cardId = `task-item-${taskCounter}`;
   const container = document.getElementById('tasksContainer');
   if (!container) return;
+
+  taskCounter++;
+  const cardId = `task-item-${taskCounter}`;
 
   const cardHtml = `
     <div class="task-item-card" id="${cardId}" data-selected-platform="youtube">
@@ -28,7 +29,7 @@ function addTaskCard() {
         </button>
       </div>
 
-      <!-- شبكة اختيار المنصة بالأيقونات واللوجو -->
+      <!-- شبكة اختيار المنصة -->
       <div class="app-selector-grid">
         <div class="app-chip selected" data-platform="youtube" onclick="selectPlatform('${cardId}', 'youtube')">
           <i class="fa-brands fa-youtube"></i>
@@ -98,7 +99,7 @@ function selectPlatform(cardId, platform) {
   updatePreview();
 }
 
-// 3. بناء وتوليد أزرار الإجراءات السريعة بناءً على المنصة المختارة
+// 3. توليد أزرار الإجراءات السريعة
 function renderPresets(cardId, platform) {
   const presetsWrap = document.getElementById(`presets-${cardId}`);
   if (!presetsWrap) return;
@@ -114,7 +115,7 @@ function renderPresets(cardId, platform) {
   if (actionInput) actionInput.value = presets[0];
 }
 
-// 4. تطبيق الخيار السريع المختار على حقل إدخال عنوان المهمة
+// 4. تطبيق الخيار السريع
 function applyPreset(cardId, actionText, btnElement) {
   const card = document.getElementById(cardId);
   if (!card) return;
@@ -124,19 +125,19 @@ function applyPreset(cardId, actionText, btnElement) {
 
   const presetBtns = card.querySelectorAll('.preset-btn');
   presetBtns.forEach(btn => btn.classList.remove('active'));
-  btnElement.classList.add('active');
+  if (btnElement) btnElement.classList.add('active');
 
   updatePreview();
 }
 
-// 5. حذف كارت مهمة
+// 5. حذف كارت المهمة
 function removeTaskCard(cardId) {
   const card = document.getElementById(cardId);
   if (card) card.remove();
   updatePreview();
 }
 
-// 6. اختيار شبكة الربح (Single Choice Toggle)
+// 6. اختيار شبكة الربح
 function selectNetwork(val, element) {
   const input = document.getElementById('monetization');
   if (input) input.value = val;
@@ -179,21 +180,30 @@ async function fetchYoutubeData() {
   }
 }
 
-// 8. تحديث المعاينة الحية (Live Preview) فورياً
+// 8. تحديث المعاينة الحية آمن وبدون توقف
 function updatePreview() {
-  const titleVal = document.getElementById("title")?.value || "";
-  const descVal = document.getElementById("description")?.value || "";
-  const mediaVal = document.getElementById("mediaUrl")?.value || "";
+  const titleInput = document.getElementById("title");
+  const descInput = document.getElementById("description");
+  const mediaInput = document.getElementById("mediaUrl");
+
+  const titleVal = titleInput ? titleInput.value.trim() : "";
+  const descVal = descInput ? descInput.value.trim() : "";
+  const mediaVal = mediaInput ? mediaInput.value.trim() : "";
+
+  // مسح fetchedImage لو العميل غير الميديا يدوياً
+  if (!mediaVal && !fetchedImage) {
+    fetchedImage = "";
+  }
 
   const prevTitle = document.getElementById("prevTitle");
   const prevDesc = document.getElementById("prevDesc");
   const prevImg = document.getElementById("prevImg");
 
-  if (prevTitle) prevTitle.innerText = titleVal.trim() !== "" ? titleVal : "Title Preview";
-  if (prevDesc) prevDesc.innerText = descVal.trim() !== "" ? descVal : "Description preview will show here...";
+  if (prevTitle) prevTitle.innerText = titleVal !== "" ? titleVal : "Title Preview";
+  if (prevDesc) prevDesc.innerText = descVal !== "" ? descVal : "Description preview will show here...";
 
   if (prevImg) {
-    const displayImg = fetchedImage || mediaVal.trim();
+    const displayImg = fetchedImage || mediaVal;
     if (displayImg) {
       prevImg.src = displayImg;
       prevImg.style.display = "block";
@@ -202,7 +212,7 @@ function updatePreview() {
     }
   }
 
-  // تحديث قائمة المهام في الـ Preview
+  // تحديث قائمة المهام
   const prevTasksContainer = document.getElementById("prevTasks");
   if (prevTasksContainer) {
     prevTasksContainer.innerHTML = "";
@@ -224,10 +234,10 @@ function updatePreview() {
       prevTasksContainer.innerHTML += `
         <div class="preview-task">
           <div style="display:flex; align-items:center; gap:8px;">
-            <i class="${iconClass}" style="color: var(--theme-blue); font-size:14px;"></i>
+            <i class="${iconClass}" style="color: var(--theme-blue, #0087FC); font-size:14px;"></i>
             <span style="font-weight:700; color:#fff;">${actionText}</span>
           </div>
-          <i class="fa-solid fa-chevron-right" style="color: var(--text-sub); font-size:11px;"></i>
+          <i class="fa-solid fa-chevron-right" style="color: var(--text-sub, #8a94a6); font-size:11px;"></i>
         </div>
       `;
     });
@@ -237,12 +247,12 @@ function updatePreview() {
 // 9. إنشاء القفل وإرسال البيانات للسيرفر
 async function processLock() {
   const button = document.getElementById("shortBtn");
-  const title = document.getElementById("title")?.value.trim();
-  const description = document.getElementById("description")?.value.trim();
-  const targetUrl = document.getElementById("targetUrl")?.value.trim();
-  const mediaUrl = document.getElementById("mediaUrl")?.value.trim();
+  const title = document.getElementById("title")?.value.trim() || "";
+  const description = document.getElementById("description")?.value.trim() || "";
+  const targetUrl = document.getElementById("targetUrl")?.value.trim() || "";
+  const mediaUrl = document.getElementById("mediaUrl")?.value.trim() || "";
   const monetization = document.getElementById("monetization")?.value || "just";
-  const slug = document.getElementById("slug")?.value.trim();
+  const slug = document.getElementById("slug")?.value.trim() || "";
 
   if (!title) {
     alert("من فضلك أدخل عنوان الرابط");
@@ -254,7 +264,7 @@ async function processLock() {
     return;
   }
 
-  // تجميع كافة كروت المهام
+  // تجميع المهام
   const tasks = [];
   const taskCards = document.querySelectorAll(".task-item-card");
   taskCards.forEach(card => {
@@ -269,8 +279,10 @@ async function processLock() {
 
   const finalImage = fetchedImage || mediaUrl;
 
-  button.disabled = true;
-  button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating Link...';
+  if (button) {
+    button.disabled = true;
+    button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating Link...';
+  }
 
   try {
     const response = await fetch("/api/link", {
@@ -288,8 +300,11 @@ async function processLock() {
     });
 
     const data = await response.json();
-    button.disabled = false;
-    button.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Create Content Locker';
+    
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Create Content Locker';
+    }
 
     if (data.success) {
       const finalUrlInput = document.getElementById("finalUrl");
@@ -305,8 +320,10 @@ async function processLock() {
       alert(`❌ خطأ: ${data.message}`);
     }
   } catch (e) {
-    button.disabled = false;
-    button.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Create Content Locker';
+    if (button) {
+      button.disabled = false;
+      button.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Create Content Locker';
+    }
     alert("حدث خطأ أثناء الاتصال بالسيرفر");
   }
 }
@@ -329,7 +346,7 @@ function copyLink() {
   }
 }
 
-// إضافة الكارت الأول افتراضياً عند تحميل الصفحة
+// التشغيل التلقائي عند التحميل
 window.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("tasksContainer") && document.querySelectorAll(".task-item-card").length === 0) {
     addTaskCard();
