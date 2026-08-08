@@ -1,4 +1,3 @@
-
 import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import axios from "axios";
@@ -14,7 +13,7 @@ const config = {
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
   taskDurationSeconds: 7, 
-  minStaySeconds: 4,     
+  minStaySeconds: 5,     
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
@@ -89,27 +88,31 @@ const vpnBlockUI = `
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VPN Detected 🛡️</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #070913; --text-main: #ffffff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .glass-card {
-          width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 32px;
-          background: rgba(255, 165, 0, 0.03); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-          border: 1px solid rgba(255, 165, 0, 0.25); text-align: center;
-          box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255, 165, 0, 0.3);
+        :root { --bg-dark: #0a0d14; --text-main: #ffffff; --theme-blue: #0087FC; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { 
+          background-color: var(--bg-dark); 
+          background-image: radial-gradient(rgba(0, 135, 252, 0.12) 1px, transparent 1px);
+          background-size: 24px 24px;
+          display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; 
         }
-        h1 { color: #ffa500; margin-bottom: 15px; font-size: 1.8rem; font-weight: 800; }
-        p { color: #94a3b8; font-size: 1.1rem; margin-bottom: 20px; line-height: 1.6; }
-        .error-icon { font-size: 70px; color: #ffa500; margin-bottom: 25px; text-shadow: 0 0 30px rgba(255, 165, 0, 0.5); }
+        .main-card {
+          width: 440px; max-width: 100%; padding: 40px 30px; border-radius: 28px;
+          background: #12161f; border: 1px solid rgba(255, 255, 255, 0.05); text-align: center;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+        }
+        h1 { color: var(--theme-blue); margin-bottom: 12px; font-size: 1.7rem; font-weight: 800; }
+        p { color: #8a94a6; font-size: 1rem; margin-bottom: 20px; line-height: 1.5; }
+        .error-icon { font-size: 60px; color: var(--theme-blue); margin-bottom: 20px; }
     </style>
 </head>
 <body>
-    <div class="glass-card">
+    <div class="main-card">
         <div class="error-icon"><i class="fa-solid fa-shield-halved"></i></div>
-        <h1>VPN / Proxy Detected!</h1>
+        <h1>VPN Detected!</h1>
         <p>We detected that you are using a VPN or Proxy connection.</p>
         <p style="color:#fff; font-weight:bold;">Please turn off your VPN and refresh the page to continue.</p>
     </div>
@@ -122,12 +125,12 @@ const notFoundPage = () => `
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Not Found 404</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
-  body{background:#070913;display:flex;justify-content:center;align-items:center;min-height:100vh;color:#fff}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}
+  body{background:#0a0d14;display:flex;justify-content:center;align-items:center;min-height:100vh;color:#fff}
   .box{text-align:center}
-  h1{font-size:4rem;background:linear-gradient(135deg,#00f0ff,#0077ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  h1{font-size:4rem;color:#0087FC}
   p{color:#64748b;margin-top:8px}
 </style>
 </head>
@@ -140,38 +143,39 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
   const tasksHtml = totalTasks
     ? `
-    <div class="progress-wrap">
-      <div class="progress-label">
-        <span><i class="fa-solid fa-list-check"></i> قائمة المهام</span>
-        <span id="progressText" class="progress-counter">0 / ${totalTasks} مكتملة</span>
-      </div>
-      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="step-indicator">
+      <span class="step-text">Step 1 of 1</span>
+      <div class="step-bar"></div>
     </div>
+    
     <div class="tasks-container">
       ${tasks
         .map(
           (task, idx) => `
         <div class="task-card" id="task-card-${idx}">
           <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(${idx})">
-            <div class="task-left">
-              <div class="icon-orb"><i class="fa-brands fa-${task.platform || "link"}"></i></div>
-              <span class="task-title">${task.action}</span>
+            <div class="task-info">
+              <div class="icon-box">
+                <i class="fa-brands fa-${task.platform || "youtube"}"></i>
+              </div>
+              <div class="task-text-wrap">
+                <span class="task-title">${task.action}</span>
+                <span class="task-sub" id="sub-text-${idx}">Click to complete step</span>
+              </div>
             </div>
             
-            <div class="task-status">
-              <span class="pulse-badge" id="timer-badge-${idx}" style="display:none;">
-                <span class="spinner"></span> 
-                <span id="timer-num-${idx}">${taskDurationSeconds}</span>s
+            <div class="task-action-side">
+              <span class="timer-badge" id="timer-badge-${idx}" style="display:none;">
+                <i class="fa-solid fa-spinner fa-spin"></i> <span id="timer-num-${idx}">${taskDurationSeconds}</span>s
               </span>
-              <div class="check-orb" id="check-${idx}" style="display:none;">
-                <i class="fa-solid fa-check"></i>
-              </div>
-              <div class="arrow-orb" id="link-${idx}">
+              <div class="action-circle arrow" id="link-${idx}">
                 <i class="fa-solid fa-chevron-right"></i>
+              </div>
+              <div class="action-circle check" id="check-${idx}" style="display:none;">
+                <i class="fa-solid fa-check"></i>
               </div>
             </div>
           </a>
-          <div class="task-scan-line" id="scan-${idx}"></div>
           <div class="task-alert-box" id="alert-${idx}"></div>
         </div>`
         )
@@ -181,236 +185,279 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
   return `
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${title || "Unlock Content"}</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<title>${title || "Content Locked"}</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   :root {
-    --primary-cyan: #00f0ff;
-    --primary-blue: #7000ff;
-    --accent-pink: #ff007f;
-    --bg-dark: #050711;
-    --liquid-glass: rgba(255, 255, 255, 0.03);
-    --glass-border: rgba(255, 255, 255, 0.12);
+    --bg-dark: #0a0e14;
+    --card-bg: #141820;
+    --task-bg: #1a1f2c;
+    --theme-blue: #0087FC;
+    --theme-blue-hover: #0076e0;
     --text-main: #ffffff;
-    --success: #00ffa3;
-    --warn: #ffb700;
-    --danger: #ff4757;
+    --text-sub: #8a94a6;
+    --success: #10b981;
+    --danger: #ef4444;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
 
   body {
     background-color: var(--bg-dark);
+    /* Grid background pattern identical to screenshot */
+    background-image: radial-gradient(rgba(0, 135, 252, 0.12) 1.2px, transparent 1.2px);
+    background-size: 24px 24px;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 20px;
     color: var(--text-main);
-    overflow-x: hidden;
-    position: relative;
   }
 
-  /* Liquid Blobs Ambient Ambient Effect */
-  .liquid-blob {
-    position: absolute;
-    filter: blur(80px);
-    border-radius: 50%;
-    z-index: 0;
-    animation: floatBlob 10s infinite alternate ease-in-out;
-  }
-  .blob-1 { width: 320px; height: 320px; background: rgba(0, 240, 255, 0.25); top: 10%; left: 15%; }
-  .blob-2 { width: 380px; height: 380px; background: rgba(112, 0, 255, 0.3); bottom: 10%; right: 15%; animation-delay: -5s; }
-
-  @keyframes floatBlob {
-    0% { transform: translate(0, 0) scale(1); }
-    100% { transform: translate(40px, 50px) scale(1.15); }
-  }
-
-  /* Liquid Glass Main Container */
-  .glass-card {
-    position: relative;
-    z-index: 10;
-    width: 460px;
+  .main-card {
+    width: 440px;
     max-width: 100%;
-    padding: 38px 28px;
-    border-radius: 32px;
-    background: var(--liquid-glass);
-    backdrop-filter: blur(35px) saturate(180%);
-    -webkit-backdrop-filter: blur(35px) saturate(180%);
-    border: 1px solid var(--glass-border);
-    box-shadow: 
-      0 30px 60px rgba(0, 0, 0, 0.7),
-      inset 0 1px 0 rgba(255, 255, 255, 0.25),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+    padding: 36px 28px;
+    border-radius: 28px;
+    background: var(--card-bg);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
     text-align: center;
-    overflow: hidden;
   }
 
-  .media-img {
+  .avatar-wrap {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 18px auto;
+    border-radius: 50%;
+    border: 2px solid var(--theme-blue);
+    padding: 3px;
+    box-shadow: 0 0 18px rgba(0, 135, 252, 0.25);
+  }
+  .avatar-wrap img {
     width: 100%;
-    max-height: 190px;
+    height: 100%;
+    border-radius: 50%;
     object-fit: cover;
-    border-radius: 20px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   }
 
   h1 {
-    font-size: 1.65rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, #fff 30%, var(--primary-cyan) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    margin-bottom: 8px;
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #ffffff;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
   }
 
   .desc {
-    color: #94a3b8;
+    color: var(--text-sub);
     font-size: 0.95rem;
-    line-height: 1.5;
-    margin-bottom: 24px;
+    margin-bottom: 22px;
     font-weight: 500;
   }
 
-  /* Progress Bar */
-  .progress-wrap { margin-bottom: 20px; text-align: right; }
-  .progress-label {
-    display: flex; justify-content: space-between; align-items: center;
-    font-size: 12.5px; color: #cbd5e1; font-weight: 700; margin-bottom: 8px;
+  /* Step Indicator */
+  .step-indicator {
+    margin-bottom: 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
   }
-  .progress-counter { color: var(--primary-cyan); font-family: monospace; font-size: 13px; }
-  .progress-track {
-    height: 8px; border-radius: 10px; background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.08); overflow: hidden;
+  .step-text {
+    font-size: 13px;
+    color: var(--text-sub);
+    font-weight: 700;
   }
-  .progress-fill {
-    height: 100%; width: 0%;
-    background: linear-gradient(90deg, var(--primary-blue), var(--primary-cyan));
-    box-shadow: 0 0 12px var(--primary-cyan);
-    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  .step-bar {
+    width: 32px;
+    height: 6px;
+    background: var(--theme-blue);
     border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 135, 252, 0.6);
   }
 
-  /* Tasks Liquid Container */
-  .tasks-container { margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px; }
+  /* Tasks Container */
+  .tasks-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 26px;
+  }
+
   .task-card {
-    position: relative; border-radius: 20px; overflow: hidden;
-    background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--task-bg);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 18px;
+    overflow: hidden;
+    transition: all 0.25s ease;
   }
   .task-card:hover {
-    border-color: rgba(0, 240, 255, 0.3);
-    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(0, 135, 252, 0.3);
     transform: translateY(-2px);
   }
 
   .task-btn {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 16px 18px; color: #fff; text-decoration: none; font-weight: 700; font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 18px;
+    text-decoration: none;
+    color: #fff;
   }
 
-  .task-left { display: flex; align-items: center; gap: 12px; }
-  .icon-orb {
-    width: 38px; height: 38px; border-radius: 12px;
-    background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.2);
-    color: var(--primary-cyan); display: flex; justify-content: center; align-items: center; font-size: 16px;
+  .task-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
   }
 
-  .task-status { display: flex; align-items: center; gap: 8px; }
-  .arrow-orb, .check-orb {
-    width: 32px; height: 38px; display: flex; align-items: center; justify-content: center;
-    color: #64748b; font-size: 13px; transition: 0.3s;
+  .icon-box {
+    font-size: 22px;
+    color: #ff0000; /* YouTube Icon default color */
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  .check-orb { color: var(--success); font-size: 16px; }
 
-  /* Hologram Scan Animation on Active Timer */
-  .task-scan-line {
-    position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 183, 0, 0.15), transparent);
-    pointer-events: none; display: none;
+  .task-text-wrap {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
   }
-  .task-card.active .task-scan-line {
-    display: block; animation: scanAnim 1.8s infinite linear;
+  .task-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
   }
-  @keyframes scanAnim { 0% { left: -100%; } 100% { left: 100%; } }
+  .task-sub {
+    font-size: 12px;
+    color: var(--text-sub);
+    margin-top: 2px;
+  }
 
-  .task-card.active { border-color: var(--warn); background: rgba(255, 183, 0, 0.05); }
-  .task-card.completed { border-color: rgba(0, 255, 163, 0.3); background: rgba(0, 255, 163, 0.04); pointer-events: none; }
+  .task-action-side {
+    display: flex;
+    align-items: center;
+  }
 
-  .pulse-badge {
-    background: rgba(255, 183, 0, 0.15); border: 1px solid var(--warn); color: var(--warn);
-    padding: 4px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 800; display: flex; align-items: center; gap: 6px;
+  .action-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: 0.2s ease;
   }
-  .spinner {
-    width: 8px; height: 8px; border-radius: 50%; background: var(--warn);
-    animation: pulseGlow 1s infinite alternate;
+  .action-circle.arrow {
+    background: var(--theme-blue);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(0, 135, 252, 0.4);
   }
-  @keyframes pulseGlow { from { opacity: 0.3; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); } }
+  .action-circle.check {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--success);
+    border: 1px solid var(--success);
+  }
+
+  .timer-badge {
+    background: rgba(0, 135, 252, 0.12);
+    border: 1px solid var(--theme-blue);
+    color: var(--theme-blue);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+  }
 
   .task-alert-box {
-    font-size: 12px; font-weight: 700; padding: 0 18px 12px 18px; text-align: right; display: none;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 0 18px 12px 18px;
+    text-align: left;
+    display: none;
   }
   .task-alert-box.error { color: var(--danger); display: block; }
   .task-alert-box.success { color: var(--success); display: block; }
 
-  /* Toast Notification Popup */
+  /* Toast Notification */
   .toast-container {
-    position: fixed; top: 25px; left: 50%; transform: translateX(-50%);
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
   }
   .toast {
-    background: rgba(10, 14, 26, 0.92); border: 1px solid rgba(255, 71, 87, 0.4); color: #fff;
-    padding: 14px 24px; border-radius: 16px; font-size: 13.5px; font-weight: 800;
-    display: flex; align-items: center; gap: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-    backdrop-filter: blur(15px); animation: toastIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    background: #141820; border: 1px solid var(--danger); color: #fff;
+    padding: 14px 22px; border-radius: 14px; font-size: 13.5px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    animation: toastIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
   }
   @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-  /* Liquid Unlock Button */
+  /* Main Button Style matching 0087FC Theme */
   .btn {
-    width: 100%; padding: 18px; border-radius: 20px; font-size: 16px; font-weight: 900;
+    width: 100%; padding: 16px; border-radius: 16px; font-size: 16px; font-weight: 800;
     text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;
-    border: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: none; cursor: pointer; transition: all 0.25s ease;
   }
   .default-btn {
-    color: #050711;
-    background: linear-gradient(135deg, var(--primary-cyan) 0%, #0088ff 100%);
-    box-shadow: 0 10px 30px rgba(0, 240, 255, 0.35);
+    color: #ffffff;
+    background: var(--theme-blue);
+    box-shadow: 0 8px 25px rgba(0, 135, 252, 0.35);
   }
   .default-btn:hover:not(.disabled) {
+    background: var(--theme-blue-hover);
     transform: translateY(-2px);
-    box-shadow: 0 15px 40px rgba(0, 240, 255, 0.5);
+    box-shadow: 0 12px 30px rgba(0, 135, 252, 0.5);
   }
   .default-btn.disabled {
-    background: rgba(255, 255, 255, 0.05); color: #475569;
-    border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: none; pointer-events: none;
+    background: #1a1f2c; color: #4a5568; border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: none; pointer-events: none;
+  }
+
+  .footer-brand {
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-sub);
+    font-weight: 600;
+  }
+  .brand-highlight {
+    color: var(--theme-blue);
+    font-weight: 800;
   }
 </style>
 </head>
 <body>
-  <div class="liquid-blob blob-1"></div>
-  <div class="liquid-blob blob-2"></div>
-
   <div class="toast-container" id="toastBox"></div>
 
-  <div class="glass-card">
-    ${image ? `<img src="${image}" class="media-img" alt="Thumbnail" loading="lazy">` : ""}
-    <h1>${title || "فتح المحتوى المقفول"}</h1>
-    ${description ? `<p class="desc">${description}</p>` : ""}
+  <div class="main-card">
+    <div class="avatar-wrap">
+      <img src="${image || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" alt="Avatar">
+    </div>
+    
+    <h1>${title || "Content Locked"}</h1>
+    <p class="desc">${description || "Follow the social steps below to unlock"}</p>
     
     ${tasksHtml}
 
     <a id="unlockBtn" href="${unlockUrl}" class="btn default-btn ${totalTasks > 0 ? "disabled" : ""}" onclick="handleUnlockClick(event)">
-      <i class="fa-solid fa-lock" id="unlockIcon"></i> <span id="unlockText">فتح المحتوى المباشر</span>
+      <i class="fa-solid fa-lock" id="unlockIcon"></i> <span id="unlockText">Unlock Content</span>
     </a>
+
+    <div class="footer-brand">
+      <span>Powered by</span>
+      <span class="brand-highlight">SubX</span>
+    </div>
   </div>
 
 <script>
@@ -426,7 +473,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     const toastBox = document.getElementById('toastBox');
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#ff4757; font-size:16px;"></i> ' + message;
+    toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#ef4444; font-size:16px;"></i> ' + message;
     toastBox.appendChild(toast);
 
     setTimeout(() => {
@@ -439,10 +486,11 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   window.startTaskTracker = function(index) {
     if (taskData[index] && taskData[index].completed) return;
 
-    const card = document.getElementById('task-card-' + index);
     const badge = document.getElementById('timer-badge-' + index);
     const alertBox = document.getElementById('alert-' + index);
     const timerNum = document.getElementById('timer-num-' + index);
+    const linkOrb = document.getElementById('link-' + index);
+    const subText = document.getElementById('sub-text-' + index);
     
     alertBox.style.display = 'none';
 
@@ -455,8 +503,9 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     current.focusTime = 0;
     current.remaining = taskDuration;
 
-    card.className = 'task-card active';
-    badge.style.display = 'flex';
+    badge.style.display = 'inline-block';
+    linkOrb.style.display = 'none';
+    subText.innerText = 'Waiting for completion...';
     timerNum.innerText = current.remaining;
 
     const onBlur = () => {
@@ -491,8 +540,9 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         if (awaySeconds >= minStay) {
           completeTask(index);
         } else {
-          card.className = 'task-card';
           badge.style.display = 'none';
+          linkOrb.style.display = 'flex';
+          subText.innerText = 'Click to try again';
           
           const textMsg = 'لف و ارجع اعمل المهمه 👀';
           alertBox.className = 'task-alert-box error';
@@ -505,30 +555,26 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   };
 
   function completeTask(index) {
-    const card = document.getElementById('task-card-' + index);
     const badge = document.getElementById('timer-badge-' + index);
     const alertBox = document.getElementById('alert-' + index);
+    const checkOrb = document.getElementById('check-' + index);
+    const subText = document.getElementById('sub-text-' + index);
 
     taskData[index].completed = true;
     completedTasksCount++;
 
-    card.className = 'task-card completed';
     badge.style.display = 'none';
-    document.getElementById('check-' + index).style.display = 'flex';
-    document.getElementById('link-' + index).style.display = 'none';
+    checkOrb.style.display = 'flex';
+    subText.innerText = 'Step Completed!';
+    subText.style.color = '#10b981';
 
     alertBox.className = 'task-alert-box success';
-    alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> تم إتمام المهمة بنجاح!';
+    alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed!';
 
     updateProgress();
   }
 
   function updateProgress() {
-    const fill = document.getElementById('progressFill');
-    const text = document.getElementById('progressText');
-    if (fill) fill.style.width = (totalTasks ? (completedTasksCount / totalTasks) * 100 : 100) + '%';
-    if (text) text.innerText = completedTasksCount + ' / ' + totalTasks + ' مكتملة';
-
     if (completedTasksCount >= totalTasks) {
       const btn = document.getElementById('unlockBtn');
       if (btn) {
@@ -542,7 +588,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     const btn = document.getElementById('unlockBtn');
     if (btn.classList.contains('disabled')) {
       event.preventDefault();
-      showToast('من فضلك أكمل كافة المهام المطلوبة أولاً لفتح الرابط!');
+      showToast('Please complete the steps first!');
     }
   };
 
