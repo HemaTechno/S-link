@@ -21,42 +21,42 @@ const spamCache = new Map();
 
 /* ========================== 2) AD NETWORK HANDLERS ========================== */
 
-// توليد رابط اختصار لشبكة الأرباح المحددة
 async function resolveUnlockUrl(network, id, req) {
   const host = req.headers.host || "www.subx.click";
   const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
   
-  // رابط العودة إلى /api/complete بعد تخطي الإعلانات
+  // الرابط الصريح المباشر بدون تشفير مسبق لمنع خطأ الـ Double Encoding[cite: 6, 7]
   const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
 
   try {
     if (network === "just") {
-      // تجربة توليد الرابط عبر API الرسمية لـ LinkJust مع استخدام User-Agent صريح
-      const apiUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}&alias=${id}`;
+      // 1. إرسال الرابط مباشرة لـ LinkJust لمنع تحويله لـ HTTPS%253A%252F
+      const apiUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${completionUrl}&alias=${id}`;
       try {
         const res = await axios.get(apiUrl, { 
           headers: { 
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' 
           },
-          timeout: 4000 
+          timeout: 5000 
         });
         
         if (res.data?.status === "success" && res.data.shortenedUrl) {
-          return res.data.shortenedUrl;
+          // تنظيف أي سلاشات مائلة راجعة من استجابة API
+          return res.data.shortenedUrl.replace(/\\\//g, "/");
         }
       } catch (err) {
-        console.warn("LinkJust API fallback to QuickLink mode");
+        console.warn("LinkJust direct API failed, using raw quick link");
       }
       
-      // التوجيه المباشر السريع لـ LinkJust لمنع التعليق
-      return `https://linkjust.com/st?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}`;
+      // 2. الرابط السريع كبديل احتياطي بدون التشفير المزدوج
+      return `https://linkjust.com/st?api=${config.linkJustApiToken}&url=${completionUrl}`;
     }
 
     if (network === "nitrolink") {
       const reqUrl = `https://nitro-link.com/api?api=${config.nitroLinkApiKey}&url=${encodeURIComponent(completionUrl)}`;
       const res = await axios.get(reqUrl, { timeout: 5000 });
       if (res.data?.status === "success" && res.data.shortenedUrl) {
-        return res.data.shortenedUrl;
+        return res.data.shortenedUrl.replace(/\\\//g, "/");
       }
     }
 
@@ -67,7 +67,8 @@ async function resolveUnlockUrl(network, id, req) {
         { headers: { Authorization: `Bearer ${config.lootlabsApiKey}`, "Content-Type": "application/json" }, timeout: 5000 }
       );
       const messageData = Array.isArray(res.data?.message) ? res.data.message[0] : res.data?.message;
-      return messageData?.loot_url || res.data?.loot_url || completionUrl;
+      const rawUrl = messageData?.loot_url || res.data?.loot_url || completionUrl;
+      return rawUrl.replace(/\\\//g, "/");
     } 
     
     if (network === "linkvertise") {
@@ -214,7 +215,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .task-alert-box.error{background:rgba(255,92,92,.12);border:1px solid rgba(255,92,92,.3);color:var(--danger);display:block}
   .task-alert-box.success{background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.3);color:var(--success);display:block}
 
-  /* Toast Notification */
   .toast-container {
     position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
@@ -467,7 +467,6 @@ export default async function handler(req, res) {
       const data = doc.data();
       const network = data.monetization || "just";
       
-      // التوجيه الصريح للرابط في السيرفر لتجاوز حظر about:blank#blocked
       const unlockUrl = await resolveUnlockUrl(network, id, req);
 
       res.setHeader("Content-Type", "text/html; charset=utf-8");
