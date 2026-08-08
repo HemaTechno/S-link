@@ -159,7 +159,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         .map(
           (task, idx) => `
         <div class="task-card ${idx === 0 ? 'active-step' : 'locked-step'}" id="task-card-${idx}">
-          <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(event, ${idx}, '${task.link}')">
+          <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(event, ${idx})">
             <div class="task-info">
               <div class="icon-box">
                 <i class="fa-brands fa-${task.platform || "youtube"}"></i>
@@ -612,8 +612,8 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }, 4000);
   }
 
-  // 🛠️ الإصلاح الرئيسي لفتح الرابط مباشرة بنقرة واحدة فقط
-  window.startTaskTracker = function(event, index, targetUrl) {
+  // 🟢 تتبع الخروج والدخول الحقيقي الدقيق مع فتح التبويب تلقائياً بحدث طبيعي
+  window.startTaskTracker = function(event, index) {
     playSound('click');
 
     if (index !== currentActiveIndex) {
@@ -624,11 +624,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
     if (taskData[index] && taskData[index].completed) return;
 
-    // فتح رابط المهمة مباشرة بدون الحاجة لضغطتين
-    if (targetUrl) {
-      window.open(targetUrl, '_blank');
-    }
-
     const badge = document.getElementById('timer-badge-' + index);
     const alertBox = document.getElementById('alert-' + index);
     const timerNum = document.getElementById('timer-num-' + index);
@@ -638,11 +633,12 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     alertBox.style.display = 'none';
 
     if (!taskData[index]) {
-      taskData[index] = { completed: false, blurTime: 0, focusTime: 0, timer: null, remaining: taskDuration };
+      taskData[index] = { completed: false, leaveTime: 0, backTime: 0, timer: null, remaining: taskDuration };
     }
     
     const current = taskData[index];
-    current.blurTime = performance.now();
+    current.leaveTime = 0;
+    current.backTime = 0;
     current.remaining = taskDuration;
 
     badge.style.display = 'inline-block';
@@ -650,11 +646,18 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     subText.innerText = 'Waiting for completion...';
     timerNum.innerText = current.remaining;
 
-    const onFocus = () => {
-      current.focusTime = performance.now();
+    // تسجيل وقت مغادرة الصفحة فور الانتقال للتبويب الجديد
+    const onLeave = () => {
+      current.leaveTime = performance.now();
     };
 
-    window.addEventListener('focus', onFocus, { once: true });
+    // تسجيل وقت العودة للصفحة
+    const onBack = () => {
+      current.backTime = performance.now();
+    };
+
+    window.addEventListener('blur', onLeave, { once: true });
+    window.addEventListener('focus', onBack, { once: true });
 
     if (current.timer) clearInterval(current.timer);
 
@@ -666,10 +669,12 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         clearInterval(current.timer);
         
         let awaySeconds = 0;
-        if (current.blurTime > 0 && current.focusTime > 0) {
-          awaySeconds = (current.focusTime - current.blurTime) / 1000;
+        if (current.leaveTime > 0 && current.backTime > 0) {
+          awaySeconds = (current.backTime - current.leaveTime) / 1000;
+        } else if (current.leaveTime > 0) {
+          awaySeconds = (performance.now() - current.leaveTime) / 1000;
         } else {
-          awaySeconds = taskDuration; 
+          awaySeconds = 0; // لم يخرج إطلاقاً من المتصفح
         }
 
         if (awaySeconds >= minStay) {
@@ -735,7 +740,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }
   }
 
-  // 🛠️ التوجيه المباشر فوراً عند الضغط على فتح المحتوى بعد إتمام كافة الخطوات
   window.handleUnlockClick = function(event) {
     playSound('click');
     const btn = document.getElementById('unlockBtn');
