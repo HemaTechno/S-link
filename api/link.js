@@ -12,30 +12,43 @@ const config = {
   adminKey: process.env.ADMIN_SECRET_KEY || "Hema123i#",
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
-  taskDurationSeconds: 7, 
-  minStaySeconds: 5,     
+  taskDurationSeconds: 7, // إجمالي زمن العداد للتحقق
+  minStaySeconds: 5,     // الحد الأدنى الإجباري للتواجد خارج الصفحة
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
+const spamCache = new Map();
+
 /* ========================== 2) AD NETWORK HANDLERS ========================== */
 
+// توليد رابط الشبكة الربحية المحددة وتوجيهه بعد التخطي نحو /api/complete
 async function resolveUnlockUrl(network, id, req) {
   const host = req.headers.host || "www.subx.click";
   const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
   
+  // رابط الصفحة النهائية التي سيتوجه إليها المستخدم بعد إتمام الإعلان[cite: 6, 7]
   const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
 
   try {
     if (network === "just") {
+      // 1. تجربة الـ API الرسمي مع إضافة User-Agent لفك حظر الطلب من السيرفرات
       const apiUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}&alias=${id}`;
       try {
-        const res = await axios.get(apiUrl, { timeout: 4000 });
+        const res = await axios.get(apiUrl, { 
+          headers: { 
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' 
+          },
+          timeout: 4000 
+        });
+        
         if (res.data?.status === "success" && res.data.shortenedUrl) {
           return res.data.shortenedUrl;
         }
       } catch (err) {
-        console.warn("LinkJust API fallback to QuickLink mode");
+        console.warn("LinkJust direct API timeout, switching to Quick St Link");
       }
+      
+      // 2. التحويل التلقائي لطريقة الـ Quick Link المباشرة الخاصة بـ LinkJust وضمان عملها 100%
       return `https://linkjust.com/st?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}`;
     }
 
@@ -63,7 +76,7 @@ async function resolveUnlockUrl(network, id, req) {
       return `https://link-to.net/${config.linkvertiseUserId}/${rnd}/dynamic?r=${base64Url}`;
     }
   } catch (e) {
-    console.error(`Ad Network (${network}) Exception Suppressed:`, e.message);
+    console.error(`Ad Network (${network}) Error:`, e.message);
   }
   
   return completionUrl;
@@ -360,14 +373,13 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }
   }
 
-  // استخدام window.location.href للتحويل الصريح وتجنب حظر الشاشة البيضاء about:blank#blocked
+  // التحويل الصريح للتخلص من خطأ about:blank#blocked
   window.handleUnlockClick = function() {
     const btn = document.getElementById('unlockBtn');
     if (btn.classList.contains('disabled')) {
       showToast('من فضلك أكمل كافة المهام المطلوبة أولاً لفتح الرابط!');
       return;
     }
-    
     window.location.href = targetRedirectUrl;
   };
 
