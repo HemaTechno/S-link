@@ -19,7 +19,7 @@
             --text-sub: #8a94a6;
             --success: #10b981;
             --danger: #ef4444;
-            --border-color: rgba(255, 255, 255, 0.07);
+            --border-color: rgba(255, 255, 255, 0.08);
         }
 
         * { 
@@ -36,7 +36,7 @@
             background-size: 22px 22px;
             color: var(--text-main); 
             min-height: 100vh; 
-            padding: 25px 15px; 
+            padding: 30px 15px; 
             display: flex; 
             justify-content: center; 
             align-items: center; 
@@ -52,9 +52,9 @@
         }
 
         .container { 
-            flex: 1.2; 
+            flex: 1.3; 
             min-width: 330px; 
-            padding: 32px 26px; 
+            padding: 34px 28px; 
             border-radius: 24px; 
             background: var(--card-bg); 
             border: 1px solid var(--border-color);
@@ -62,7 +62,7 @@
         }
 
         .preview-container { 
-            flex: 0.9; 
+            flex: 0.85; 
             min-width: 320px; 
             padding: 28px 22px; 
             border-radius: 24px; 
@@ -75,26 +75,46 @@
             top: 25px;
         }
 
+        /* اللوجو وتفاصيل العناوين */
         .brand-header {
             display: flex;
             align-items: center;
-            gap: 12px;
-            margin-bottom: 22px;
+            gap: 16px;
+            margin-bottom: 26px;
             border-bottom: 1px solid var(--border-color);
-            padding-bottom: 16px;
+            padding-bottom: 18px;
+        }
+
+        .brand-logo-wrap {
+            position: relative;
+            flex-shrink: 0;
         }
 
         .brand-logo {
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
             object-fit: cover;
-            border: 1px solid var(--theme-blue);
-            box-shadow: 0 0 12px rgba(0, 135, 252, 0.3);
+            border: 1.5px solid var(--theme-blue);
+            box-shadow: 0 0 18px rgba(0, 135, 252, 0.35);
+            background: var(--task-bg);
+            padding: 4px;
         }
 
-        h1 { font-size: 1.45rem; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
-        h2 { font-size: 1.15rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .brand-title-wrap h1 {
+            font-size: 1.55rem; 
+            font-weight: 800; 
+            color: #fff; 
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+
+        .brand-title-wrap p {
+            font-size: 12px; 
+            color: var(--text-sub);
+            margin-top: 4px;
+            font-weight: 500;
+        }
 
         .section-title { 
             font-size: 12px; 
@@ -102,14 +122,31 @@
             font-weight: 800; 
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin: 20px 0 10px; 
+            margin: 22px 0 10px; 
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
         .input-group { position: relative; margin-bottom: 14px; }
-        .input-group i { position: absolute; right: 16px; top: 16px; color: var(--theme-blue); font-size: 15px; }
+        .input-group i.input-icon { position: absolute; right: 16px; top: 16px; color: var(--theme-blue); font-size: 15px; }
+
+        .fetch-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .fetch-group .input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+        .fetch-group .input-wrapper i.input-icon {
+            position: absolute; 
+            right: 16px; 
+            top: 16px; 
+            color: var(--theme-blue); 
+            font-size: 15px;
+        }
 
         input, select, textarea {
             width: 100%; 
@@ -128,32 +165,134 @@
         }
         textarea { resize: vertical; min-height: 85px; }
 
-        /* Auto Fetch Button */
         .btn-fetch { 
-            position: absolute; 
-            left: 8px; 
-            top: 8px; 
             background: var(--theme-blue); 
             color: #fff; 
             border: none; 
-            padding: 8px 14px; 
-            border-radius: 10px; 
-            font-size: 11px; 
+            padding: 0 20px; 
+            border-radius: 14px; 
+            font-size: 12.5px; 
             font-weight: 800; 
             cursor: pointer; 
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(0, 135, 252, 0.3);
+        }
+        .btn-fetch:hover { 
+            background: var(--theme-blue-hover); 
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 135, 252, 0.45);
+        }
+
+        /* ---------------------------------------------------- */
+        /* تصميم كروت المهام الاحترافي بدون المنيو */
+        /* ---------------------------------------------------- */
+        .task-item-card {
+            background: var(--task-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+        .task-item-card:hover {
+            border-color: rgba(0, 135, 252, 0.35);
+        }
+
+        .task-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+        .task-number-badge {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--theme-blue);
+            background: rgba(0, 135, 252, 0.12);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 135, 252, 0.25);
+        }
+        .btn-remove-task {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
             transition: 0.2s ease;
         }
-        .btn-fetch:hover { background: var(--theme-blue-hover); }
+        .btn-remove-task:hover {
+            background: var(--danger);
+            color: #fff;
+        }
 
-        /* Dynamic Tasks UI */
-        .task-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        .task-row select, .task-row input { padding: 12px; font-size: 12px; }
+        /* اختيار التطبيقات بالتفاعل البصري (App Platforms Toggle) */
+        .app-selector-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            gap: 8px;
+        }
+        .app-chip {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 8px 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        .app-chip i {
+            font-size: 18px;
+        }
+        .app-chip span {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-sub);
+        }
+
+        .app-chip.selected {
+            border-color: var(--theme-blue);
+            background: rgba(0, 135, 252, 0.15);
+            box-shadow: 0 0 12px rgba(0, 135, 252, 0.25);
+        }
+        .app-chip.selected span {
+            color: #fff;
+        }
+
+        /* الألوان الخاصة بلوجو كل تطبيق */
+        .app-chip[data-platform="youtube"] i { color: #FF0000; }
+        .app-chip[data-platform="discord"] i { color: #5865F2; }
+        .app-chip[data-platform="telegram"] i { color: #24A1DE; }
+        .app-chip[data-platform="tiktok"] i { color: #00f2fe; }
+        .app-chip[data-platform="instagram"] i { color: #E1306C; }
+        .app-chip[data-platform="facebook"] i { color: #1877F2; }
+        .app-chip[data-platform="link"] i { color: var(--theme-blue); }
+
         .btn-add { 
             background: rgba(0, 135, 252, 0.12); 
             color: var(--theme-blue); 
             border: 1px solid var(--theme-blue); 
-            padding: 12px; 
-            border-radius: 12px; 
+            padding: 13px; 
+            border-radius: 14px; 
             cursor: pointer; 
             font-weight: 800; 
             font-size: 13px;
@@ -166,10 +305,10 @@
         }
         .btn-add:hover { background: var(--theme-blue); color: #fff; }
 
-        /* Toggle Button Grid for Networks */
+        /* الشبكات الإعلانية Single Choice */
         .network-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
             gap: 10px;
             margin-bottom: 18px;
         }
@@ -229,6 +368,7 @@
             border-radius: 50%;
             border: 2px solid var(--text-sub);
             transition: 0.2s ease;
+            flex-shrink: 0;
         }
 
         .network-card.selected .radio-indicator {
@@ -237,7 +377,6 @@
             box-shadow: inset 0 0 0 3px #121620;
         }
 
-        /* Main Action Button */
         .main-btn {
             width: 100%; 
             padding: 16px; 
@@ -262,7 +401,6 @@
             box-shadow: 0 12px 30px rgba(0, 135, 252, 0.5); 
         }
 
-        /* Live Preview Card */
         .preview-card { 
             background: var(--card-bg); 
             border-radius: 18px; 
@@ -272,7 +410,7 @@
         }
         .preview-img { 
             width: 100%; 
-            height: 140px; 
+            height: 135px; 
             object-fit: cover; 
             border-radius: 12px; 
             display: none; 
@@ -291,7 +429,6 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Result Output Box */
         .result-box {
             margin-top: 20px; 
             padding: 18px; 
@@ -332,50 +469,56 @@
     <!-- Form Studio Section -->
     <div class="container">
         <div class="brand-header">
-            <img src="/logo.png" alt="SubX Logo" class="brand-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2933/2933116.png'">
-            <div>
+            <div class="brand-logo-wrap">
+                <img src="/logo.png" alt="SubX Logo" class="brand-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2933/2933116.png'">
+            </div>
+            <div class="brand-title-wrap">
                 <h1>Create Content Locker</h1>
-                <p style="font-size: 11.5px; color: var(--text-sub);">Monetize & Protect Your Links & Scripts</p>
+                <p>Monetize & Protect Your Links & Scripts</p>
             </div>
         </div>
         
         <!-- 1. Media Source & Auto Fetch -->
         <div class="section-title"><i class="fa-solid fa-play"></i> 1. Media & Auto Fill (YouTube)</div>
-        <div class="input-group">
-            <input id="mediaUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." oninput="updatePreview()">
-            <button type="button" class="btn-fetch" onclick="fetchYoutubeData()">Auto Fetch</button>
-            <i class="fa-solid fa-link"></i>
+        <div class="fetch-group">
+            <div class="input-wrapper">
+                <input id="mediaUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." oninput="updatePreview()">
+                <i class="fa-solid fa-link input-icon"></i>
+            </div>
+            <button type="button" class="btn-fetch" onclick="fetchYoutubeData()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Auto Fetch
+            </button>
         </div>
 
         <!-- 2. Basic Info -->
         <div class="section-title"><i class="fa-solid fa-pen"></i> 2. Title & Description</div>
         <div class="input-group">
             <input id="title" type="text" placeholder="Title (e.g., Download Mod Pack)" oninput="updatePreview()">
-            <i class="fa-solid fa-heading"></i>
+            <i class="fa-solid fa-heading input-icon"></i>
         </div>
         <div class="input-group">
             <textarea id="description" placeholder="Description (Optional)" oninput="updatePreview()"></textarea>
-            <i class="fa-solid fa-align-left"></i>
+            <i class="fa-solid fa-align-left input-icon"></i>
         </div>
 
         <!-- 3. Target Destination -->
         <div class="section-title"><i class="fa-solid fa-lock"></i> 3. Destination Content (URL or Text)</div>
         <div class="input-group">
             <input id="targetUrl" type="text" placeholder="Locked Target URL or Raw Script Text">
-            <i class="fa-solid fa-key"></i>
+            <i class="fa-solid fa-key input-icon"></i>
         </div>
 
         <div class="input-group">
             <input id="slug" type="text" maxlength="30" placeholder="Custom Alias (Optional) e.g., my-file">
-            <i class="fa-solid fa-signature"></i>
+            <i class="fa-solid fa-signature input-icon"></i>
         </div>
 
-        <!-- 4. Dynamic Tasks -->
+        <!-- 4. Dynamic Tasks Configuration -->
         <div class="section-title"><i class="fa-solid fa-list-check"></i> 4. Required Tasks Configuration</div>
-        <div id="tasksList"></div>
-        <button type="button" class="btn-add" onclick="addTaskRow()"><i class="fa-solid fa-plus"></i> Add New Task Step</button>
+        <div id="tasksContainer"></div>
+        <button type="button" class="btn-add" onclick="addTaskCard()"><i class="fa-solid fa-plus"></i> Add New Task Step</button>
 
-        <!-- 5. Monetization Network Selection (Toggle Single Choice Cards) -->
+        <!-- 5. Monetization Network Selection -->
         <div class="section-title"><i class="fa-solid fa-coins"></i> 5. Profit Ad Network</div>
         <input type="hidden" id="monetization" value="just">
         
@@ -390,7 +533,7 @@
             </div>
 
             <div class="network-card" onclick="selectNetwork('lootlabs', this)">
-                <img src="https://lootlabs.gg/favicon.ico" class="network-icon-img" alt="LootLabs" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2111/2111463.png'">
+                <img src="/LootLabs.png" class="network-icon-img" alt="LootLabs" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2111/2111463.png'">
                 <div class="network-info">
                     <span class="network-name">LootLabs</span>
                     <span class="network-sub">High CPM</span>
@@ -429,7 +572,7 @@
 
     <!-- Live Preview Section -->
     <div class="preview-container">
-        <h2><i class="fa-solid fa-eye" style="color: var(--theme-blue);"></i> Live Page Preview</h2>
+        <h2 style="color: #fff;"><i class="fa-solid fa-eye" style="color: var(--theme-blue);"></i> Live Page Preview</h2>
         
         <div class="preview-card">
             <img id="prevImg" class="preview-img" src="" alt="Thumbnail">
@@ -443,13 +586,95 @@
 </div>
 
 <script>
-    // دالة التبديل بين الشبكات بأسلوب Toggle Single Choice
+    let taskCounter = 0;
+
     function selectNetwork(val, element) {
         document.getElementById('monetization').value = val;
         const cards = document.querySelectorAll('.network-card');
         cards.forEach(card => card.classList.remove('selected'));
         element.classList.add('selected');
     }
+
+    function selectPlatform(cardId, platform) {
+        const card = document.getElementById(cardId);
+        const chips = card.querySelectorAll('.app-chip');
+        chips.forEach(chip => chip.classList.remove('selected'));
+        
+        const selectedChip = card.querySelector(`[data-platform="${platform}"]`);
+        if (selectedChip) selectedChip.classList.add('selected');
+        
+        card.setAttribute('data-selected-platform', platform);
+        updatePreview();
+    }
+
+    function addTaskCard() {
+        taskCounter++;
+        const cardId = `task-item-${taskCounter}`;
+        const container = document.getElementById('tasksContainer');
+
+        const cardHtml = `
+            <div class="task-item-card" id="${cardId}" data-selected-platform="youtube">
+                <div class="task-card-header">
+                    <span class="task-number-badge">Task Step #${taskCounter}</span>
+                    <button type="button" class="btn-remove-task" onclick="removeTaskCard('${cardId}')"><i class="fa-solid fa-trash"></i></button>
+                </div>
+
+                <div class="app-selector-grid">
+                    <div class="app-chip selected" data-platform="youtube" onclick="selectPlatform('${cardId}', 'youtube')">
+                        <i class="fa-brands fa-youtube"></i>
+                        <span>YouTube</span>
+                    </div>
+                    <div class="app-chip" data-platform="discord" onclick="selectPlatform('${cardId}', 'discord')">
+                        <i class="fa-brands fa-discord"></i>
+                        <span>Discord</span>
+                    </div>
+                    <div class="app-chip" data-platform="telegram" onclick="selectPlatform('${cardId}', 'telegram')">
+                        <i class="fa-brands fa-telegram"></i>
+                        <span>Telegram</span>
+                    </div>
+                    <div class="app-chip" data-platform="tiktok" onclick="selectPlatform('${cardId}', 'tiktok')">
+                        <i class="fa-brands fa-tiktok"></i>
+                        <span>TikTok</span>
+                    </div>
+                    <div class="app-chip" data-platform="instagram" onclick="selectPlatform('${cardId}', 'instagram')">
+                        <i class="fa-brands fa-instagram"></i>
+                        <span>Instagram</span>
+                    </div>
+                    <div class="app-chip" data-platform="facebook" onclick="selectPlatform('${cardId}', 'facebook')">
+                        <i class="fa-brands fa-facebook"></i>
+                        <span>Facebook</span>
+                    </div>
+                    <div class="app-chip" data-platform="link" onclick="selectPlatform('${cardId}', 'link')">
+                        <i class="fa-solid fa-globe"></i>
+                        <span>Website</span>
+                    </div>
+                </div>
+
+                <div class="input-group" style="margin-bottom: 0;">
+                    <input type="text" class="task-action-input" placeholder="Action Title (e.g., Subscribe to Channel)" oninput="updatePreview()">
+                    <i class="fa-solid fa-heading input-icon"></i>
+                </div>
+                <div class="input-group" style="margin-bottom: 0;">
+                    <input type="url" class="task-link-input" placeholder="Target Link (e.g., https://youtube.com/...)" oninput="updatePreview()">
+                    <i class="fa-solid fa-link input-icon"></i>
+                </div>
+            </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', cardHtml);
+        updatePreview();
+    }
+
+    function removeTaskCard(cardId) {
+        const card = document.getElementById(cardId);
+        if (card) card.remove();
+        updatePreview();
+    }
+
+    // إضافة مهمة أولية تلقائياً عند فتح الصفحة
+    window.addEventListener('DOMContentLoaded', () => {
+        addTaskCard();
+    });
 </script>
 <script src="/js/script.js"></script>
 </body>
