@@ -189,7 +189,7 @@
         }
 
         /* ---------------------------------------------------- */
-        /* تصميم كروت المهام الاحترافي بدون المنيو */
+        /* تصميم كروت المهام التفاعلية وأزرار الإجراءات السريعة */
         /* ---------------------------------------------------- */
         .task-item-card {
             background: var(--task-bg);
@@ -241,7 +241,7 @@
             color: #fff;
         }
 
-        /* اختيار التطبيقات بالتفاعل البصري (App Platforms Toggle) */
+        /* منصات التطبيقات (App Platforms Grid) */
         .app-selector-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
@@ -260,25 +260,16 @@
             transition: all 0.2s ease;
             user-select: none;
         }
-        .app-chip i {
-            font-size: 18px;
-        }
-        .app-chip span {
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--text-sub);
-        }
+        .app-chip i { font-size: 18px; }
+        .app-chip span { font-size: 10px; font-weight: 700; color: var(--text-sub); }
 
         .app-chip.selected {
             border-color: var(--theme-blue);
             background: rgba(0, 135, 252, 0.15);
             box-shadow: 0 0 12px rgba(0, 135, 252, 0.25);
         }
-        .app-chip.selected span {
-            color: #fff;
-        }
+        .app-chip.selected span { color: #fff; }
 
-        /* الألوان الخاصة بلوجو كل تطبيق */
         .app-chip[data-platform="youtube"] i { color: #FF0000; }
         .app-chip[data-platform="discord"] i { color: #5865F2; }
         .app-chip[data-platform="telegram"] i { color: #24A1DE; }
@@ -286,6 +277,34 @@
         .app-chip[data-platform="instagram"] i { color: #E1306C; }
         .app-chip[data-platform="facebook"] i { color: #1877F2; }
         .app-chip[data-platform="link"] i { color: var(--theme-blue); }
+
+        /* أزرار الإجراءات السريعة (Action Preset Buttons) */
+        .action-presets-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .preset-btn {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: #cbd5e1;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .preset-btn:hover {
+            border-color: var(--theme-blue);
+            color: #fff;
+            background: rgba(0, 135, 252, 0.12);
+        }
+        .preset-btn.active {
+            background: var(--theme-blue);
+            color: #fff;
+            border-color: var(--theme-blue);
+        }
 
         .btn-add { 
             background: rgba(0, 135, 252, 0.12); 
@@ -305,7 +324,7 @@
         }
         .btn-add:hover { background: var(--theme-blue); color: #fff; }
 
-        /* الشبكات الإعلانية Single Choice */
+        /* شبكات الأرباح Single Choice */
         .network-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
@@ -350,16 +369,8 @@
             text-align: left;
         }
 
-        .network-name {
-            font-size: 13px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .network-sub {
-            font-size: 10px;
-            color: var(--text-sub);
-        }
+        .network-name { font-size: 13px; font-weight: 700; color: #fff; }
+        .network-sub { font-size: 10px; color: var(--text-sub); }
 
         .radio-indicator {
             margin-left: auto;
@@ -533,7 +544,7 @@
             </div>
 
             <div class="network-card" onclick="selectNetwork('lootlabs', this)">
-                <img src="/LootLabs.png" class="network-icon-img" alt="LootLabs" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2111/2111463.png'">
+                <img src="https://lootlabs.gg/favicon.ico" class="network-icon-img" alt="LootLabs" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2111/2111463.png'">
                 <div class="network-info">
                     <span class="network-name">LootLabs</span>
                     <span class="network-sub">High CPM</span>
@@ -588,11 +599,50 @@
 <script>
     let taskCounter = 0;
 
+    // قائمة خيارات الإجراءات الجاهزة لكل منصة
+    const platformPresets = {
+        youtube: ["Subscribe Channel", "Like Video", "Watch Video", "Comment"],
+        discord: ["Join Server", "Accept Invite", "Boost Server"],
+        telegram: ["Join Channel", "Join Group"],
+        tiktok: ["Follow Account", "Like Video"],
+        instagram: ["Follow Profile", "Like Post"],
+        facebook: ["Like Page", "Follow Page", "Join Group"],
+        link: ["Visit Website", "Read Article", "Download File"]
+    };
+
     function selectNetwork(val, element) {
         document.getElementById('monetization').value = val;
         const cards = document.querySelectorAll('.network-card');
         cards.forEach(card => card.classList.remove('selected'));
         element.classList.add('selected');
+    }
+
+    function renderPresets(cardId, platform) {
+        const presetsWrap = document.getElementById(`presets-${cardId}`);
+        if (!presetsWrap) return;
+
+        const presets = platformPresets[platform] || platformPresets['link'];
+        presetsWrap.innerHTML = presets.map((action, idx) => `
+            <button type="button" class="preset-btn ${idx === 0 ? 'active' : ''}" onclick="applyPreset('${cardId}', '${action}', this)">
+                ${action}
+            </button>
+        `).join('');
+
+        // تطبيق الخيار الأول افتراضياً
+        const actionInput = document.getElementById(`action-input-${cardId}`);
+        if (actionInput) actionInput.value = presets[0];
+    }
+
+    function applyPreset(cardId, actionText, btnElement) {
+        const card = document.getElementById(cardId);
+        const actionInput = document.getElementById(`action-input-${cardId}`);
+        if (actionInput) actionInput.value = actionText;
+
+        const presetBtns = card.querySelectorAll('.preset-btn');
+        presetBtns.forEach(btn => btn.classList.remove('active'));
+        btnElement.classList.add('active');
+
+        updatePreview();
     }
 
     function selectPlatform(cardId, platform) {
@@ -604,6 +654,7 @@
         if (selectedChip) selectedChip.classList.add('selected');
         
         card.setAttribute('data-selected-platform', platform);
+        renderPresets(cardId, platform);
         updatePreview();
     }
 
@@ -619,6 +670,7 @@
                     <button type="button" class="btn-remove-task" onclick="removeTaskCard('${cardId}')"><i class="fa-solid fa-trash"></i></button>
                 </div>
 
+                <!-- خيارات اختيار المنصة -->
                 <div class="app-selector-grid">
                     <div class="app-chip selected" data-platform="youtube" onclick="selectPlatform('${cardId}', 'youtube')">
                         <i class="fa-brands fa-youtube"></i>
@@ -650,18 +702,25 @@
                     </div>
                 </div>
 
+                <!-- أزرار اختيار المهمة السريعة -->
+                <div class="action-presets-wrap" id="presets-${cardId}"></div>
+
+                <!-- عنوان المهمة والتعديل اليدوي -->
                 <div class="input-group" style="margin-bottom: 0;">
-                    <input type="text" class="task-action-input" placeholder="Action Title (e.g., Subscribe to Channel)" oninput="updatePreview()">
+                    <input type="text" class="task-action-input" id="action-input-${cardId}" placeholder="Action Title" oninput="updatePreview()">
                     <i class="fa-solid fa-heading input-icon"></i>
                 </div>
+
+                <!-- رابط المهمة -->
                 <div class="input-group" style="margin-bottom: 0;">
-                    <input type="url" class="task-link-input" placeholder="Target Link (e.g., https://youtube.com/...)" oninput="updatePreview()">
+                    <input type="url" class="task-link-input" placeholder="Target Link (e.g., https://...)" oninput="updatePreview()">
                     <i class="fa-solid fa-link input-icon"></i>
                 </div>
             </div>
         `;
 
         container.insertAdjacentHTML('beforeend', cardHtml);
+        renderPresets(cardId, 'youtube');
         updatePreview();
     }
 
@@ -671,7 +730,6 @@
         updatePreview();
     }
 
-    // إضافة مهمة أولية تلقائياً عند فتح الصفحة
     window.addEventListener('DOMContentLoaded', () => {
         addTaskCard();
     });
