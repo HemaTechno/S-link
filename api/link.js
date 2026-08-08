@@ -13,7 +13,7 @@ const config = {
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
   taskDurationSeconds: 7, 
-  minStaySeconds: 5,     
+  minStaySeconds: 4,     
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
@@ -95,13 +95,13 @@ const vpnBlockUI = `
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', 'Tajawal', sans-serif; }
         body { 
           background-color: var(--bg-dark); 
-          background-image: radial-gradient(rgba(0, 135, 252, 0.1) 1px, transparent 1px);
-          background-size: 20px 20px;
+          background-image: radial-gradient(rgba(0, 135, 252, 0.25) 1.5px, transparent 1.5px);
+          background-size: 22px 22px;
           display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 15px; 
         }
         .main-card {
           width: 380px; max-width: 100%; padding: 30px 22px; border-radius: 22px;
-          background: #12161f; border: 1px solid rgba(255, 255, 255, 0.05); text-align: center;
+          background: #12161f; border: 1px solid rgba(255, 255, 255, 0.08); text-align: center;
           box-shadow: 0 15px 40px rgba(0,0,0,0.6);
         }
         h1 { color: var(--theme-blue); margin-bottom: 10px; font-size: 1.4rem; font-weight: 800; }
@@ -196,9 +196,9 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   :root {
-    --bg-dark: #0a0e14;
-    --card-bg: #141820;
-    --task-bg: #1a1f2c;
+    --bg-dark: #07090e;
+    --card-bg: #121620;
+    --task-bg: #181d2a;
     --theme-blue: #0087FC;
     --theme-blue-hover: #0072dc;
     --text-main: #ffffff;
@@ -217,8 +217,9 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
   body {
     background-color: var(--bg-dark);
-    background-image: radial-gradient(rgba(0, 135, 252, 0.12) 1.2px, transparent 1.2px);
-    background-size: 20px 20px;
+    /* 1) شبكة خلفية أوضح وبشكل بارز مميز */
+    background-image: radial-gradient(rgba(0, 135, 252, 0.28) 1.6px, transparent 1.6px);
+    background-size: 22px 22px;
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -233,8 +234,8 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     padding: 26px 20px;
     border-radius: 22px;
     background: var(--card-bg);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     text-align: center;
   }
 
@@ -243,9 +244,9 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     height: 140px;
     margin: 0 auto 16px auto;
     border-radius: 14px;
-    border: 1px solid rgba(0, 135, 252, 0.3);
+    border: 1px solid rgba(0, 135, 252, 0.35);
     object-fit: cover;
-    box-shadow: 0 6px 20px rgba(0, 135, 252, 0.15);
+    box-shadow: 0 8px 24px rgba(0, 135, 252, 0.2);
   }
 
   h1 {
@@ -265,7 +266,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     line-height: 1.45;
   }
 
-  /* Step Indicator */
+  /* Step Indicator Bar */
   .step-indicator {
     margin-bottom: 18px;
     display: flex;
@@ -283,7 +284,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .step-bar-wrap {
     width: 100%;
     height: 5px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.06);
     border-radius: 10px;
     overflow: hidden;
   }
@@ -292,7 +293,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     height: 100%;
     background: var(--theme-blue);
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 135, 252, 0.6);
+    box-shadow: 0 0 12px rgba(0, 135, 252, 0.7);
     transition: width 0.4s ease;
   }
 
@@ -306,20 +307,20 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
   .task-card {
     background: var(--task-bg);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 14px;
     overflow: hidden;
     transition: all 0.25s ease;
   }
   
   .task-card.locked-step {
-    opacity: 0.4;
+    opacity: 0.38;
     pointer-events: none;
-    filter: grayscale(0.6);
+    filter: grayscale(0.7);
   }
 
   .task-card.active-step:hover {
-    border-color: rgba(0, 135, 252, 0.4);
+    border-color: rgba(0, 135, 252, 0.45);
   }
 
   .task-btn {
@@ -381,7 +382,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .action-circle.arrow {
     background: var(--theme-blue);
     color: #ffffff;
-    box-shadow: 0 0 10px rgba(0, 135, 252, 0.3);
+    box-shadow: 0 0 10px rgba(0, 135, 252, 0.4);
   }
   .action-circle.check {
     background: rgba(16, 185, 129, 0.15);
@@ -390,7 +391,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   }
 
   .timer-badge {
-    background: rgba(0, 135, 252, 0.12);
+    background: rgba(0, 135, 252, 0.15);
     border: 1px solid var(--theme-blue);
     color: var(--theme-blue);
     padding: 4px 9px;
@@ -411,18 +412,29 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .task-alert-box.error { color: var(--danger); display: block; }
   .task-alert-box.success { color: var(--success); display: block; }
 
-  /* Toast Notification */
+  /* 2) تصميم نوتفكيشن احترافي متطور بأسلوب Glassmorphism */
   .toast-container {
-    position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
     z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none;
   }
   .toast {
-    background: #141820; border: 1px solid var(--danger); color: #fff;
-    padding: 12px 18px; border-radius: 12px; font-size: 12px; font-weight: 700;
-    display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    animation: toastIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    background: rgba(18, 22, 32, 0.92); 
+    border: 1px solid rgba(239, 68, 68, 0.4); 
+    border-left: 4px solid var(--danger);
+    color: #fff;
+    padding: 13px 20px; 
+    border-radius: 14px; 
+    font-size: 12.5px; 
+    font-weight: 700;
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    animation: toastIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
   }
-  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -25px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
   /* Main Button Style */
   .btn {
@@ -434,12 +446,12 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .default-btn {
     color: #ffffff;
     background: var(--theme-blue);
-    box-shadow: 0 6px 20px rgba(0, 135, 252, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 135, 252, 0.35);
   }
   .default-btn:hover:not(.disabled) {
     background: var(--theme-blue-hover);
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(0, 135, 252, 0.45);
+    box-shadow: 0 10px 25px rgba(0, 135, 252, 0.5);
   }
   .default-btn.disabled {
     background: #1a1f2c; color: #4a5568; border: 1px solid rgba(255, 255, 255, 0.05);
@@ -492,6 +504,46 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   let completedTasksCount = 0;
   const taskData = {};
 
+  // 3) نظام المؤثرات الصوتية (Web Audio API)
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  function playSound(type) {
+    try {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      const now = audioCtx.currentTime;
+
+      if (type === 'click') {
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(1000, now + 0.08);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+        osc.start(now);
+        osc.stop(now + 0.08);
+      } else if (type === 'success') {
+        osc.frequency.setValueAtTime(520, now);
+        osc.frequency.setValueAtTime(660, now + 0.08);
+        osc.frequency.setValueAtTime(880, now + 0.16);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      } else if (type === 'error') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.setValueAtTime(180, now + 0.12);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      }
+    } catch(e) {}
+  }
+
   function updateStepUI() {
     const stepText = document.getElementById('stepCounterText');
     const stepBar = document.getElementById('stepBar');
@@ -504,10 +556,11 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   }
 
   function showToast(message) {
+    playSound('error');
     const toastBox = document.getElementById('toastBox');
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#ef4444; font-size:14px;"></i> ' + message;
+    toast.innerHTML = '<i class="fa-solid fa-triangle-exclamation" style="color:#ef4444; font-size:15px;"></i> ' + message;
     toastBox.appendChild(toast);
 
     setTimeout(() => {
@@ -518,6 +571,8 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   }
 
   window.startTaskTracker = function(event, index) {
+    playSound('click');
+
     if (index !== currentActiveIndex) {
       event.preventDefault();
       showToast('Please complete the current step first!');
@@ -595,6 +650,8 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   };
 
   function completeTask(index) {
+    playSound('success');
+
     const badge = document.getElementById('timer-badge-' + index);
     const alertBox = document.getElementById('alert-' + index);
     const checkOrb = document.getElementById('check-' + index);
@@ -614,7 +671,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
     currentCard.classList.remove('active-step');
     
-    // Unlock next step sequentially
+    // فتح الخطوة التالية بالتتابع
     currentActiveIndex++;
     if (currentActiveIndex < totalTasks) {
       const nextCard = document.getElementById('task-card-' + currentActiveIndex);
@@ -640,6 +697,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   }
 
   window.handleUnlockClick = function(event) {
+    playSound('click');
     const btn = document.getElementById('unlockBtn');
     if (btn.classList.contains('disabled')) {
       event.preventDefault();
