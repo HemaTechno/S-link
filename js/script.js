@@ -12,7 +12,7 @@ const platformPresets = {
   link: ["Visit Website", "Read Article", "Download File"]
 };
 
-// 1. إضافة كارت مهمة جديد بحماية كاملة من الأخطاء
+// 1. إضافة كارت مهمة جديد بأسلوب الكروت واسعة المساحة والمنصات التفاعلية
 function addTaskCard() {
   const container = document.getElementById('tasksContainer');
   if (!container) return;
@@ -29,7 +29,7 @@ function addTaskCard() {
         </button>
       </div>
 
-      <!-- شبكة اختيار المنصة -->
+      <!-- شبكة اختيار المنصة بالأيقونات واللوجو -->
       <div class="app-selector-grid">
         <div class="app-chip selected" data-platform="youtube" onclick="selectPlatform('${cardId}', 'youtube')">
           <i class="fa-brands fa-youtube"></i>
@@ -99,7 +99,7 @@ function selectPlatform(cardId, platform) {
   updatePreview();
 }
 
-// 3. توليد أزرار الإجراءات السريعة
+// 3. بناء وتوليد أزرار الإجراءات السريعة
 function renderPresets(cardId, platform) {
   const presetsWrap = document.getElementById(`presets-${cardId}`);
   if (!presetsWrap) return;
@@ -115,7 +115,7 @@ function renderPresets(cardId, platform) {
   if (actionInput) actionInput.value = presets[0];
 }
 
-// 4. تطبيق الخيار السريع
+// 4. تطبيق الخيار السريع المختار
 function applyPreset(cardId, actionText, btnElement) {
   const card = document.getElementById(cardId);
   if (!card) return;
@@ -137,7 +137,7 @@ function removeTaskCard(cardId) {
   updatePreview();
 }
 
-// 6. اختيار شبكة الربح
+// 6. اختيار شبكة الربح (Single Choice Toggle)
 function selectNetwork(val, element) {
   const input = document.getElementById('monetization');
   if (input) input.value = val;
@@ -147,7 +147,7 @@ function selectNetwork(val, element) {
   if (element) element.classList.add('selected');
 }
 
-// 7. جلب بيانات يوتيوب تلقائياً
+// 7. جلب بيانات يوتيوب (العنوان والصورة) تلقائياً وبأسرع طريقة بدون أخطاء
 async function fetchYoutubeData() {
   const mediaInput = document.getElementById("mediaUrl");
   if (!mediaInput) return;
@@ -158,29 +158,35 @@ async function fetchYoutubeData() {
     return;
   }
 
+  // استخرج ID الفيديو مباشرة لتشكيل صورة HD دون انتظار الـ API
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = ytUrl.match(regExp);
+  const videoId = (match && match[2].length === 11) ? match[2] : null;
+
+  if (videoId) {
+    fetchedImage = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    updatePreview();
+  }
+
   try {
-    const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(ytUrl)}`);
-    const data = await res.json();
-
-    if (data.title) {
-      const titleInput = document.getElementById("title");
-      if (titleInput && !titleInput.value.trim()) {
-        titleInput.value = data.title;
+    const res = await fetch(`https://www.youtube.com/oembed?url=${encodeURIComponent(ytUrl)}&format=json`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.title) {
+        const titleInput = document.getElementById("title");
+        if (titleInput) {
+          titleInput.value = data.title;
+        }
       }
-
-      if (data.thumbnail_url) {
-        fetchedImage = data.thumbnail_url;
-      }
-      updatePreview();
-    } else {
-      alert("تعذر جلب بيانات الفيديو، تأكد من صحة الرابط.");
     }
   } catch (e) {
-    alert("حدث خطأ أثناء جلب بيانات الفيديو من يوتيوب.");
+    console.warn("Could not fetch YouTube title automatically, fallback used.");
+  } finally {
+    updatePreview();
   }
 }
 
-// 8. تحديث المعاينة الحية آمن وبدون توقف
+// 8. تحديث المعاينة الحية (Live Preview) فورياً وبأمان
 function updatePreview() {
   const titleInput = document.getElementById("title");
   const descInput = document.getElementById("description");
@@ -190,7 +196,6 @@ function updatePreview() {
   const descVal = descInput ? descInput.value.trim() : "";
   const mediaVal = mediaInput ? mediaInput.value.trim() : "";
 
-  // مسح fetchedImage لو العميل غير الميديا يدوياً
   if (!mediaVal && !fetchedImage) {
     fetchedImage = "";
   }
@@ -212,7 +217,7 @@ function updatePreview() {
     }
   }
 
-  // تحديث قائمة المهام
+  // تحديث قائمة المهام في الـ Preview
   const prevTasksContainer = document.getElementById("prevTasks");
   if (prevTasksContainer) {
     prevTasksContainer.innerHTML = "";
@@ -264,7 +269,7 @@ async function processLock() {
     return;
   }
 
-  // تجميع المهام
+  // تجميع المهام المضافة
   const tasks = [];
   const taskCards = document.querySelectorAll(".task-item-card");
   taskCards.forEach(card => {
@@ -346,7 +351,7 @@ function copyLink() {
   }
 }
 
-// التشغيل التلقائي عند التحميل
+// إضافة الكارت الأول افتراضياً عند تحميل الصفحة
 window.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("tasksContainer") && document.querySelectorAll(".task-item-card").length === 0) {
     addTaskCard();
