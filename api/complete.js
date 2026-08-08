@@ -376,19 +376,16 @@ export default async function handler(req, res) {
 
     const cookieHeader = req.headers.cookie || '';
     const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
+    const hasJustCooldown = cookieHeader.includes('linkjust_24h_cooldown=1');
+    const hasLootCooldown = cookieHeader.includes('lootlabs_24h_cooldown=1');
     
-    let isNitroBlocked = false;
-    let shouldSetNitroCookie = false;
+    let isNetworkBlocked = false;
 
-    if (network === 'nitrolink') {
-        if (hasNitroCooldown) {
-            isNitroBlocked = true;
-        } else {
-            shouldSetNitroCookie = true;
-        }
-    }
+    if (network === 'nitrolink' && hasNitroCooldown) isNetworkBlocked = true;
+    if (network === 'just' && hasJustCooldown) isNetworkBlocked = true;
+    if (network === 'lootlabs' && hasLootCooldown) isNetworkBlocked = true;
 
-    const isDuplicate = isIpDuplicate || isNitroBlocked;
+    const isDuplicate = isIpDuplicate || isNetworkBlocked;
 
     // تنظيف كاش الإكمال القديم لمنع تضخم الذاكرة
     if (recentCompletions.size > 1000) {
@@ -410,7 +407,7 @@ export default async function handler(req, res) {
         const data = doc.data();
         const finalContent = data.targetUrl || data.url || "";
 
-        // 🛑 إذا كان الطلب مكرراً خلال 24 ساعة، يتم عرض المحتوى للعميل دون احتساب الزيادة أو التحديث
+        // 🛑 إذا كان الطلب مكرراً لنفس الشبكة خلال 24 ساعة، يتم عرض المحتوى للعميل دون احتساب العدادات مجدداً
         if (isDuplicate) {
             res.setHeader("Content-Type", "text/html; charset=utf-8");
             return res.status(200).send(generateSuccessPage(finalContent));
@@ -520,8 +517,18 @@ export default async function handler(req, res) {
             }).catch(err => console.error("Discord Webhook Error:", err));
         }
 
-        if (shouldSetNitroCookie) {
-            res.setHeader("Set-Cookie", "nitro_24h_cooldown=1; Max-Age=86400; Path=/; SameSite=Lax");
+        // 🍪 إرسال كوكيز التثبيت لكل شبكة بشكل مستقل لمدة 24 ساعة
+        let cookiesToSet = [];
+        if (network === 'nitrolink') {
+            cookiesToSet.push("nitro_24h_cooldown=1; Max-Age=86400; Path=/; SameSite=Lax");
+        } else if (network === 'just') {
+            cookiesToSet.push("linkjust_24h_cooldown=1; Max-Age=86400; Path=/; SameSite=Lax");
+        } else if (network === 'lootlabs') {
+            cookiesToSet.push("lootlabs_24h_cooldown=1; Max-Age=86400; Path=/; SameSite=Lax");
+        }
+
+        if (cookiesToSet.length > 0) {
+            res.setHeader("Set-Cookie", cookiesToSet);
         }
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
