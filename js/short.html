@@ -75,7 +75,6 @@
             top: 25px;
         }
 
-        /* اللوجو وتفاصيل العناوين */
         .brand-header {
             display: flex;
             align-items: center;
@@ -188,9 +187,7 @@
             box-shadow: 0 8px 20px rgba(0, 135, 252, 0.45);
         }
 
-        /* ---------------------------------------------------- */
-        /* تصميم كروت المهام التفاعلية وأزرار الإجراءات السريعة */
-        /* ---------------------------------------------------- */
+        /* كروت المهام التفاعلية */
         .task-item-card {
             background: var(--task-bg);
             border: 1px solid var(--border-color);
@@ -241,7 +238,7 @@
             color: #fff;
         }
 
-        /* منصات التطبيقات (App Platforms Grid) */
+        /* المنصات */
         .app-selector-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
@@ -278,7 +275,7 @@
         .app-chip[data-platform="facebook"] i { color: #1877F2; }
         .app-chip[data-platform="link"] i { color: var(--theme-blue); }
 
-        /* أزرار الإجراءات السريعة (Action Preset Buttons) */
+        /* الأزرار الجاهزة */
         .action-presets-wrap {
             display: flex;
             flex-wrap: wrap;
@@ -324,10 +321,10 @@
         }
         .btn-add:hover { background: var(--theme-blue); color: #fff; }
 
-        /* شبكات الأرباح Single Choice */
+        /* شبكات الأرباح (مع إضافة Direct Access) */
         .network-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 10px;
             margin-bottom: 18px;
         }
@@ -529,7 +526,7 @@
         <div id="tasksContainer"></div>
         <button type="button" class="btn-add" onclick="addTaskCard()"><i class="fa-solid fa-plus"></i> Add New Task Step</button>
 
-        <!-- 5. Monetization Network Selection -->
+        <!-- 5. Monetization Network Selection (تشمل خيار Direct) -->
         <div class="section-title"><i class="fa-solid fa-coins"></i> 5. Profit Ad Network</div>
         <input type="hidden" id="monetization" value="just">
         
@@ -569,6 +566,16 @@
                 </div>
                 <div class="radio-indicator"></div>
             </div>
+
+            <!-- خيار Direct (مباشر بدون أرباح وإعلانات) -->
+            <div class="network-card" onclick="selectNetwork('direct', this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/1828/1828640.png" class="network-icon-img" alt="Direct">
+                <div class="network-info">
+                    <span class="network-name">Direct Access</span>
+                    <span class="network-sub">No Ads</span>
+                </div>
+                <div class="radio-indicator"></div>
+            </div>
         </div>
 
         <button id="shortBtn" class="main-btn" onclick="processLock()"><i class="fa-solid fa-wand-magic-sparkles"></i> Create Content Locker</button>
@@ -599,7 +606,6 @@
 <script>
     let taskCounter = 0;
 
-    // قائمة خيارات الإجراءات الجاهزة لكل منصة
     const platformPresets = {
         youtube: ["Subscribe Channel", "Like Video", "Watch Video", "Comment"],
         discord: ["Join Server", "Accept Invite", "Boost Server"],
@@ -628,7 +634,6 @@
             </button>
         `).join('');
 
-        // تطبيق الخيار الأول افتراضياً
         const actionInput = document.getElementById(`action-input-${cardId}`);
         if (actionInput) actionInput.value = presets[0];
     }
@@ -670,7 +675,6 @@
                     <button type="button" class="btn-remove-task" onclick="removeTaskCard('${cardId}')"><i class="fa-solid fa-trash"></i></button>
                 </div>
 
-                <!-- خيارات اختيار المنصة -->
                 <div class="app-selector-grid">
                     <div class="app-chip selected" data-platform="youtube" onclick="selectPlatform('${cardId}', 'youtube')">
                         <i class="fa-brands fa-youtube"></i>
@@ -702,16 +706,13 @@
                     </div>
                 </div>
 
-                <!-- أزرار اختيار المهمة السريعة -->
                 <div class="action-presets-wrap" id="presets-${cardId}"></div>
 
-                <!-- عنوان المهمة والتعديل اليدوي -->
                 <div class="input-group" style="margin-bottom: 0;">
                     <input type="text" class="task-action-input" id="action-input-${cardId}" placeholder="Action Title" oninput="updatePreview()">
                     <i class="fa-solid fa-heading input-icon"></i>
                 </div>
 
-                <!-- رابط المهمة -->
                 <div class="input-group" style="margin-bottom: 0;">
                     <input type="url" class="task-link-input" placeholder="Target Link (e.g., https://...)" oninput="updatePreview()">
                     <i class="fa-solid fa-link input-icon"></i>
@@ -728,6 +729,43 @@
         const card = document.getElementById(cardId);
         if (card) card.remove();
         updatePreview();
+    }
+
+    // 🟢 دالة تحديث الـ Live Preview التفاعلية فورياً
+    function updatePreview() {
+        const titleVal = document.getElementById('title').value;
+        const descVal = document.getElementById('description').value;
+        
+        document.getElementById('prevTitle').innerText = titleVal.trim() !== '' ? titleVal : 'Title Preview';
+        document.getElementById('prevDesc').innerText = descVal.trim() !== '' ? descVal : 'Description preview will show here...';
+
+        const prevTasksContainer = document.getElementById('prevTasks');
+        prevTasksContainer.innerHTML = '';
+
+        const taskCards = document.querySelectorAll('.task-item-card');
+        taskCards.forEach((card, index) => {
+            const platform = card.getAttribute('data-selected-platform') || 'youtube';
+            const actionInput = card.querySelector('.task-action-input');
+            const actionText = actionInput && actionInput.value.trim() !== '' ? actionInput.value : `Task Step #${index + 1}`;
+
+            let iconClass = 'fa-brands fa-youtube';
+            if (platform === 'discord') iconClass = 'fa-brands fa-discord';
+            else if (platform === 'telegram') iconClass = 'fa-brands fa-telegram';
+            else if (platform === 'tiktok') iconClass = 'fa-brands fa-tiktok';
+            else if (platform === 'instagram') iconClass = 'fa-brands fa-instagram';
+            else if (platform === 'facebook') iconClass = 'fa-brands fa-facebook';
+            else if (platform === 'link') iconClass = 'fa-solid fa-globe';
+
+            prevTasksContainer.innerHTML += `
+                <div class="preview-task">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <i class="${iconClass}" style="color: var(--theme-blue); font-size:14px;"></i>
+                        <span style="font-weight:700; color:#fff;">${actionText}</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right" style="color: var(--text-sub); font-size:11px;"></i>
+                </div>
+            `;
+        });
     }
 
     window.addEventListener('DOMContentLoaded', () => {
