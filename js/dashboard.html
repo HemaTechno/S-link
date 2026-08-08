@@ -3,34 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard & Analytics 📊</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <title>Dashboard & Analytics 📊 - SubX</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
+        :root {
+            --bg-dark: #07090e;
+            --card-bg: #121620;
+            --task-bg: #181d2a;
+            --theme-blue: #0087FC;
+            --theme-blue-hover: #0072dc;
+            --text-main: #ffffff;
+            --text-sub: #8a94a6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --border-color: rgba(255, 255, 255, 0.08);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Tajawal', sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Tajawal', sans-serif;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
-            background-color: #0c0d10; 
-            background-image: 
-                radial-gradient(at 10% 10%, rgba(255, 215, 0, 0.05) 0px, transparent 50%),
-                radial-gradient(at 90% 90%, rgba(255, 215, 0, 0.05) 0px, transparent 50%);
+            background-color: var(--bg-dark); 
+            /* شبكة خلفية موحدة باينة واحترافية */
+            background-image: radial-gradient(rgba(0, 135, 252, 0.28) 1.6px, transparent 1.6px);
+            background-size: 22px 22px;
             min-height: 100vh;
-            color: #ffffff;
-            padding: 40px 20px;
+            color: var(--text-main);
+            padding: 30px 15px;
             display: block;
         }
 
         .dashboard-container {
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
         }
 
@@ -44,23 +58,22 @@
         .logo-container img {
             max-width: 180px;
             height: auto;
-            border: none;
-            outline: none;
+            border-radius: 12px;
         }
 
-        /* Shared glassmorphism styles */
+        /* Glassmorphism Styles المعدلة للون 0087FC */
         header, .stat-card, .link-item, .chart-card, .settings-card {
-            background: rgba(20, 21, 25, 0.6);
+            background: var(--card-bg);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5),
-                        inset 0 1px 1px rgba(255, 255, 255, 0.05);
-            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.08);
+            border-radius: 22px;
         }
 
         header {
-            padding: 24px;
+            padding: 22px 26px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -74,24 +87,23 @@
         }
 
         .header-profile i {
-            background: linear-gradient(135deg, #ffd700 0%, #b89b00 100%);
-            color: #000;
+            background: var(--theme-blue);
+            color: #fff;
             padding: 14px;
-            border-radius: 50%;
+            border-radius: 16px;
             font-size: 20px;
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 135, 252, 0.35);
         }
 
         .header-info h1 {
-            color: #ffd700;
+            color: #ffffff;
             font-size: 22px;
             font-weight: 800;
-            text-shadow: 0px 2px 10px rgba(255, 215, 0, 0.1);
         }
 
         .header-info p {
-            color: #a0a0a0;
-            font-size: 13px;
+            color: var(--text-sub);
+            font-size: 12.5px;
             font-weight: 500;
         }
 
@@ -110,138 +122,139 @@
         .search-wrapper i {
             position: absolute;
             left: 14px;
-            color: #ffd700;
+            color: var(--theme-blue);
             font-size: 14px;
         }
 
         select, input, textarea {
             padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--task-bg);
+            border: 1px solid var(--border-color);
             border-radius: 14px;
             outline: none;
             color: #ffffff;
-            font-size: 14px;
+            font-size: 13.5px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
         }
 
-        input { padding-left: 40px; width: 200px; }
-        input::placeholder, textarea::placeholder { color: #606060; }
-        input:focus, select:focus, textarea:focus { background: rgba(255, 255, 255, 0.05); border-color: #ffd700; box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.1); }
+        input { padding-left: 40px; width: 220px; }
+        input::placeholder, textarea::placeholder { color: var(--text-sub); }
+        input:focus, select:focus, textarea:focus { border-color: var(--theme-blue); box-shadow: 0 0 12px rgba(0, 135, 252, 0.25); }
 
         select {
             cursor: pointer;
             padding-right: 32px;
             padding-left: 14px;
             appearance: none;
-            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ffd700' stroke-width='2.5'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%230087FC' stroke-width='2.5'><polyline points='6 9 12 15 18 9'></polyline></svg>");
             background-repeat: no-repeat;
             background-position: right 12px center;
             background-size: 12px;
         }
 
-        select option { background-color: #1a1c23; color: #ffffff; }
+        select option { background-color: var(--card-bg); color: #ffffff; }
 
         /* ================= Settings Card Styles ================= */
-        .settings-card { padding: 24px; margin-bottom: 24px; }
-        .settings-header { font-size: 16px; font-weight: 800; color: #ffd700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .settings-card { padding: 22px 26px; margin-bottom: 24px; }
+        .settings-header { font-size: 15px; font-weight: 800; color: var(--theme-blue); margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
         .settings-grid { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between; }
         
-        /* Updated wrapper for Custom Logos */
-        .switch-wrapper { display: flex; align-items: center; gap: 10px; font-weight: 700; color: #fff; }
+        .switch-wrapper { display: flex; align-items: center; gap: 10px; font-weight: 700; color: #fff; font-size: 13px; }
         .network-icon { height: 20px; width: auto; object-fit: contain; }
         
-        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch { position: relative; display: inline-block; width: 48px; height: 25px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255, 255, 255, 0.1); transition: .4s; border-radius: 34px; border: 1px solid rgba(255, 255, 255, 0.1); }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: #a0a0a0; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: rgba(255, 215, 0, 0.2); border-color: #ffd700; }
-        input:checked + .slider:before { transform: translateX(24px); background-color: #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255, 255, 255, 0.08); transition: .3s; border-radius: 34px; border: 1px solid var(--border-color); }
+        .slider:before { position: absolute; content: ""; height: 17px; width: 17px; left: 3px; bottom: 3px; background-color: var(--text-sub); transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: rgba(0, 135, 252, 0.25); border-color: var(--theme-blue); }
+        input:checked + .slider:before { transform: translateX(23px); background-color: var(--theme-blue); box-shadow: 0 0 10px rgba(0, 135, 252, 0.6); }
 
         .admin-auth-group { display: flex; gap: 10px; align-items: center; }
-        #settingsStatus { width: 100%; text-align: right; font-size: 13px; font-weight: 700; margin-top: 10px; height: 15px; }
+        #settingsStatus { width: 100%; text-align: right; font-size: 12.5px; font-weight: 700; margin-top: 10px; height: 15px; }
 
-        /* Stats Enhancements */
+        /* Stats Overview */
         .stats-overview {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
             margin-bottom: 24px;
         }
 
-        .stat-card { padding: 24px; position: relative; overflow: hidden; }
-        .stat-card::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255, 215, 0, 0.04) 0%, transparent 60%); z-index: 0; pointer-events: none; }
+        .stat-card { padding: 20px; position: relative; overflow: hidden; }
+        .stat-card::after { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(0, 135, 252, 0.05) 0%, transparent 60%); z-index: 0; pointer-events: none; }
         .stat-card > * { position: relative; z-index: 1; }
-        .stat-card h3 { font-size: 14px; font-weight: 700; color: #a0a0a0; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .stat-card h3 { font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
         
-        .stat-card .value { font-size: 32px; font-weight: 800; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+        .stat-card .value { font-size: 28px; font-weight: 800; color: #ffffff; text-shadow: 0 2px 10px rgba(0,0,0,0.4); }
 
         /* Chart Styling */
-        .chart-card { padding: 24px; margin-bottom: 30px; }
-        .chart-header { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: #ffd700; margin-bottom: 20px; }
+        .chart-card { padding: 22px 26px; margin-bottom: 26px; }
+        .chart-header { display: flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 800; color: var(--theme-blue); margin-bottom: 18px; }
 
-        .or-divider { text-align: center; margin: 30px 0; position: relative; }
-        .or-divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(255, 255, 255, 0.1); z-index: 1; }
-        .or-divider span { background: rgba(20, 21, 25, 0.9); padding: 6px 16px; border-radius: 12px; font-size: 12px; font-weight: 800; color: #ffd700; position: relative; z-index: 2; border: 1px solid rgba(255, 215, 0, 0.2); }
+        .or-divider { text-align: center; margin: 26px 0; position: relative; }
+        .or-divider::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: var(--border-color); z-index: 1; }
+        .or-divider span { background: var(--card-bg); padding: 6px 16px; border-radius: 12px; font-size: 12px; font-weight: 800; color: var(--theme-blue); position: relative; z-index: 2; border: 1px solid rgba(0, 135, 252, 0.3); }
 
-        .links-list { display: flex; flex-direction: column; gap: 16px; }
-        .link-item { border-radius: 20px; overflow: hidden; transition: all 0.3s ease; }
-        .link-item:hover { background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 215, 0, 0.3); transform: translateY(-2px); }
-        .link-header { padding: 22px 24px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; flex-wrap: wrap; gap: 15px; }
-        .link-info { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 200px; overflow: hidden; }
+        .links-list { display: flex; flex-direction: column; gap: 14px; }
+        .link-item { border-radius: 18px; overflow: hidden; transition: all 0.25s ease; }
+        .link-item:hover { background: rgba(255, 255, 255, 0.02); border-color: rgba(0, 135, 252, 0.35); transform: translateY(-2px); }
+        .link-header { padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; flex-wrap: wrap; gap: 14px; }
+        .link-info { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 200px; overflow: hidden; }
         
-        .link-slug { font-size: 18px; font-weight: 800; color: #ffd700; display: flex; align-items: center; gap: 12px; }
+        .link-slug { font-size: 16px; font-weight: 800; color: var(--theme-blue); display: flex; align-items: center; gap: 10px; }
 
-        .copy-short-btn { background: rgba(255, 255, 255, 0.1); border: none; color: #fff; cursor: pointer; padding: 6px 10px; border-radius: 8px; font-size: 12px; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; }
-        .copy-short-btn:hover { background: #ffd700; color: #000; transform: scale(1.05); }
+        .copy-short-btn { background: rgba(255, 255, 255, 0.08); border: none; color: #fff; cursor: pointer; padding: 5px 9px; border-radius: 8px; font-size: 11.5px; transition: all 0.25s ease; display: flex; align-items: center; justify-content: center; }
+        .copy-short-btn:hover { background: var(--theme-blue); color: #fff; }
 
-        .link-url { font-size: 13px; color: #a0a0a0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; font-weight: 500; }
+        .link-url { font-size: 12.5px; color: var(--text-sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; font-weight: 500; }
         
-        .link-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end;}
+        .link-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
         
         /* Badges Styling With Logos */
-        .badge-logo { height: 14px; width: auto; object-fit: contain; }
-        .lootlabs-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); color: #ffd700; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-        .linkvertise-badge { background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-        .nitrolink-badge { background: rgba(255, 87, 34, 0.1); border: 1px solid rgba(255, 87, 34, 0.3); color: #ff5722; padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-        .success-badge { padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 12px; display: flex; align-items: center; gap: 6px; border: 1px solid rgba(96, 165, 250, 0.3); background: rgba(96, 165, 250, 0.1); color: #60a5fa; }
+        .badge-logo { height: 13px; width: auto; object-fit: contain; }
+        .badge-style { padding: 5px 10px; border-radius: 10px; font-size: 11.5px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
         
-        .toggle-icon { font-size: 12px; color: #ffd700; transition: transform 0.35s ease, background 0.3s ease; background: rgba(255, 255, 255, 0.05); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.1); margin-left: 10px;}
-        .link-item.open .toggle-icon { transform: rotate(180deg); color: #000; background: #ffd700; border-color: #ffd700; }
+        .linkjust-badge { background: rgba(0, 135, 252, 0.12); border: 1px solid rgba(0, 135, 252, 0.3); color: var(--theme-blue); }
+        .lootlabs-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); color: #ffd700; }
+        .linkvertise-badge { background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80; }
+        .nitrolink-badge { background: rgba(255, 87, 34, 0.1); border: 1px solid rgba(255, 87, 34, 0.3); color: #ff5722; }
+        .success-badge { border: 1px solid rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.12); color: var(--success); }
         
-        .link-details { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1); background: rgba(0, 0, 0, 0.2); border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        .toggle-icon { font-size: 12px; color: var(--theme-blue); transition: transform 0.3s ease, background 0.25s ease; background: rgba(255, 255, 255, 0.05); width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-color); margin-left: 8px; }
+        .link-item.open .toggle-icon { transform: rotate(180deg); color: #fff; background: var(--theme-blue); border-color: var(--theme-blue); }
+        
+        .link-details { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1); background: rgba(0, 0, 0, 0.2); border-top: 1px solid var(--border-color); }
         .link-item.open .link-details { grid-template-rows: 1fr; }
         .details-wrapper { overflow: hidden; }
-        .edit-box { padding: 24px; }
-        .edit-box h4 { font-size: 14px; font-weight: 800; color: #ffd700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        .edit-input-group { display: flex; flex-direction: column; gap: 12px; width: 100%; }
-        .edit-content-input { width: 100%; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 215, 0, 0.2); padding: 14px; color: #fff; resize: vertical; min-height: 80px; font-family: monospace; border-radius: 12px; }
-        .edit-content-input:focus { background: rgba(0, 0, 0, 0.5); border-color: #ffd700; }
+        .edit-box { padding: 20px; }
+        .edit-box h4 { font-size: 13.5px; font-weight: 800; color: var(--theme-blue); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .edit-input-group { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .edit-content-input { width: 100%; background: var(--task-bg); border: 1px solid var(--border-color); padding: 12px; color: #fff; resize: vertical; min-height: 75px; font-family: monospace; border-radius: 12px; font-size: 13px; }
+        .edit-content-input:focus { border-color: var(--theme-blue); }
         
         .action-buttons { display: flex; gap: 10px; justify-content: flex-end; }
-        .save-btn, .delete-btn { border: none; padding: 12px 20px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
-        .save-btn { background: linear-gradient(135deg, #ffd700 0%, #b89b00 100%); color: #000; box-shadow: 0 4px 12px rgba(255, 215, 0, 0.15); }
-        .save-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(255, 215, 0, 0.25); background: linear-gradient(135deg, #ffea00 0%, #c9a900 100%); }
-        .delete-btn { background: linear-gradient(135deg, #ff4d4d 0%, #cc0000 100%); color: white; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
-        .delete-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(239, 68, 68, 0.3); background: linear-gradient(135deg, #ff6666 0%, #e60000 100%); }
-        .no-data { text-align: center; color: #a0a0a0; padding: 30px; font-size: 14px; font-weight: 600; }
+        .save-btn, .delete-btn { border: none; padding: 10px 18px; border-radius: 12px; font-weight: 800; font-size: 13px; cursor: pointer; transition: all 0.25s ease; display: flex; align-items: center; gap: 6px; }
+        .save-btn { background: var(--theme-blue); color: #fff; box-shadow: 0 4px 12px rgba(0, 135, 252, 0.25); }
+        .save-btn:hover { background: var(--theme-blue-hover); transform: translateY(-2px); }
+        .delete-btn { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        .delete-btn:hover { background: var(--danger); color: #fff; transform: translateY(-2px); }
+        .no-data { text-align: center; color: var(--text-sub); padding: 30px; font-size: 13.5px; font-weight: 600; }
 
         @media (max-width: 768px) {
-            body { padding: 20px 12px; }
-            header { flex-direction: column; align-items: stretch; gap: 16px; }
+            body { padding: 15px 10px; }
+            header { flex-direction: column; align-items: stretch; gap: 14px; }
             .controls { flex-direction: column; align-items: stretch; }
             .search-wrapper, input, select { width: 100%; }
-            .link-header { flex-direction: column; align-items: flex-start; gap: 14px; }
+            .link-header { flex-direction: column; align-items: flex-start; gap: 12px; }
             .link-meta { width: 100%; justify-content: flex-start; }
             .action-buttons { width: 100%; flex-direction: column; }
-            .save-btn, .delete-btn { padding: 14px; justify-content: center; flex: 1; }
+            .save-btn, .delete-btn { padding: 12px; justify-content: center; flex: 1; }
             .settings-grid { flex-direction: column; align-items: flex-start; }
             .admin-auth-group { width: 100%; flex-direction: column; }
             .admin-auth-group input { width: 100%; }
             .admin-auth-group .save-btn { width: 100%; justify-content: center; }
             #settingsStatus { text-align: center; }
-            .toggle-icon { margin-left: auto; }
         }
     </style>
 </head>
@@ -250,12 +263,12 @@
     <div class="dashboard-container">
         
         <div class="logo-container">
-            <img src="/logo.png" alt="Website Logo">
+            <img src="/logo.png" alt="SubX Logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2933/2933116.png'">
         </div>
 
         <header>
             <div class="header-profile">
-                <i class="fa-solid fa-gear"></i>
+                <i class="fa-solid fa-chart-pie"></i>
                 <div class="header-info">
                     <h1>Dashboard & Analytics</h1>
                     <p>Manage and track content performance</p>
@@ -279,10 +292,19 @@
                 <i class="fa-solid fa-sliders"></i> Monetization Settings
             </div>
             <div class="settings-grid">
-                <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                     
                     <div class="switch-wrapper">
-                        <img src="/LootLabs.png" alt="LootLabs" class="network-icon">
+                        <img src="https://cdn-icons-png.flaticon.com/512/2933/2933116.png" alt="LinkJust" class="network-icon">
+                        <label>LinkJust</label>
+                        <label class="switch">
+                            <input type="checkbox" id="linkjustToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="switch-wrapper">
+                        <img src="/LootLabs.png" alt="LootLabs" class="network-icon" onerror="this.src='https://lootlabs.gg/favicon.ico'">
                         <label>LootLabs</label>
                         <label class="switch">
                             <input type="checkbox" id="lootlabsToggle" checked>
@@ -291,7 +313,7 @@
                     </div>
                     
                     <div class="switch-wrapper">
-                        <img src="/linkvertise.png" alt="Linkvertise" class="network-icon">
+                        <img src="/linkvertise.png" alt="Linkvertise" class="network-icon" onerror="this.src='https://i.ibb.co/YFSmFQTL/linkvertise.png'">
                         <label>Linkvertise</label>
                         <label class="switch">
                             <input type="checkbox" id="linkvertiseToggle" checked>
@@ -299,9 +321,8 @@
                         </label>
                     </div>
                     
-                    <!-- Modified: Using local image /nitrolink.png instead of external URL -->
                     <div class="switch-wrapper">
-                        <img src="/nitrolink.png" alt="Nitro Link" class="network-icon">
+                        <img src="/nitrolink.png" alt="Nitro Link" class="network-icon" onerror="this.src='https://i.ibb.co/GQ22bMHN/nitrolink.png'">
                         <label>Nitro Link</label>
                         <label class="switch">
                             <input type="checkbox" id="nitrolinkToggle" checked>
@@ -312,9 +333,9 @@
                 </div>
 
                 <div class="admin-auth-group">
-                    <input type="password" id="adminKey" placeholder="Admin Password..." style="width: 180px;">
+                    <input type="password" id="adminKey" placeholder="Admin Password..." style="width: 170px;">
                     <button class="save-btn" onclick="saveAdSettings()">
-                        <i class="fa-solid fa-shield-check"></i> Update Settings
+                        <i class="fa-solid fa-shield-check"></i> Save Settings
                     </button>
                 </div>
             </div>
@@ -327,21 +348,24 @@
                 <div class="value" id="totalLinks">0</div>
             </div>
             <div class="stat-card">
-                <h3><img src="/LootLabs.png" alt="LootLabs" class="network-icon"> LootLabs</h3>
+                <h3><img src="https://cdn-icons-png.flaticon.com/512/2933/2933116.png" class="network-icon" alt="LinkJust"> LinkJust</h3>
+                <div class="value" id="totalLinkJust" style="color: var(--theme-blue)">0</div>
+            </div>
+            <div class="stat-card">
+                <h3><img src="/LootLabs.png" class="network-icon" alt="LootLabs" onerror="this.src='https://lootlabs.gg/favicon.ico'"> LootLabs</h3>
                 <div class="value" id="totalLootLabs" style="color: #ffd700">0</div>
             </div>
             <div class="stat-card">
-                <h3><img src="/linkvertise.png" alt="Linkvertise" class="network-icon"> Linkvertise</h3>
+                <h3><img src="/linkvertise.png" class="network-icon" alt="Linkvertise" onerror="this.src='https://i.ibb.co/YFSmFQTL/linkvertise.png'"> Linkvertise</h3>
                 <div class="value" id="totalLinkvertise" style="color: #4ade80">0</div>
             </div>
-            <!-- Modified: Using local image /nitrolink.png here too -->
             <div class="stat-card">
-                <h3><img src="/nitrolink.png" alt="Nitro Link" class="network-icon"> Nitro Link</h3>
+                <h3><img src="/nitrolink.png" class="network-icon" alt="Nitro Link" onerror="this.src='https://i.ibb.co/GQ22bMHN/nitrolink.png'"> Nitro Link</h3>
                 <div class="value" id="totalNitroLink" style="color: #ff5722">0</div>
             </div>
             <div class="stat-card">
-                <h3><i class="fa-solid fa-square-check" style="color: #60a5fa;"></i> Total Complete</h3>
-                <div class="value" id="totalCompleted" style="color: #60a5fa">0</div>
+                <h3><i class="fa-solid fa-square-check" style="color: var(--success);"></i> Total Complete</h3>
+                <div class="value" id="totalCompleted" style="color: var(--success)">0</div>
             </div>
         </div>
 
@@ -349,16 +373,14 @@
             <div class="chart-header">
                 <i class="fa-solid fa-chart-line"></i> Top Performing Links
             </div>
-            <canvas id="performanceChart" height="100"></canvas>
+            <canvas id="performanceChart" height="90"></canvas>
         </div>
 
         <div class="or-divider">
             <span>Manage & Edit Content</span>
         </div>
 
-        <div class="links-list" id="linksList">
-            <!-- Cards will be generated here -->
-        </div>
+        <div class="links-list" id="linksList"></div>
     </div>
 
     <script>
@@ -366,20 +388,20 @@
         let myChart = null;
 
         async function saveAdSettings() {
+            const linkjust = document.getElementById('linkjustToggle').checked;
             const lootlabs = document.getElementById('lootlabsToggle').checked;
             const linkvertise = document.getElementById('linkvertiseToggle').checked;
-            // Get Nitro Link state
             const nitrolink = document.getElementById('nitrolinkToggle').checked;
             const adminKey = document.getElementById('adminKey').value;
             const status = document.getElementById('settingsStatus');
 
             if(!adminKey) {
-                status.style.color = "#ff4d4d";
+                status.style.color = "var(--danger)";
                 status.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Password required!';
                 return;
             }
 
-            status.style.color = "#a0a0a0";
+            status.style.color = "var(--text-sub)";
             status.innerHTML = "Saving changes...";
 
             try {
@@ -387,9 +409,10 @@
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        linkjustEnabled: linkjust,
                         lootlabsEnabled: lootlabs,
                         linkvertiseEnabled: linkvertise,
-                        nitrolinkEnabled: nitrolink, // Added nitrolinkEnabled payload
+                        nitrolinkEnabled: nitrolink,
                         adminKey: adminKey
                     })
                 });
@@ -397,15 +420,15 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    status.style.color = "#4ade80";
+                    status.style.color = "var(--success)";
                     status.innerHTML = '<i class="fa-solid fa-circle-check"></i> Settings updated successfully!';
                     setTimeout(() => status.innerHTML = "", 3000);
                 } else {
-                    status.style.color = "#ff4d4d";
+                    status.style.color = "var(--danger)";
                     status.innerHTML = '<i class="fa-solid fa-circle-xmark"></i> Error: ' + data.message;
                 }
             } catch (e) {
-                status.style.color = "#ff4d4d";
+                status.style.color = "var(--danger)";
                 status.innerHTML = '<i class="fa-solid fa-wifi"></i> Network error, please try again.';
             }
         }
@@ -424,16 +447,17 @@
         }
 
         function calculateOverview(links) {
-            const totalLinks = links.length;
-            document.getElementById('totalLinks').innerText = totalLinks;
+            document.getElementById('totalLinks').innerText = links.length;
             
+            const totalLinkJust = links.reduce((sum, link) => sum + (link.linkjustCompletions || 0), 0);
+            document.getElementById('totalLinkJust').innerText = totalLinkJust;
+
             const totalLootLabs = links.reduce((sum, link) => sum + (link.lootlabsCompletions || 0), 0);
             document.getElementById('totalLootLabs').innerText = totalLootLabs;
             
             const totalLinkvertise = links.reduce((sum, link) => sum + (link.linkvertiseCompletions || 0), 0);
             document.getElementById('totalLinkvertise').innerText = totalLinkvertise;
 
-            // Added total Nitro Link calculation
             const totalNitroLink = links.reduce((sum, link) => sum + (link.nitrolinkCompletions || 0), 0);
             document.getElementById('totalNitroLink').innerText = totalNitroLink;
 
@@ -450,9 +474,9 @@
 
             if (myChart) { myChart.destroy(); }
 
-            let gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
-            gradient.addColorStop(1, 'rgba(255, 215, 0, 0.05)');
+            let gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(0, 135, 252, 0.85)');
+            gradient.addColorStop(1, 'rgba(0, 135, 252, 0.05)');
 
             myChart = new Chart(ctx, {
                 type: 'bar',
@@ -462,7 +486,7 @@
                         label: 'Completed Tasks',
                         data: dataCounts,
                         backgroundColor: gradient,
-                        borderColor: '#ffd700',
+                        borderColor: '#0087FC',
                         borderWidth: 1.5,
                         borderRadius: 8,
                         borderSkipped: false
@@ -472,11 +496,11 @@
                     responsive: true,
                     plugins: { 
                         legend: { display: false },
-                        tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', titleColor: '#ffd700', padding: 12, cornerRadius: 8 }
+                        tooltip: { backgroundColor: 'rgba(10, 14, 26, 0.9)', titleColor: '#0087FC', padding: 12, cornerRadius: 8 }
                     },
                     scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false }, ticks: { color: '#a0a0a0', stepSize: 1 } },
-                        x: { grid: { display: false, drawBorder: false }, ticks: { color: '#a0a0a0' } }
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false }, ticks: { color: '#8a94a6', stepSize: 1 } },
+                        x: { grid: { display: false, drawBorder: false }, ticks: { color: '#8a94a6' } }
                     }
                 }
             });
@@ -491,8 +515,8 @@
             navigator.clipboard.writeText(text).then(() => {
                 const originalHtml = btnElement.innerHTML;
                 btnElement.innerHTML = '<i class="fa-solid fa-check"></i>';
-                btnElement.style.background = '#4ade80';
-                btnElement.style.color = '#000';
+                btnElement.style.background = '#10b981';
+                btnElement.style.color = '#fff';
                 setTimeout(() => {
                     btnElement.innerHTML = originalHtml;
                     btnElement.style.background = '';
@@ -527,12 +551,12 @@
                 }
             } catch (err) {
                 console.error("Error updating content:", err);
-                alert("Update request sent successfully.");
+                alert("Update request processed.");
             }
         }
 
         async function deleteLink(id) {
-            if(!confirm("Are you sure you want to permanently delete this content from the database? ⚠️")) return;
+            if(!confirm("Are you sure you want to permanently delete this content from database? ⚠️")) return;
 
             try {
                 const response = await fetch('/api/analytics', {
@@ -550,7 +574,6 @@
                 }
             } catch (err) {
                 console.error("Error deleting content:", err);
-                alert("Delete request sent successfully.");
                 fetchAnalytics();
             }
         }
@@ -563,8 +586,9 @@
             container.innerHTML = "";
 
             let filteredLinks = mockData.filter(link => {
+                const contentUrl = link.targetUrl || link.url || "";
                 return (link.id && link.id.toLowerCase().includes(searchInput)) || 
-                       (link.url && link.url.toLowerCase().includes(searchInput));
+                       (contentUrl && contentUrl.toLowerCase().includes(searchInput));
             });
 
             if (sortMethod === 'tasks-desc') {
@@ -585,8 +609,8 @@
 
             filteredLinks.forEach(link => {
                 const inputId = `input-${link.id}`;
-                const safeContent = escapeHTML(link.url || "");
-                // Modified: Hardcoded base URL for copy links
+                const rawContent = link.targetUrl || link.url || "";
+                const safeContent = escapeHTML(rawContent);
                 const shareableLink = `https://www.subx.click/${link.id}`;
                 
                 const linkItem = document.createElement('div');
@@ -603,20 +627,23 @@
                             <div class="link-url">${safeContent}</div>
                         </div>
                         <div class="link-meta">
-                            <span class="lootlabs-badge">
-                                <img src="/LootLabs.png" class="badge-logo" alt="LootLabs"> 
+                            <span class="badge-style linkjust-badge">
+                                <img src="https://cdn-icons-png.flaticon.com/512/2933/2933116.png" class="badge-logo" alt="LinkJust"> 
+                                ${link.linkjustCompletions || 0}
+                            </span>
+                            <span class="badge-style lootlabs-badge">
+                                <img src="/LootLabs.png" class="badge-logo" alt="LootLabs" onerror="this.src='https://lootlabs.gg/favicon.ico'"> 
                                 ${link.lootlabsCompletions || 0}
                             </span>
-                            <span class="linkvertise-badge">
-                                <img src="/linkvertise.png" class="badge-logo" alt="Linkvertise"> 
+                            <span class="badge-style linkvertise-badge">
+                                <img src="/linkvertise.png" class="badge-logo" alt="Linkvertise" onerror="this.src='https://i.ibb.co/YFSmFQTL/linkvertise.png'"> 
                                 ${link.linkvertiseCompletions || 0}
                             </span>
-                            <!-- Modified: Using local image /nitrolink.png in the badge -->
-                            <span class="nitrolink-badge">
-                                <img src="/nitrolink.png" class="badge-logo" alt="Nitro Link"> 
+                            <span class="badge-style nitrolink-badge">
+                                <img src="/nitrolink.png" class="badge-logo" alt="Nitro Link" onerror="this.src='https://i.ibb.co/GQ22bMHN/nitrolink.png'"> 
                                 ${link.nitrolinkCompletions || 0}
                             </span>
-                            <span class="success-badge"><i class="fa-solid fa-circle-check"></i> ${link.completedTasksCount || 0} Total</span>
+                            <span class="badge-style success-badge"><i class="fa-solid fa-circle-check"></i> ${link.completedTasksCount || 0} Total</span>
                             <span class="toggle-icon"><i class="fa-solid fa-chevron-down"></i></span>
                         </div>
                     </div>
@@ -643,10 +670,9 @@
             });
         }
 
-        // Live updating
         function startLiveUpdates() {
-            fetchAnalytics(); // Initial fetch
-            setInterval(fetchAnalytics, 15000); // Fetch every 15 seconds
+            fetchAnalytics(); 
+            setInterval(fetchAnalytics, 15000); 
         }
 
         window.onload = startLiveUpdates;
