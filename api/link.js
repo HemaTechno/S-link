@@ -95,18 +95,18 @@ const vpnBlockUI = `
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
         body { 
           background-color: var(--bg-dark); 
-          background-image: radial-gradient(rgba(0, 135, 252, 0.12) 1px, transparent 1px);
-          background-size: 24px 24px;
-          display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; 
+          background-image: radial-gradient(rgba(0, 135, 252, 0.1) 1px, transparent 1px);
+          background-size: 20px 24px;
+          display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 15px; 
         }
         .main-card {
-          width: 440px; max-width: 100%; padding: 40px 30px; border-radius: 28px;
+          width: 380px; max-width: 100%; padding: 30px 22px; border-radius: 22px;
           background: #12161f; border: 1px solid rgba(255, 255, 255, 0.05); text-align: center;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+          box-shadow: 0 15px 40px rgba(0,0,0,0.6);
         }
-        h1 { color: var(--theme-blue); margin-bottom: 12px; font-size: 1.7rem; font-weight: 800; }
-        p { color: #8a94a6; font-size: 1rem; margin-bottom: 20px; line-height: 1.5; }
-        .error-icon { font-size: 60px; color: var(--theme-blue); margin-bottom: 20px; }
+        h1 { color: var(--theme-blue); margin-bottom: 10px; font-size: 1.4rem; font-weight: 800; }
+        p { color: #8a94a6; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4; }
+        .error-icon { font-size: 50px; color: var(--theme-blue); margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -130,8 +130,8 @@ const notFoundPage = () => `
   *{margin:0;padding:0;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}
   body{background:#0a0d14;display:flex;justify-content:center;align-items:center;min-height:100vh;color:#fff}
   .box{text-align:center}
-  h1{font-size:4rem;color:#0087FC}
-  p{color:#64748b;margin-top:8px}
+  h1{font-size:3.5rem;color:#0087FC}
+  p{color:#64748b;margin-top:6px}
 </style>
 </head>
 <body><div class="box"><h1>404</h1><p>This content does not exist or has been removed.</p></div></body>
@@ -144,23 +144,25 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   const tasksHtml = totalTasks
     ? `
     <div class="step-indicator">
-      <span class="step-text">Step 1 of 1</span>
-      <div class="step-bar"></div>
+      <span class="step-text" id="stepCounterText">Step 1 of ${totalTasks}</span>
+      <div class="step-bar-wrap">
+        <div class="step-bar" id="stepBar"></div>
+      </div>
     </div>
     
     <div class="tasks-container">
       ${tasks
         .map(
           (task, idx) => `
-        <div class="task-card" id="task-card-${idx}">
-          <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(${idx})">
+        <div class="task-card ${idx === 0 ? 'active-step' : 'locked-step'}" id="task-card-${idx}">
+          <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(event, ${idx})">
             <div class="task-info">
               <div class="icon-box">
                 <i class="fa-brands fa-${task.platform || "youtube"}"></i>
               </div>
               <div class="task-text-wrap">
                 <span class="task-title">${task.action}</span>
-                <span class="task-sub" id="sub-text-${idx}">Click to complete step</span>
+                <span class="task-sub" id="sub-text-${idx}">${idx === 0 ? 'Click to complete step' : 'Locked (Complete previous step)'}</span>
               </div>
             </div>
             
@@ -198,7 +200,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     --card-bg: #141820;
     --task-bg: #1a1f2c;
     --theme-blue: #0087FC;
-    --theme-blue-hover: #0076e0;
+    --theme-blue-hover: #0072dc;
     --text-main: #ffffff;
     --text-sub: #8a94a6;
     --success: #10b981;
@@ -209,105 +211,114 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
   body {
     background-color: var(--bg-dark);
-    /* Grid background pattern identical to screenshot */
     background-image: radial-gradient(rgba(0, 135, 252, 0.12) 1.2px, transparent 1.2px);
-    background-size: 24px 24px;
+    background-size: 20px 20px;
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 20px;
+    padding: 15px;
     color: var(--text-main);
   }
 
   .main-card {
-    width: 440px;
+    width: 380px;
     max-width: 100%;
-    padding: 36px 28px;
-    border-radius: 28px;
+    padding: 26px 20px;
+    border-radius: 22px;
     background: var(--card-bg);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
     text-align: center;
   }
 
-  .avatar-wrap {
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 18px auto;
-    border-radius: 50%;
-    border: 2px solid var(--theme-blue);
-    padding: 3px;
-    box-shadow: 0 0 18px rgba(0, 135, 252, 0.25);
-  }
-  .avatar-wrap img {
+  /* Rectangular Rounded Thumbnail Image */
+  .media-thumb {
     width: 100%;
-    height: 100%;
-    border-radius: 50%;
+    height: 140px;
+    margin: 0 auto 16px auto;
+    border-radius: 14px;
+    border: 1px solid rgba(0, 135, 252, 0.3);
     object-fit: cover;
+    box-shadow: 0 6px 20px rgba(0, 135, 252, 0.15);
   }
 
   h1 {
-    font-size: 1.85rem;
+    font-size: 1.5rem;
     font-weight: 800;
     color: #ffffff;
-    margin-bottom: 6px;
-    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
   }
 
   .desc {
     color: var(--text-sub);
-    font-size: 0.95rem;
-    margin-bottom: 22px;
+    font-size: 0.88rem;
+    margin-bottom: 18px;
     font-weight: 500;
+    line-height: 1.4;
   }
 
-  /* Step Indicator */
+  /* Step Indicator Bar */
   .step-indicator {
-    margin-bottom: 22px;
+    margin-bottom: 18px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
   .step-text {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-sub);
     font-weight: 700;
   }
+  .step-bar-wrap {
+    width: 100%;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+  }
   .step-bar {
-    width: 32px;
-    height: 6px;
+    width: 0%;
+    height: 100%;
     background: var(--theme-blue);
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 135, 252, 0.6);
+    transition: width 0.4s ease;
   }
 
   /* Tasks Container */
   .tasks-container {
     display: flex;
     flex-direction: column;
-    gap: 14px;
-    margin-bottom: 26px;
+    gap: 10px;
+    margin-bottom: 20px;
   }
 
   .task-card {
     background: var(--task-bg);
     border: 1px solid rgba(255, 255, 255, 0.04);
-    border-radius: 18px;
+    border-radius: 14px;
     overflow: hidden;
     transition: all 0.25s ease;
   }
-  .task-card:hover {
-    border-color: rgba(0, 135, 252, 0.3);
-    transform: translateY(-2px);
+  
+  .task-card.locked-step {
+    opacity: 0.4;
+    pointer-events: none;
+    filter: grayscale(0.6);
+  }
+
+  .task-card.active-step:hover {
+    border-color: rgba(0, 135, 252, 0.4);
   }
 
   .task-btn {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 18px;
+    padding: 12px 14px;
     text-decoration: none;
     color: #fff;
   }
@@ -315,12 +326,12 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .task-info {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
   }
 
   .icon-box {
-    font-size: 22px;
-    color: #ff0000; /* YouTube Icon default color */
+    font-size: 18px;
+    color: var(--theme-blue);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -333,11 +344,11 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   }
   .task-title {
     font-weight: 700;
-    font-size: 15px;
+    font-size: 13.5px;
     color: #fff;
   }
   .task-sub {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-sub);
     margin-top: 2px;
   }
@@ -348,19 +359,19 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   }
 
   .action-circle {
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 12px;
     transition: 0.2s ease;
   }
   .action-circle.arrow {
     background: var(--theme-blue);
     color: #ffffff;
-    box-shadow: 0 0 12px rgba(0, 135, 252, 0.4);
+    box-shadow: 0 0 10px rgba(0, 135, 252, 0.3);
   }
   .action-circle.check {
     background: rgba(16, 185, 129, 0.15);
@@ -372,16 +383,16 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     background: rgba(0, 135, 252, 0.12);
     border: 1px solid var(--theme-blue);
     color: var(--theme-blue);
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 11px;
     font-weight: 700;
   }
 
   .task-alert-box {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 700;
-    padding: 0 18px 12px 18px;
+    padding: 0 14px 10px 14px;
     text-align: left;
     display: none;
   }
@@ -390,32 +401,32 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
   /* Toast Notification */
   .toast-container {
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-    z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+    position: fixed; top: 15px; left: 50%; transform: translateX(-50%);
+    z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none;
   }
   .toast {
     background: #141820; border: 1px solid var(--danger); color: #fff;
-    padding: 14px 22px; border-radius: 14px; font-size: 13.5px; font-weight: 700;
-    display: flex; align-items: center; gap: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+    padding: 12px 18px; border-radius: 12px; font-size: 12.5px; font-weight: 700;
+    display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     animation: toastIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
   }
   @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-  /* Main Button Style matching 0087FC Theme */
+  /* Main Button Style */
   .btn {
-    width: 100%; padding: 16px; border-radius: 16px; font-size: 16px; font-weight: 800;
-    text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; padding: 14px; border-radius: 14px; font-size: 15px; font-weight: 800;
+    text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px;
     border: none; cursor: pointer; transition: all 0.25s ease;
   }
   .default-btn {
     color: #ffffff;
     background: var(--theme-blue);
-    box-shadow: 0 8px 25px rgba(0, 135, 252, 0.35);
+    box-shadow: 0 6px 20px rgba(0, 135, 252, 0.3);
   }
   .default-btn:hover:not(.disabled) {
     background: var(--theme-blue-hover);
     transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(0, 135, 252, 0.5);
+    box-shadow: 0 10px 25px rgba(0, 135, 252, 0.45);
   }
   .default-btn.disabled {
     background: #1a1f2c; color: #4a5568; border: 1px solid rgba(255, 255, 255, 0.05);
@@ -423,11 +434,11 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   }
 
   .footer-brand {
-    margin-top: 24px;
+    margin-top: 18px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-sub);
     font-weight: 600;
   }
@@ -441,9 +452,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   <div class="toast-container" id="toastBox"></div>
 
   <div class="main-card">
-    <div class="avatar-wrap">
-      <img src="${image || 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png'}" alt="Avatar">
-    </div>
+    <img src="${image || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&q=80'}" class="media-thumb" alt="Thumbnail">
     
     <h1>${title || "Content Locked"}</h1>
     <p class="desc">${description || "Follow the social steps below to unlock"}</p>
@@ -466,14 +475,26 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   const taskDuration = ${taskDurationSeconds};
   const minStay = ${minStaySeconds};
 
+  let currentActiveIndex = 0;
   let completedTasksCount = 0;
   const taskData = {};
+
+  function updateStepUI() {
+    const stepText = document.getElementById('stepCounterText');
+    const stepBar = document.getElementById('stepBar');
+    
+    if (totalTasks > 0) {
+      const activeStepNumber = Math.min(completedTasksCount + 1, totalTasks);
+      if (stepText) stepText.innerText = 'Step ' + activeStepNumber + ' of ' + totalTasks;
+      if (stepBar) stepBar.style.width = ((completedTasksCount / totalTasks) * 100) + '%';
+    }
+  }
 
   function showToast(message) {
     const toastBox = document.getElementById('toastBox');
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#ef4444; font-size:16px;"></i> ' + message;
+    toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#ef4444; font-size:15px;"></i> ' + message;
     toastBox.appendChild(toast);
 
     setTimeout(() => {
@@ -483,7 +504,13 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }, 4000);
   }
 
-  window.startTaskTracker = function(index) {
+  window.startTaskTracker = function(event, index) {
+    if (index !== currentActiveIndex) {
+      event.preventDefault();
+      showToast('Please complete the current step first!');
+      return;
+    }
+
     if (taskData[index] && taskData[index].completed) return;
 
     const badge = document.getElementById('timer-badge-' + index);
@@ -559,6 +586,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     const alertBox = document.getElementById('alert-' + index);
     const checkOrb = document.getElementById('check-' + index);
     const subText = document.getElementById('sub-text-' + index);
+    const currentCard = document.getElementById('task-card-' + index);
 
     taskData[index].completed = true;
     completedTasksCount++;
@@ -571,10 +599,24 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     alertBox.className = 'task-alert-box success';
     alertBox.innerHTML = '<i class="fa-solid fa-circle-check"></i> Completed!';
 
-    updateProgress();
-  }
+    currentCard.classList.remove('active-step');
+    
+    // Unlock next step sequentially
+    currentActiveIndex++;
+    if (currentActiveIndex < totalTasks) {
+      const nextCard = document.getElementById('task-card-' + currentActiveIndex);
+      const nextSubText = document.getElementById('sub-text-' + currentActiveIndex);
+      if (nextCard) {
+        nextCard.classList.remove('locked-step');
+        nextCard.classList.add('active-step');
+      }
+      if (nextSubText) {
+        nextSubText.innerText = 'Click to complete step';
+      }
+    }
 
-  function updateProgress() {
+    updateStepUI();
+
     if (completedTasksCount >= totalTasks) {
       const btn = document.getElementById('unlockBtn');
       if (btn) {
@@ -588,11 +630,11 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     const btn = document.getElementById('unlockBtn');
     if (btn.classList.contains('disabled')) {
       event.preventDefault();
-      showToast('Please complete the steps first!');
+      showToast('Please complete all steps first!');
     }
   };
 
-  if (totalTasks === 0) updateProgress();
+  updateStepUI();
 })();
 </script>
 </body>
