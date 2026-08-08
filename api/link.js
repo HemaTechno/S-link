@@ -13,26 +13,49 @@ const config = {
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
   taskDurationSeconds: 7, 
-  minStaySeconds: 4,     
+  minStaySeconds: 4,      
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
-const spamCache = new Map();
+/* ========================== 2) DYNAMIC AD NETWORK RESOLVER ========================== */
 
-/* ========================== 2) AD NETWORK HANDLERS ========================== */
-
-async function resolveUnlockUrl(network, id, req) {
+async function resolveUnlockUrl(requestedNetwork, id, req) {
   const host = req.headers.host || "www.subx.click";
   const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
   
-  const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
+  // قراءة سجل الإكملات من الكوكيز
+  const cookieHeader = req.headers.cookie || '';
+  const hasNitroDone = cookieHeader.includes('nitro_24h_cooldown=1');
+  const hasJustDone = cookieHeader.includes('linkjust_24h_cooldown=1');
+  const hasLootDone = cookieHeader.includes('lootlabs_24h_cooldown=1');
 
-  if (network === "direct") {
+  let activeNetwork = requestedNetwork;
+
+  // 🔄 النظام التلقائي الذكي للتبديل عند التكرار
+  if (requestedNetwork === "nitrolink" || requestedNetwork === "just" || requestedNetwork === "lootlabs") {
+    if (hasNitroDone && !hasJustDone) {
+      // لو عمل NitroLink خلال 24 ساعة يُحول لـ LinkJust
+      activeNetwork = "just";
+    } else if (hasJustDone && !hasNitroDone) {
+      // لو عمل LinkJust خلال 24 ساعة يُحول لـ NitroLink
+      activeNetwork = "nitrolink";
+    } else if (hasNitroDone && hasJustDone && !hasLootDone) {
+      // لو عمل الاثنين NitroLink + LinkJust يُحول لـ LootLabs
+      activeNetwork = "lootlabs";
+    } else if (hasNitroDone && hasJustDone && hasLootDone) {
+      // لو أتم الثلاث شبكات خلال 24 ساعة يُحول مباشر بدون إعلانات
+      activeNetwork = "direct";
+    }
+  }
+
+  const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${activeNetwork}`;
+
+  if (activeNetwork === "direct") {
     return completionUrl;
   }
 
   try {
-    if (network === "just") {
+    if (activeNetwork === "just") {
       const apiUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${completionUrl}&alias=${id}`;
       try {
         const res = await axios.get(apiUrl, { 
@@ -52,7 +75,7 @@ async function resolveUnlockUrl(network, id, req) {
       return `https://linkjust.com/st?api=${config.linkJustApiToken}&url=${completionUrl}`;
     }
 
-    if (network === "nitrolink") {
+    if (activeNetwork === "nitrolink") {
       const reqUrl = `https://nitro-link.com/api?api=${config.nitroLinkApiKey}&url=${encodeURIComponent(completionUrl)}`;
       const res = await axios.get(reqUrl, { timeout: 5000 });
       if (res.data?.status === "success" && res.data.shortenedUrl) {
@@ -60,7 +83,7 @@ async function resolveUnlockUrl(network, id, req) {
       }
     }
 
-    if (network === "lootlabs") {
+    if (activeNetwork === "lootlabs") {
       const res = await axios.post(
         "https://creators.lootlabs.gg/api/public/content_locker",
         { title: id, url: completionUrl, tier_id: 1, number_of_tasks: 3, theme: 1 },
@@ -71,13 +94,13 @@ async function resolveUnlockUrl(network, id, req) {
       return rawUrl.replace(/\\\//g, "/");
     } 
     
-    if (network === "linkvertise") {
+    if (activeNetwork === "linkvertise") {
       const base64Url = Buffer.from(completionUrl).toString("base64");
       const rnd = Math.random().toString(36).slice(2, 9);
       return `https://link-to.net/${config.linkvertiseUserId}/${rnd}/dynamic?r=${base64Url}`;
     }
   } catch (e) {
-    console.error(`Ad Network (${network}) Error:`, e.message);
+    console.error(`Ad Network (${activeNetwork}) Error:`, e.message);
   }
   
   return completionUrl;
@@ -612,7 +635,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }, 4000);
   }
 
-  // 🟢 تتبع الخروج والدخول الحقيقي الدقيق مع فتح التبويب تلقائياً بحدث طبيعي
   window.startTaskTracker = function(event, index) {
     playSound('click');
 
@@ -646,12 +668,10 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     subText.innerText = 'Waiting for completion...';
     timerNum.innerText = current.remaining;
 
-    // تسجيل وقت مغادرة الصفحة فور الانتقال للتبويب الجديد
     const onLeave = () => {
       current.leaveTime = performance.now();
     };
 
-    // تسجيل وقت العودة للصفحة
     const onBack = () => {
       current.backTime = performance.now();
     };
@@ -674,7 +694,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         } else if (current.leaveTime > 0) {
           awaySeconds = (performance.now() - current.leaveTime) / 1000;
         } else {
-          awaySeconds = 0; // لم يخرج إطلاقاً من المتصفح
+          awaySeconds = 0;
         }
 
         if (awaySeconds >= minStay) {
