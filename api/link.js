@@ -27,6 +27,10 @@ async function resolveUnlockUrl(network, id, req) {
   
   const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
 
+  if (network === "direct") {
+    return completionUrl;
+  }
+
   try {
     if (network === "just") {
       const apiUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${completionUrl}&alias=${id}`;
@@ -155,7 +159,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         .map(
           (task, idx) => `
         <div class="task-card ${idx === 0 ? 'active-step' : 'locked-step'}" id="task-card-${idx}">
-          <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(event, ${idx})">
+          <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(event, ${idx}, '${task.link}')">
             <div class="task-info">
               <div class="icon-box">
                 <i class="fa-brands fa-${task.platform || "youtube"}"></i>
@@ -269,7 +273,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     line-height: 1.45;
   }
 
-  /* Step Indicator Bar */
   .step-indicator {
     margin-bottom: 18px;
     display: flex;
@@ -300,7 +303,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     transition: width 0.3s ease;
   }
 
-  /* Tasks Container */
   .tasks-container {
     display: flex;
     flex-direction: column;
@@ -415,7 +417,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .task-alert-box.error { color: var(--danger); display: block; }
   .task-alert-box.success { color: var(--success); display: block; }
 
-  /* Toast Notification */
   .toast-container {
     position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
     z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none;
@@ -445,7 +446,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   }
   @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -15px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-  /* Main Button Style */
   .btn {
     width: 100%; padding: 14px; border-radius: 14px; font-size: 14.5px; font-weight: 800;
     text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -513,7 +513,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   let completedTasksCount = 0;
   const taskData = {};
 
-  // نظام الصوتيات عالي الجودة والسرعة بدون أي Lag
   let audioCtx = null;
 
   function initAudio() {
@@ -553,7 +552,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         osc.start(now);
         osc.stop(now + 0.25);
       } else if (type === 'salawat') {
-        // نغمة إشعار الصلاة على النبي النظيفة
         osc.type = 'sine';
         osc.frequency.setValueAtTime(440, now);
         osc.frequency.exponentialRampToValueAtTime(880, now + 0.25);
@@ -573,7 +571,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     } catch(e) {}
   }
 
-  // تفعيل نغمة الصلاة على النبي فور أول لمسة للمستخدم بدون استهلاك الموارد
   let salawatDone = false;
   function triggerSalawatOnFirstTouch() {
     if (salawatDone) return;
@@ -615,7 +612,8 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }, 4000);
   }
 
-  window.startTaskTracker = function(event, index) {
+  // 🛠️ الإصلاح الرئيسي لفتح الرابط مباشرة بنقرة واحدة فقط
+  window.startTaskTracker = function(event, index, targetUrl) {
     playSound('click');
 
     if (index !== currentActiveIndex) {
@@ -625,6 +623,11 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }
 
     if (taskData[index] && taskData[index].completed) return;
+
+    // فتح رابط المهمة مباشرة بدون الحاجة لضغطتين
+    if (targetUrl) {
+      window.open(targetUrl, '_blank');
+    }
 
     const badge = document.getElementById('timer-badge-' + index);
     const alertBox = document.getElementById('alert-' + index);
@@ -639,8 +642,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }
     
     const current = taskData[index];
-    current.blurTime = 0;
-    current.focusTime = 0;
+    current.blurTime = performance.now();
     current.remaining = taskDuration;
 
     badge.style.display = 'inline-block';
@@ -648,15 +650,10 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     subText.innerText = 'Waiting for completion...';
     timerNum.innerText = current.remaining;
 
-    const onBlur = () => {
-      current.blurTime = performance.now();
-    };
-
     const onFocus = () => {
       current.focusTime = performance.now();
     };
 
-    window.addEventListener('blur', onBlur, { once: true });
     window.addEventListener('focus', onFocus, { once: true });
 
     if (current.timer) clearInterval(current.timer);
@@ -671,8 +668,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         let awaySeconds = 0;
         if (current.blurTime > 0 && current.focusTime > 0) {
           awaySeconds = (current.focusTime - current.blurTime) / 1000;
-        } else if (current.blurTime > 0) {
-          awaySeconds = (performance.now() - current.blurTime) / 1000;
         } else {
           awaySeconds = taskDuration; 
         }
@@ -740,6 +735,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }
   }
 
+  // 🛠️ التوجيه المباشر فوراً عند الضغط على فتح المحتوى بعد إتمام كافة الخطوات
   window.handleUnlockClick = function(event) {
     playSound('click');
     const btn = document.getElementById('unlockBtn');
