@@ -19,7 +19,60 @@ const RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY || "6Lc31mwtAAAAAAWFkX
 const RECAPTCHA_SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY || "6Lc31mwtAAAAALgsx7eKJwIIK-2uJkCp7-ERc__1";
 
 // ==========================================
-// واجهات المستخدم
+// التنسيقات المشتركة (Shared Modern Glassmorphism System)
+// ==========================================
+const sharedCSS = `
+    :root {
+        --bg-dark: #070913;
+        --glass-bg: rgba(15, 18, 28, 0.75);
+        --glass-border: rgba(255, 255, 255, 0.08);
+        --primary: #6366f1;
+        --primary-glow: rgba(99, 102, 241, 0.4);
+        --accent-green: #10b981;
+        --accent-amber: #f59e0b;
+        --accent-red: #ef4444;
+        --accent-discord: #5865f2;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+    body {
+        background-color: var(--bg-dark);
+        background-image: 
+            radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+            radial-gradient(circle at 85% 80%, rgba(236, 72, 153, 0.12) 0%, transparent 40%),
+            radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.08) 0%, transparent 60%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        color: var(--text-main);
+        padding: 20px;
+        overflow-x: hidden;
+    }
+    .container {
+        width: 480px;
+        max-width: 100%;
+        padding: 40px 32px;
+        border-radius: 24px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0,0,0,0.4);
+        position: relative;
+        overflow: hidden;
+        animation: fadeIn 0.5s ease-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+`;
+
+// ==========================================
+// واجهات المستخدم المحدثة
 // ==========================================
 const invalidLinkUI = `
 <!DOCTYPE html>
@@ -31,13 +84,22 @@ const invalidLinkUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(248, 113, 113, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
-        h1 { color: #f87171; margin-bottom: 15px; font-size: 1.6rem; font-weight: 800; }
-        p { color: #aaa; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
-        .error-icon { font-size: 60px; color: #f87171; margin-bottom: 20px; text-shadow: 0 0 20px rgba(248, 113, 113, 0.4); }
+        ${sharedCSS}
+        .container { border-color: rgba(239, 68, 68, 0.3); }
+        h1 { color: #fca5a5; margin-bottom: 12px; font-size: 1.6rem; font-weight: 800; }
+        p { color: var(--text-muted); font-size: 14px; margin-bottom: 16px; line-height: 1.6; }
+        .error-icon {
+            font-size: 55px;
+            color: var(--accent-red);
+            margin-bottom: 20px;
+            display: inline-block;
+            filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.5));
+            animation: pulse-red 2s infinite;
+        }
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
     </style>
 </head>
 <body>
@@ -45,7 +107,7 @@ const invalidLinkUI = `
         <div class="error-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
         <h1>Invalid Request!</h1>
         <p>Your Device HWID is missing. You cannot bypass the system or generate a key directly from the browser.</p>
-        <p style="color:#fff; font-weight:bold;">Please execute the script in Roblox to get your valid key link.</p>
+        <p style="color: #f8fafc; font-weight: bold; background: rgba(239,68,68,0.1); padding: 12px; border-radius: 12px; border: 1px solid rgba(239,68,68,0.2);">Please execute the script in Roblox to get your valid key link.</p>
     </div>
 </body>
 </html>
@@ -61,13 +123,17 @@ const vpnBlockUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(255, 165, 0, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
-        h1 { color: #ffa500; margin-bottom: 15px; font-size: 1.6rem; font-weight: 800; }
-        p { color: #aaa; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
-        .error-icon { font-size: 60px; color: #ffa500; margin-bottom: 20px; text-shadow: 0 0 20px rgba(255, 165, 0, 0.4); }
+        ${sharedCSS}
+        .container { border-color: rgba(245, 158, 11, 0.3); }
+        h1 { color: #fde68a; margin-bottom: 12px; font-size: 1.6rem; font-weight: 800; }
+        p { color: var(--text-muted); font-size: 14px; margin-bottom: 16px; line-height: 1.6; }
+        .error-icon {
+            font-size: 55px;
+            color: var(--accent-amber);
+            margin-bottom: 20px;
+            display: inline-block;
+            filter: drop-shadow(0 0 15px rgba(245, 158, 11, 0.5));
+        }
     </style>
 </head>
 <body>
@@ -75,7 +141,7 @@ const vpnBlockUI = `
         <div class="error-icon"><i class="fa-solid fa-shield-halved"></i></div>
         <h1>VPN / Proxy Detected!</h1>
         <p>We detected that you are using a VPN or Proxy connection.</p>
-        <p style="color:#fff; font-weight:bold;">Please turn off your VPN and refresh the page to continue.</p>
+        <p style="color: #f8fafc; font-weight: bold; background: rgba(245, 158, 11, 0.1); padding: 12px; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.2);">Please turn off your VPN and refresh the page to continue.</p>
     </div>
 </body>
 </html>
@@ -91,18 +157,49 @@ const discordAuthUI = (discordAuthUrl) => `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(88, 101, 242, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
-        h1 { color: #5865F2; margin-bottom: 15px; font-size: 1.6rem; font-weight: 800; }
-        p { color: #aaa; font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
-        .discord-icon { font-size: 65px; color: #5865F2; margin-bottom: 20px; text-shadow: 0 0 20px rgba(88, 101, 242, 0.4); }
+        ${sharedCSS}
+        .container { border-color: rgba(88, 101, 242, 0.35); }
+        h1 { color: #a5b4fc; margin-bottom: 12px; font-size: 1.6rem; font-weight: 800; }
+        p { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
+        .discord-icon {
+            font-size: 60px;
+            color: var(--accent-discord);
+            margin-bottom: 20px;
+            display: inline-block;
+            filter: drop-shadow(0 0 18px rgba(88, 101, 242, 0.6));
+        }
         .btn-group { display: flex; flex-direction: column; gap: 12px; }
-        .btn-discord { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 16px; background: #5865F2; color: #fff; text-decoration: none; font-weight: bold; border-radius: 14px; transition: 0.3s; font-size: 15px; box-shadow: 0 4px 15px rgba(88,101,242,0.3); }
-        .btn-discord:hover { background: #4752c4; transform: translateY(-2px); }
-        .btn-join { background: #23272A; border: 1px solid rgba(255,255,255,0.1); }
-        .btn-join:hover { background: #2c2f33; }
+        .btn-discord {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #5865F2 0%, #4752C4 100%);
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 14px;
+            transition: all 0.3s ease;
+            font-size: 15px;
+            box-shadow: 0 4px 20px rgba(88, 101, 242, 0.35);
+        }
+        .btn-discord:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(88, 101, 242, 0.5);
+        }
+        .btn-join {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            box-shadow: none;
+        }
+        .btn-join:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 <body>
@@ -133,14 +230,26 @@ const tokenErrorUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(248, 113, 113, 0.4); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
-        h1 { color: #f87171; margin-bottom: 15px; font-size: 1.6rem; font-weight: 800; }
-        p { color: #aaa; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
-        .error-icon { font-size: 60px; color: #f87171; margin-bottom: 20px; }
-        .btn { display: inline-block; padding: 12px 25px; background: #4ade80; color: #000; text-decoration: none; font-weight: bold; border-radius: 10px; margin-top: 10px; }
+        ${sharedCSS}
+        .container { border-color: rgba(239, 68, 68, 0.3); }
+        h1 { color: #fca5a5; margin-bottom: 12px; font-size: 1.6rem; font-weight: 800; }
+        p { color: var(--text-muted); font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
+        .error-icon { font-size: 55px; color: var(--accent-red); margin-bottom: 20px; }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4); }
     </style>
 </head>
 <body>
@@ -148,7 +257,7 @@ const tokenErrorUI = `
         <div class="error-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
         <h1>Link Expired or Bypassed!</h1>
         <p>The link you used has either expired (took more than 15 minutes) or is invalid due to bypassing attempts.</p>
-        <a href="/api/keysystem" class="btn">Return to Checkpoints</a>
+        <a href="/api/keysystem" class="btn"><i class="fa-solid fa-rotate-right"></i> Return to Checkpoints</a>
     </div>
 </body>
 </html>
@@ -164,14 +273,12 @@ const verifyingTaskUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(74, 222, 128, 0.3); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
-        h1 { color: #4ade80; margin-bottom: 15px; font-size: 1.5rem; font-weight: 800; }
-        p { color: #aaa; font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
-        .spinner-icon { font-size: 50px; color: #4ade80; margin-bottom: 20px; }
-        #countdown { font-size: 20px; font-weight: bold; color: #ffd700; }
+        ${sharedCSS}
+        .container { border-color: rgba(16, 185, 129, 0.3); }
+        h1 { color: #6ee7b7; margin-bottom: 12px; font-size: 1.5rem; font-weight: 800; }
+        p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+        .spinner-icon { font-size: 55px; color: var(--accent-green); margin-bottom: 20px; display: inline-block; }
+        #countdown { font-size: 24px; font-weight: 800; color: #fde047; text-shadow: 0 0 10px rgba(253, 224, 71, 0.3); }
     </style>
 </head>
 <body>
@@ -205,14 +312,27 @@ const bannedUserUI = (hwid) => `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --text-main: #ffffff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(248, 113, 113, 0.5); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
-        h1 { color: #f87171; margin-bottom: 15px; font-size: 1.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px;}
-        p { color: #aaa; font-size: 15px; margin-bottom: 20px; line-height: 1.6; }
-        .error-icon { font-size: 70px; color: #f87171; margin-bottom: 20px; text-shadow: 0 0 25px rgba(248, 113, 113, 0.5); }
-        .hwid-box { background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px; font-family: monospace; color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); }
+        ${sharedCSS}
+        .container { border-color: rgba(239, 68, 68, 0.5); }
+        h1 { color: #ef4444; margin-bottom: 12px; font-size: 1.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        p { color: var(--text-muted); font-size: 15px; margin-bottom: 20px; line-height: 1.6; }
+        .error-icon {
+            font-size: 65px;
+            color: var(--accent-red);
+            margin-bottom: 20px;
+            display: inline-block;
+            filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.6));
+        }
+        .hwid-box {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 12px;
+            border-radius: 12px;
+            font-family: monospace;
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            font-size: 13px;
+            word-break: break-all;
+        }
     </style>
 </head>
 <body>
@@ -240,17 +360,17 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                 <button onclick="copyKey()"><i class="fa-solid fa-copy"></i></button>
             </div>
             <div class="countdown-box">
-                <i class="fa-solid fa-hourglass-half"></i> Time Remaining: <span id="liveTimer" style="color: #ffd700; font-weight: bold;">Calculated...</span>
+                <i class="fa-solid fa-hourglass-half"></i> Time Remaining: <span id="liveTimer" style="color: #fde047; font-weight: bold;">Calculated...</span>
             </div>
         `;
     } else if (keyStep >= 1) {
         let streakBonusText = streakCount === 6 
-            ? `<div class="streak-badge" style="color: #ffd700;"><i class="fa-solid fa-fire"></i> This is your 7th Day! You will get a FREE 3-Day Key!</div>` 
+            ? `<div class="streak-badge" style="color: #fde047; border-color: rgba(253, 224, 71, 0.3); background: rgba(253, 224, 71, 0.08);"><i class="fa-solid fa-fire"></i> This is your 7th Day! You will get a FREE 3-Day Key!</div>` 
             : `<div class="streak-badge"><i class="fa-solid fa-fire" style="color: #f97316;"></i> Current Streak: ${streakCount + 1}/7 Days</div>`;
 
         actionHtml = `
             <div class="steps-container">
-                <div class="step done"><i class="fa-solid fa-check"></i> Task Completed</div>
+                <div class="step done"><i class="fa-solid fa-circle-check"></i> Task Completed</div>
             </div>
             
             ${streakBonusText}
@@ -269,7 +389,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
         if (requiresClientApi) {
             taskButton = `
             <a href="javascript:void(0)" onclick="generateLinkClientSide()" class="btn continue-btn" id="taskBtn">
-                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Click to Complete Task</span> 
+                <span><i class="fa-solid fa-rocket" style="color:#ffedd5; margin-right:8px;"></i> Click to Complete Task</span> 
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
             <script>
@@ -298,7 +418,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
         } else {
             taskButton = `
             <a href="${currentTaskUrl}" class="btn continue-btn">
-                <span><i class="fa-solid fa-rocket" style="color:#ff5722; margin-right:8px;"></i> Click to Complete Task</span> 
+                <span><i class="fa-solid fa-rocket" style="color:#ffedd5; margin-right:8px;"></i> Click to Complete Task</span> 
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
             `;
@@ -356,52 +476,152 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --primary: #4ade80; --bg-dark: #07090f; --glass-bg: rgba(18, 20, 28, 0.85); --glass-border: rgba(255, 215, 0, 0.15); --text-main: #ffffff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .container { width: 460px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.7); }
-        .logo-container img { max-width: 140px; margin-bottom: 20px; filter: drop-shadow(0 0 12px rgba(255,215,0,0.25)); }
-        h1 { color: #fff; margin-bottom: 20px; font-size: 1.6rem; font-weight: 800; }
+        ${sharedCSS}
+        .logo-container img {
+            max-width: 130px;
+            margin-bottom: 16px;
+            filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.4));
+            transition: transform 0.3s ease;
+        }
+        .logo-container img:hover { transform: scale(1.05); }
+        h1 { color: #ffffff; margin-bottom: 22px; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; }
         
         .steps-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; text-align: left; }
-        .step { padding: 15px 18px; border-radius: 14px; font-weight: 700; display: flex; align-items: center; gap: 12px; font-size: 14px; transition: 0.3s; }
-        .step.active { background: rgba(74, 222, 128, 0.08); border: 1px solid rgba(74, 222, 128, 0.3); color: #4ade80; box-shadow: 0 0 15px rgba(74, 222, 128, 0.08); }
-        .step.done { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: #fff; }
-        .step.done i { color: #4ade80; }
+        .step {
+            padding: 14px 18px;
+            border-radius: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .step.active {
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+        }
+        .step.done {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #6ee7b7;
+        }
 
-        .btn { width: 100%; padding: 16px; border-radius: 14px; cursor: pointer; font-size: 15px; font-weight: 800; text-decoration: none; display: flex; align-items: center; justify-content: space-between; border: none; transition: 0.3s; }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 800;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         .continue-btn { 
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); 
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); 
             color: #fff; 
-            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
             justify-content: center;
             gap: 10px;
-            animation: pulse 2s infinite;
+            animation: pulse-indigo 2.5s infinite;
         }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(255, 107, 107, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 107, 107, 0); }
+        @keyframes pulse-indigo {
+            0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5); }
+            70% { box-shadow: 0 0 0 15px rgba(99, 102, 241, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
         }
         .continue-btn:hover { 
-            transform: translateY(-3px) scale(1.02); 
-            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.5); 
-            background: linear-gradient(135deg, #ff6b6b 0%, #d63031 100%);
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6); 
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
         }
-        .generate-btn { background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%); color: #000; justify-content: center; gap: 10px; }
-        .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(74,222,128,0.35); }
+        .generate-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35);
+        }
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
+        }
         
-        .timer-text { margin-top: 15px; font-size: 12px; color: #aaa; font-weight: 600; }
-        .streak-badge { background: rgba(249, 115, 22, 0.1); border: 1px solid rgba(249, 115, 22, 0.3); color: #f97316; padding: 10px; border-radius: 10px; margin-bottom: 20px; font-size: 13px; font-weight: bold; }
-        .countdown-box { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 12px; border-radius: 12px; font-size: 13px; color: #ccc; margin-bottom: 15px; }
+        .timer-text { margin-top: 16px; font-size: 13px; color: var(--text-muted); font-weight: 600; }
+        .streak-badge {
+            background: rgba(249, 115, 22, 0.1);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            color: #fdba74;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .countdown-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
 
         .key-display { display: flex; gap: 10px; margin-bottom: 12px; }
-        .key-display input { flex: 1; padding: 14px; border-radius: 12px; background: rgba(0,0,0,0.6); border: 1px solid var(--primary); color: var(--primary); font-family: monospace; font-size: 15px; font-weight: bold; text-align: center; outline: none; }
-        .key-display button { padding: 0 20px; border-radius: 12px; background: var(--primary); color: #000; border: none; cursor: pointer; font-size: 16px; transition: 0.3s; }
-        .key-display button:hover { transform: scale(1.05); }
+        .key-display input {
+            flex: 1;
+            padding: 14px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            color: #6ee7b7;
+            font-family: monospace;
+            font-size: 15px;
+            font-weight: bold;
+            text-align: center;
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .key-display button {
+            padding: 0 22px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .key-display button:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
         
-        .success-box { background: rgba(74, 222, 128, 0.1); color: #4ade80; border: 1px solid rgba(74, 222, 128, 0.2); padding: 12px; border-radius: 12px; margin-bottom: 15px; font-weight: bold; font-size: 13px; }
-        .error-box { background: rgba(248, 113, 113, 0.1); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.2); padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 12px; font-weight: 600; }
+        .success-box {
+            background: rgba(16, 185, 129, 0.12);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 14px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .error-box {
+            background: rgba(239, 68, 68, 0.12);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 18px;
+            font-size: 13px;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -600,12 +820,24 @@ export default async function handler(req, res) {
                     return res.status(400).send(`
                         <!DOCTYPE html>
                         <html>
-                        <head><meta charset="utf-8"><title>Discord Verification Failed</title></head>
-                        <body style="background:#07090f; color:#fff; text-align:center; font-family:sans-serif; padding:50px;">
-                            <h1 style="color:#f87171;">فشل التحقق من ديسكورد ❌</h1>
-                            <p style="font-size:18px; margin-bottom: 20px;">${failReason}</p>
-                            <a href="${DISCORD_INVITE_URL}" target="_blank" style="color:#fff; background:#5865F2; padding:12px 25px; text-decoration:none; border-radius:10px; font-weight:bold; margin-right:10px; display:inline-block;">1. انضم للسيرفر أولاً</a>
-                            <a href="/api/keysystem?hwid=${userHwid}" style="color:#000; background:#4ade80; padding:12px 25px; text-decoration:none; border-radius:10px; font-weight:bold; display:inline-block; margin-top: 15px;">2. محاولة التحقق مجدداً</a>
+                        <head>
+                            <meta charset="utf-8">
+                            <title>Discord Verification Failed</title>
+                            <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+                            <style>
+                                ${sharedCSS}
+                                .container { border-color: rgba(239, 68, 68, 0.4); }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="container">
+                                <h1 style="color:#ef4444; margin-bottom:15px;">فشل التحقق من ديسكورد ❌</h1>
+                                <p style="font-size:16px; margin-bottom:25px; color:#cbd5e1;">${failReason}</p>
+                                <div style="display:flex; flex-direction:column; gap:12px;">
+                                    <a href="${DISCORD_INVITE_URL}" target="_blank" style="color:#fff; background:linear-gradient(135deg, #5865F2 0%, #4752C4 100%); padding:14px; text-decoration:none; border-radius:12px; font-weight:bold; box-shadow: 0 4px 15px rgba(88,101,242,0.3);">1. انضم للسيرفر أولاً</a>
+                                    <a href="/api/keysystem?hwid=${userHwid}" style="color:#fff; background:linear-gradient(135deg, #10b981 0%, #059669 100%); padding:14px; text-decoration:none; border-radius:12px; font-weight:bold; box-shadow: 0 4px 15px rgba(16,185,129,0.3);">2. محاولة التحقق مجدداً</a>
+                                </div>
+                            </div>
                         </body>
                         </html>
                     `);
@@ -615,15 +847,24 @@ export default async function handler(req, res) {
                 return res.status(400).send(`
                     <!DOCTYPE html>
                     <html>
-                    <head><meta charset="utf-8"><title>Discord Error</title></head>
-                    <body style="background:#07090f; color:#fff; text-align:center; font-family:sans-serif; padding:50px;">
-                        <h1 style="color:#f87171;">فشل التحقق من ديسكورد ❌</h1>
-                        <p>ديسكورد رفض الطلب، راجع الخطأ ده:</p>
-                        <div style="background:#111; padding:15px; border:1px solid #f87171; display:inline-block; margin:20px; border-radius:10px;">
-                            <code>${tokenData.error_description || tokenData.error || JSON.stringify(tokenData)}</code>
+                    <head>
+                        <meta charset="utf-8">
+                        <title>Discord Error</title>
+                        <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+                        <style>
+                            ${sharedCSS}
+                            .container { border-color: rgba(239, 68, 68, 0.4); }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <h1 style="color:#ef4444; margin-bottom:15px;">فشل التحقق من ديسكورد ❌</h1>
+                            <p style="color:#cbd5e1;">ديسكورد رفض الطلب، راجع الخطأ أدناه:</p>
+                            <div style="background:rgba(0,0,0,0.5); padding:14px; border:1px solid rgba(239, 68, 68, 0.3); margin:20px 0; border-radius:12px; word-break:break-all;">
+                                <code style="color:#fca5a5;">${tokenData.error_description || tokenData.error || JSON.stringify(tokenData)}</code>
+                            </div>
+                            <a href="/api/keysystem?hwid=${userHwid}" style="color:#fff; background:linear-gradient(135deg, #10b981 0%, #059669 100%); padding:12px 24px; text-decoration:none; border-radius:12px; font-weight:bold; display:inline-block;">العودة للمحاولة</a>
                         </div>
-                        <br>
-                        <a href="/api/keysystem?hwid=${userHwid}" style="color:#000; background:#4ade80; padding:10px 20px; text-decoration:none; border-radius:10px; font-weight:bold;">العودة للمحاولة</a>
                     </body>
                     </html>
                 `);
@@ -673,7 +914,6 @@ export default async function handler(req, res) {
     }
 
     if (!isDiscordVerified && DISCORD_CLIENT_ID !== "YOUR_DISCORD_CLIENT_ID") {
-        // تم تحديث Scope إلى identify + guilds + guilds.members.read لقراءة العضوية والرتب بدقة عالية
         const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds%20guilds.members.read&state=${userHwid}`;
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader('Set-Cookie', cookieArray);
