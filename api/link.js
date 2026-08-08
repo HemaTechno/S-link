@@ -1,3 +1,4 @@
+
 import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import axios from "axios";
@@ -13,7 +14,7 @@ const config = {
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
   taskDurationSeconds: 7, 
-  minStaySeconds: 5,     
+  minStaySeconds: 4,     
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
@@ -25,12 +26,10 @@ async function resolveUnlockUrl(network, id, req) {
   const host = req.headers.host || "www.subx.click";
   const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
   
-  // الرابط الصريح المباشر بدون تشفير مسبق لمنع خطأ الـ Double Encoding[cite: 6, 7]
   const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
 
   try {
     if (network === "just") {
-      // 1. إرسال الرابط مباشرة لـ LinkJust لمنع تحويله لـ HTTPS%253A%252F
       const apiUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${completionUrl}&alias=${id}`;
       try {
         const res = await axios.get(apiUrl, { 
@@ -41,14 +40,12 @@ async function resolveUnlockUrl(network, id, req) {
         });
         
         if (res.data?.status === "success" && res.data.shortenedUrl) {
-          // تنظيف أي سلاشات مائلة راجعة من استجابة API
           return res.data.shortenedUrl.replace(/\\\//g, "/");
         }
       } catch (err) {
-        console.warn("LinkJust direct API failed, using raw quick link");
+        console.warn("LinkJust direct API failed, using fallback");
       }
       
-      // 2. الرابط السريع كبديل احتياطي بدون التشفير المزدوج
       return `https://linkjust.com/st?api=${config.linkJustApiToken}&url=${completionUrl}`;
     }
 
@@ -95,17 +92,22 @@ const vpnBlockUI = `
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --bg-dark: #0c0d10; --glass-bg: rgba(20, 21, 25, 0.6); --text-main: #ffffff; }
+        :root { --bg-dark: #070913; --text-main: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
         body { background-color: var(--bg-dark); display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 20px; }
-        .container { width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 28px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255, 165, 0, 0.4); text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.7); }
+        .glass-card {
+          width: 480px; max-width: 100%; padding: 40px 35px; border-radius: 32px;
+          background: rgba(255, 165, 0, 0.03); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+          border: 1px solid rgba(255, 165, 0, 0.25); text-align: center;
+          box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255, 165, 0, 0.3);
+        }
         h1 { color: #ffa500; margin-bottom: 15px; font-size: 1.8rem; font-weight: 800; }
-        p { color: #aaa; font-size: 1.1rem; margin-bottom: 20px; line-height: 1.6; }
-        .error-icon { font-size: 70px; color: #ffa500; margin-bottom: 25px; text-shadow: 0 0 20px rgba(255, 165, 0, 0.4); }
+        p { color: #94a3b8; font-size: 1.1rem; margin-bottom: 20px; line-height: 1.6; }
+        .error-icon { font-size: 70px; color: #ffa500; margin-bottom: 25px; text-shadow: 0 0 30px rgba(255, 165, 0, 0.5); }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="glass-card">
         <div class="error-icon"><i class="fa-solid fa-shield-halved"></i></div>
         <h1>VPN / Proxy Detected!</h1>
         <p>We detected that you are using a VPN or Proxy connection.</p>
@@ -123,7 +125,7 @@ const notFoundPage = () => `
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700;800&display=swap" rel="stylesheet">
 <style>
   *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
-  body{background:#050811;display:flex;justify-content:center;align-items:center;min-height:100vh;color:#fff}
+  body{background:#070913;display:flex;justify-content:center;align-items:center;min-height:100vh;color:#fff}
   .box{text-align:center}
   h1{font-size:4rem;background:linear-gradient(135deg,#00f0ff,#0077ff);-webkit-background-clip:text;background-clip:text;color:transparent}
   p{color:#64748b;margin-top:8px}
@@ -139,20 +141,37 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   const tasksHtml = totalTasks
     ? `
     <div class="progress-wrap">
-      <div class="progress-label"><span id="progressText">0 / ${totalTasks} Completed</span></div>
+      <div class="progress-label">
+        <span><i class="fa-solid fa-list-check"></i> قائمة المهام</span>
+        <span id="progressText" class="progress-counter">0 / ${totalTasks} مكتملة</span>
+      </div>
       <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
     </div>
     <div class="tasks-container">
       ${tasks
         .map(
           (task, idx) => `
-        <div class="task-wrapper">
+        <div class="task-card" id="task-card-${idx}">
           <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(${idx})">
-            <span class="task-info"><i class="fa-brands fa-${task.platform || "link"}"></i> ${task.action}</span>
-            <span class="task-timer-badge" id="timer-badge-${idx}" style="display:none;"><i class="fa-solid fa-spinner fa-spin"></i> جاري التحقق... <span id="timer-num-${idx}">${taskDurationSeconds}</span>s</span>
-            <i class="fa-solid fa-circle-check check-icon" id="check-${idx}" style="display:none;"></i>
-            <i class="fa-solid fa-arrow-up-right-from-square link-icon" id="link-${idx}"></i>
+            <div class="task-left">
+              <div class="icon-orb"><i class="fa-brands fa-${task.platform || "link"}"></i></div>
+              <span class="task-title">${task.action}</span>
+            </div>
+            
+            <div class="task-status">
+              <span class="pulse-badge" id="timer-badge-${idx}" style="display:none;">
+                <span class="spinner"></span> 
+                <span id="timer-num-${idx}">${taskDurationSeconds}</span>s
+              </span>
+              <div class="check-orb" id="check-${idx}" style="display:none;">
+                <i class="fa-solid fa-check"></i>
+              </div>
+              <div class="arrow-orb" id="link-${idx}">
+                <i class="fa-solid fa-chevron-right"></i>
+              </div>
+            </div>
           </a>
+          <div class="task-scan-line" id="scan-${idx}"></div>
           <div class="task-alert-box" id="alert-${idx}"></div>
         </div>`
         )
@@ -162,88 +181,235 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
   return `
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${title || "Unlock Content"}</title>
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-  :root{
-    --primary-blue:#0088ff; --accent-cyan:#00f0ff; --bg-dark:#050811;
-    --glass-bg:rgba(10,18,32,.75); --text-main:#fff; --success:#00ff88; --warn:#ffaa00; --danger:#ff5c5c;
+  :root {
+    --primary-cyan: #00f0ff;
+    --primary-blue: #7000ff;
+    --accent-pink: #ff007f;
+    --bg-dark: #050711;
+    --liquid-glass: rgba(255, 255, 255, 0.03);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --text-main: #ffffff;
+    --success: #00ffa3;
+    --warn: #ffb700;
+    --danger: #ff4757;
   }
-  *{margin:0;padding:0;box-sizing:border-box;font-family:'Tajawal',sans-serif}
-  body{
-    background:var(--bg-dark);
-    background-image:radial-gradient(at 15% 15%,rgba(0,136,255,.18) 0,transparent 55%),
-                     radial-gradient(at 85% 85%,rgba(0,240,255,.12) 0,transparent 55%);
-    display:flex;justify-content:center;align-items:center;min-height:100vh;color:var(--text-main);padding:20px;
+
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+
+  body {
+    background-color: var(--bg-dark);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: var(--text-main);
+    overflow-x: hidden;
+    position: relative;
   }
-  .container{
-    width:480px;max-width:100%;padding:36px 26px;border-radius:28px;
-    background:var(--glass-bg);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px);
-    border:1px solid rgba(0,240,255,.15);text-align:center;
-    box-shadow:0 25px 55px rgba(0,0,0,.6),inset 0 1px 1px rgba(255,255,255,.08);
+
+  /* Liquid Blobs Ambient Ambient Effect */
+  .liquid-blob {
+    position: absolute;
+    filter: blur(80px);
+    border-radius: 50%;
+    z-index: 0;
+    animation: floatBlob 10s infinite alternate ease-in-out;
   }
-  .media-img{width:100%;max-height:200px;object-fit:cover;border-radius:18px;margin-bottom:20px;border:1px solid rgba(0,240,255,.2)}
-  h1{color:var(--accent-cyan);margin-bottom:8px;font-size:1.55rem;font-weight:800;text-shadow:0 0 15px rgba(0,240,255,.3)}
-  .desc{color:#94a3b8;margin-bottom:22px;font-size:.94rem;line-height:1.5}
+  .blob-1 { width: 320px; height: 320px; background: rgba(0, 240, 255, 0.25); top: 10%; left: 15%; }
+  .blob-2 { width: 380px; height: 380px; background: rgba(112, 0, 255, 0.3); bottom: 10%; right: 15%; animation-delay: -5s; }
 
-  .progress-wrap{margin-bottom:18px;text-align:left}
-  .progress-label{font-size:12px;color:#94a3b8;margin-bottom:6px;font-weight:700}
-  .progress-track{height:8px;border-radius:8px;background:rgba(255,255,255,.08);overflow:hidden}
-  .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--primary-blue),var(--accent-cyan));transition:width .4s ease;border-radius:8px}
-
-  .tasks-container{margin-bottom:22px;text-align:left}
-  .task-wrapper{margin-bottom:12px}
-  .task-btn{
-    display:flex;justify-content:space-between;align-items:center;gap:10px;
-    background:rgba(15,28,48,.6);border:1px solid rgba(0,240,255,.15);
-    padding:14px 16px;border-radius:14px;color:#fff;text-decoration:none;
-    font-weight:700;font-size:13.5px;transition:all .25s ease;
+  @keyframes floatBlob {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(40px, 50px) scale(1.15); }
   }
-  .task-btn:hover{background:rgba(0,136,255,.2);border-color:var(--accent-cyan)}
-  .task-btn.completed{border-color:var(--success);background:rgba(0,255,136,.08);color:var(--success);pointer-events:none}
-  .task-btn.active-timer{border-color:var(--warn);background:rgba(255,170,0,.08);color:var(--warn)}
-  .task-info{display:flex;align-items:center;gap:8px}
-  .task-timer-badge{background:var(--warn);color:#000;font-size:11px;font-weight:800;padding:2px 8px;border-radius:8px;flex-shrink:0}
-  .check-icon{color:var(--success)}
 
-  .task-alert-box{font-size:12px;font-weight:700;margin-top:6px;padding:8px 12px;border-radius:10px;display:none}
-  .task-alert-box.error{background:rgba(255,92,92,.12);border:1px solid rgba(255,92,92,.3);color:var(--danger);display:block}
-  .task-alert-box.success{background:rgba(0,255,136,.12);border:1px solid rgba(0,255,136,.3);color:var(--success);display:block}
+  /* Liquid Glass Main Container */
+  .glass-card {
+    position: relative;
+    z-index: 10;
+    width: 460px;
+    max-width: 100%;
+    padding: 38px 28px;
+    border-radius: 32px;
+    background: var(--liquid-glass);
+    backdrop-filter: blur(35px) saturate(180%);
+    -webkit-backdrop-filter: blur(35px) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: 
+      0 30px 60px rgba(0, 0, 0, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+    text-align: center;
+    overflow: hidden;
+  }
 
+  .media-img {
+    width: 100%;
+    max-height: 190px;
+    object-fit: cover;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  }
+
+  h1 {
+    font-size: 1.65rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff 30%, var(--primary-cyan) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 8px;
+  }
+
+  .desc {
+    color: #94a3b8;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 24px;
+    font-weight: 500;
+  }
+
+  /* Progress Bar */
+  .progress-wrap { margin-bottom: 20px; text-align: right; }
+  .progress-label {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12.5px; color: #cbd5e1; font-weight: 700; margin-bottom: 8px;
+  }
+  .progress-counter { color: var(--primary-cyan); font-family: monospace; font-size: 13px; }
+  .progress-track {
+    height: 8px; border-radius: 10px; background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08); overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--primary-blue), var(--primary-cyan));
+    box-shadow: 0 0 12px var(--primary-cyan);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 10px;
+  }
+
+  /* Tasks Liquid Container */
+  .tasks-container { margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px; }
+  .task-card {
+    position: relative; border-radius: 20px; overflow: hidden;
+    background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .task-card:hover {
+    border-color: rgba(0, 240, 255, 0.3);
+    background: rgba(255, 255, 255, 0.04);
+    transform: translateY(-2px);
+  }
+
+  .task-btn {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 18px; color: #fff; text-decoration: none; font-weight: 700; font-size: 14px;
+  }
+
+  .task-left { display: flex; align-items: center; gap: 12px; }
+  .icon-orb {
+    width: 38px; height: 38px; border-radius: 12px;
+    background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.2);
+    color: var(--primary-cyan); display: flex; justify-content: center; align-items: center; font-size: 16px;
+  }
+
+  .task-status { display: flex; align-items: center; gap: 8px; }
+  .arrow-orb, .check-orb {
+    width: 32px; height: 38px; display: flex; align-items: center; justify-content: center;
+    color: #64748b; font-size: 13px; transition: 0.3s;
+  }
+  .check-orb { color: var(--success); font-size: 16px; }
+
+  /* Hologram Scan Animation on Active Timer */
+  .task-scan-line {
+    position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 183, 0, 0.15), transparent);
+    pointer-events: none; display: none;
+  }
+  .task-card.active .task-scan-line {
+    display: block; animation: scanAnim 1.8s infinite linear;
+  }
+  @keyframes scanAnim { 0% { left: -100%; } 100% { left: 100%; } }
+
+  .task-card.active { border-color: var(--warn); background: rgba(255, 183, 0, 0.05); }
+  .task-card.completed { border-color: rgba(0, 255, 163, 0.3); background: rgba(0, 255, 163, 0.04); pointer-events: none; }
+
+  .pulse-badge {
+    background: rgba(255, 183, 0, 0.15); border: 1px solid var(--warn); color: var(--warn);
+    padding: 4px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 800; display: flex; align-items: center; gap: 6px;
+  }
+  .spinner {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--warn);
+    animation: pulseGlow 1s infinite alternate;
+  }
+  @keyframes pulseGlow { from { opacity: 0.3; transform: scale(0.8); } to { opacity: 1; transform: scale(1.2); } }
+
+  .task-alert-box {
+    font-size: 12px; font-weight: 700; padding: 0 18px 12px 18px; text-align: right; display: none;
+  }
+  .task-alert-box.error { color: var(--danger); display: block; }
+  .task-alert-box.success { color: var(--success); display: block; }
+
+  /* Toast Notification Popup */
   .toast-container {
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    position: fixed; top: 25px; left: 50%; transform: translateX(-50%);
     z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
   }
   .toast {
-    background: rgba(20, 25, 40, 0.95); border: 1px solid var(--danger); color: #fff;
-    padding: 14px 22px; border-radius: 14px; font-size: 14px; font-weight: bold;
-    display: flex; align-items: center; gap: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    backdrop-filter: blur(10px); animation: toastIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    background: rgba(10, 14, 26, 0.92); border: 1px solid rgba(255, 71, 87, 0.4); color: #fff;
+    padding: 14px 24px; border-radius: 16px; font-size: 13.5px; font-weight: 800;
+    display: flex; align-items: center; gap: 10px; box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+    backdrop-filter: blur(15px); animation: toastIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
   }
-  @keyframes toastIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
-  .btn{width:100%;padding:17px;border-radius:16px;font-size:15.5px;font-weight:800;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:10px;border:none;cursor:pointer;transition:all .25s}
-  .default-btn{color:#050811;background:linear-gradient(135deg,#00f0ff 0%,#0077ff 100%);box-shadow:0 6px 20px rgba(0,136,255,.3)}
-  .default-btn.disabled{background:rgba(255,255,255,.08);color:#475569;cursor:not-allowed;box-shadow:none;pointer-events:none;}
+  /* Liquid Unlock Button */
+  .btn {
+    width: 100%; padding: 18px; border-radius: 20px; font-size: 16px; font-weight: 900;
+    text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px;
+    border: none; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .default-btn {
+    color: #050711;
+    background: linear-gradient(135deg, var(--primary-cyan) 0%, #0088ff 100%);
+    box-shadow: 0 10px 30px rgba(0, 240, 255, 0.35);
+  }
+  .default-btn:hover:not(.disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 40px rgba(0, 240, 255, 0.5);
+  }
+  .default-btn.disabled {
+    background: rgba(255, 255, 255, 0.05); color: #475569;
+    border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: none; pointer-events: none;
+  }
 </style>
 </head>
 <body>
+  <div class="liquid-blob blob-1"></div>
+  <div class="liquid-blob blob-2"></div>
+
   <div class="toast-container" id="toastBox"></div>
 
-  <div class="container">
+  <div class="glass-card">
     ${image ? `<img src="${image}" class="media-img" alt="Thumbnail" loading="lazy">` : ""}
-    <h1>${title || "Locked Content"}</h1>
+    <h1>${title || "فتح المحتوى المقفول"}</h1>
     ${description ? `<p class="desc">${description}</p>` : ""}
     
     ${tasksHtml}
 
     <a id="unlockBtn" href="${unlockUrl}" class="btn default-btn ${totalTasks > 0 ? "disabled" : ""}" onclick="handleUnlockClick(event)">
-      <i class="fa-solid fa-lock" id="unlockIcon"></i> <span id="unlockText">Unlock Content</span>
+      <i class="fa-solid fa-lock" id="unlockIcon"></i> <span id="unlockText">فتح المحتوى المباشر</span>
     </a>
   </div>
 
@@ -260,7 +426,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     const toastBox = document.getElementById('toastBox');
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#ff5c5c; font-size:16px;"></i> ' + message;
+    toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#ff4757; font-size:16px;"></i> ' + message;
     toastBox.appendChild(toast);
 
     setTimeout(() => {
@@ -273,7 +439,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   window.startTaskTracker = function(index) {
     if (taskData[index] && taskData[index].completed) return;
 
-    const taskBtn = document.getElementById('task-btn-' + index);
+    const card = document.getElementById('task-card-' + index);
     const badge = document.getElementById('timer-badge-' + index);
     const alertBox = document.getElementById('alert-' + index);
     const timerNum = document.getElementById('timer-num-' + index);
@@ -289,8 +455,8 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     current.focusTime = 0;
     current.remaining = taskDuration;
 
-    taskBtn.className = 'task-btn active-timer';
-    badge.style.display = 'inline-block';
+    card.className = 'task-card active';
+    badge.style.display = 'flex';
     timerNum.innerText = current.remaining;
 
     const onBlur = () => {
@@ -325,7 +491,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         if (awaySeconds >= minStay) {
           completeTask(index);
         } else {
-          taskBtn.className = 'task-btn';
+          card.className = 'task-card';
           badge.style.display = 'none';
           
           const textMsg = 'لف و ارجع اعمل المهمه 👀';
@@ -339,16 +505,16 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   };
 
   function completeTask(index) {
-    const taskBtn = document.getElementById('task-btn-' + index);
+    const card = document.getElementById('task-card-' + index);
     const badge = document.getElementById('timer-badge-' + index);
     const alertBox = document.getElementById('alert-' + index);
 
     taskData[index].completed = true;
     completedTasksCount++;
 
-    taskBtn.className = 'task-btn completed';
+    card.className = 'task-card completed';
     badge.style.display = 'none';
-    document.getElementById('check-' + index).style.display = 'inline-block';
+    document.getElementById('check-' + index).style.display = 'flex';
     document.getElementById('link-' + index).style.display = 'none';
 
     alertBox.className = 'task-alert-box success';
@@ -361,7 +527,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     const fill = document.getElementById('progressFill');
     const text = document.getElementById('progressText');
     if (fill) fill.style.width = (totalTasks ? (completedTasksCount / totalTasks) * 100 : 100) + '%';
-    if (text) text.innerText = completedTasksCount + ' / ' + totalTasks + ' Completed';
+    if (text) text.innerText = completedTasksCount + ' / ' + totalTasks + ' مكتملة';
 
     if (completedTasksCount >= totalTasks) {
       const btn = document.getElementById('unlockBtn');
