@@ -88,15 +88,15 @@ const vpnBlockUI = `
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VPN Detected 🛡️</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --bg-dark: #0a0d14; --text-main: #ffffff; --theme-blue: #0087FC; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', 'Tajawal', sans-serif; }
         body { 
           background-color: var(--bg-dark); 
           background-image: radial-gradient(rgba(0, 135, 252, 0.1) 1px, transparent 1px);
-          background-size: 20px 24px;
+          background-size: 20px 20px;
           display: flex; justify-content: center; align-items: center; min-height: 100vh; color: var(--text-main); padding: 15px; 
         }
         .main-card {
@@ -105,7 +105,7 @@ const vpnBlockUI = `
           box-shadow: 0 15px 40px rgba(0,0,0,0.6);
         }
         h1 { color: var(--theme-blue); margin-bottom: 10px; font-size: 1.4rem; font-weight: 800; }
-        p { color: #8a94a6; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4; }
+        p { color: #8a94a6; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.5; }
         .error-icon { font-size: 50px; color: var(--theme-blue); margin-bottom: 15px; }
     </style>
 </head>
@@ -125,9 +125,9 @@ const notFoundPage = () => `
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Not Found 404</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Tajawal:wght@700;800&display=swap" rel="stylesheet">
 <style>
-  *{margin:0;padding:0;box-sizing:border-box;font-family:'Plus Jakarta Sans',sans-serif}
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Plus Jakarta Sans', 'Tajawal', sans-serif}
   body{background:#0a0d14;display:flex;justify-content:center;align-items:center;min-height:100vh;color:#fff}
   .box{text-align:center}
   h1{font-size:3.5rem;color:#0087FC}
@@ -192,7 +192,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${title || "Content Locked"}</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Tajawal:wght@500;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   :root {
@@ -207,7 +207,13 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     --danger: #ef4444;
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+  * { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: 'Plus Jakarta Sans', 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
 
   body {
     background-color: var(--bg-dark);
@@ -232,7 +238,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     text-align: center;
   }
 
-  /* Rectangular Rounded Thumbnail Image */
   .media-thumb {
     width: 100%;
     height: 140px;
@@ -244,22 +249,23 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   }
 
   h1 {
-    font-size: 1.5rem;
+    font-size: 1.45rem;
     font-weight: 800;
     color: #ffffff;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     letter-spacing: -0.3px;
+    line-height: 1.3;
   }
 
   .desc {
     color: var(--text-sub);
-    font-size: 0.88rem;
+    font-size: 0.85rem;
     margin-bottom: 18px;
     font-weight: 500;
-    line-height: 1.4;
+    line-height: 1.45;
   }
 
-  /* Step Indicator Bar */
+  /* Step Indicator */
   .step-indicator {
     margin-bottom: 18px;
     display: flex;
@@ -268,9 +274,11 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     gap: 6px;
   }
   .step-text {
-    font-size: 12px;
+    font-size: 11.5px;
     color: var(--text-sub);
     font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
   }
   .step-bar-wrap {
     width: 100%;
@@ -344,13 +352,15 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   }
   .task-title {
     font-weight: 700;
-    font-size: 13.5px;
+    font-size: 13px;
     color: #fff;
+    line-height: 1.25;
   }
   .task-sub {
-    font-size: 11px;
+    font-size: 10.5px;
     color: var(--text-sub);
     margin-top: 2px;
+    font-weight: 500;
   }
 
   .task-action-side {
@@ -359,13 +369,13 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   }
 
   .action-circle {
-    width: 30px;
-    height: 30px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 11px;
     transition: 0.2s ease;
   }
   .action-circle.arrow {
@@ -383,10 +393,11 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     background: rgba(0, 135, 252, 0.12);
     border: 1px solid var(--theme-blue);
     color: var(--theme-blue);
-    padding: 4px 10px;
-    border-radius: 14px;
+    padding: 4px 9px;
+    border-radius: 12px;
     font-size: 11px;
     font-weight: 700;
+    font-family: 'Plus Jakarta Sans', monospace;
   }
 
   .task-alert-box {
@@ -395,6 +406,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     padding: 0 14px 10px 14px;
     text-align: left;
     display: none;
+    line-height: 1.35;
   }
   .task-alert-box.error { color: var(--danger); display: block; }
   .task-alert-box.success { color: var(--success); display: block; }
@@ -406,7 +418,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   }
   .toast {
     background: #141820; border: 1px solid var(--danger); color: #fff;
-    padding: 12px 18px; border-radius: 12px; font-size: 12.5px; font-weight: 700;
+    padding: 12px 18px; border-radius: 12px; font-size: 12px; font-weight: 700;
     display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     animation: toastIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
   }
@@ -414,9 +426,10 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
   /* Main Button Style */
   .btn {
-    width: 100%; padding: 14px; border-radius: 14px; font-size: 15px; font-weight: 800;
+    width: 100%; padding: 14px; border-radius: 14px; font-size: 14.5px; font-weight: 800;
     text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px;
     border: none; cursor: pointer; transition: all 0.25s ease;
+    letter-spacing: -0.2px;
   }
   .default-btn {
     color: #ffffff;
@@ -438,7 +451,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 11px;
+    font-size: 10.5px;
     color: var(--text-sub);
     font-weight: 600;
   }
@@ -494,7 +507,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     const toastBox = document.getElementById('toastBox');
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#ef4444; font-size:15px;"></i> ' + message;
+    toast.innerHTML = '<i class="fa-solid fa-circle-xmark" style="color:#ef4444; font-size:14px;"></i> ' + message;
     toastBox.appendChild(toast);
 
     setTimeout(() => {
