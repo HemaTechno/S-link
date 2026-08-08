@@ -2,7 +2,9 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 
-const LINKJUST_API_TOKEN = "944c5ea148b949eb99be07963d8615e6904f460b";
+const LINKJUST_API_TOKEN = process.env.LINKJUST_API_TOKEN || "944c5ea148b949eb99be07963d8615e6904f460b";
+const NITRO_LINK_API_KEY = process.env.NITRO_LINK_API_KEY || "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9";
+const LOOTLABS_API_KEY = process.env.LOOTLABS_API_KEY || "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
 
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
@@ -72,7 +74,7 @@ const sharedCSS = `
 `;
 
 // ==========================================
-// واجهات المستخدم المحدثة
+// واجهات المستخدم
 // ==========================================
 const invalidLinkUI = `
 <!DOCTYPE html>
@@ -346,7 +348,7 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
-const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage, requiresClientApi = false, targetUrl = "") => {
+const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage, requiresClientApi = false, targetUrl = "", activeNetwork = "just") => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
 
@@ -389,7 +391,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
         if (requiresClientApi) {
             taskButton = `
             <a href="javascript:void(0)" onclick="generateLinkClientSide()" class="btn continue-btn" id="taskBtn">
-                <span><i class="fa-solid fa-rocket" style="color:#ffedd5; margin-right:8px;"></i> Click to Complete Task</span> 
+                <span><i class="fa-solid fa-rocket" style="color:#ffedd5; margin-right:8px;"></i> Click to Complete Task (${activeNetwork.toUpperCase()})</span> 
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
             <script>
@@ -399,7 +401,14 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                     btn.style.pointerEvents = 'none';
 
                     const target = "${targetUrl}";
-                    const apiUrl = "https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=" + encodeURIComponent(target);
+                    const activeNet = "${activeNetwork}";
+                    let apiUrl = "";
+
+                    if (activeNet === "nitrolink") {
+                        apiUrl = "https://nitro-link.com/api?api=${NITRO_LINK_API_KEY}&url=" + encodeURIComponent(target);
+                    } else {
+                        apiUrl = "https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=" + encodeURIComponent(target);
+                    }
                     
                     try {
                         const res = await fetch(apiUrl);
@@ -418,7 +427,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
         } else {
             taskButton = `
             <a href="${currentTaskUrl}" class="btn continue-btn">
-                <span><i class="fa-solid fa-rocket" style="color:#ffedd5; margin-right:8px;"></i> Click to Complete Task</span> 
+                <span><i class="fa-solid fa-rocket" style="color:#ffedd5; margin-right:8px;"></i> Click to Complete Task (${activeNetwork.toUpperCase()})</span> 
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
             `;
@@ -749,7 +758,7 @@ export default async function handler(req, res) {
     }
 
     // ========================================================
-    // 🟢 نظام ديسكورد الهجين (فحص بـ User Access Token + Bot Token)
+    // 🟢 نظام ديسكورد الهجين
     // ========================================================
     if (req.method === "GET" && req.query.code) {
         const code = req.query.code;
@@ -777,7 +786,6 @@ export default async function handler(req, res) {
                 let isMember = false;
                 let hasRole = false;
 
-                // 1. محاولة الفحص بواسطة User Access Token أولاً (أسرع وأضمن)
                 const userGuildMemberRes = await fetch(`https://discord.com/api/users/@me/guilds/${DISCORD_SERVER_ID}/member`, {
                     headers: { authorization: `Bearer ${tokenData.access_token}` }
                 });
@@ -789,7 +797,6 @@ export default async function handler(req, res) {
                         hasRole = true;
                     }
                 } else if (DISCORD_BOT_TOKEN) {
-                    // 2. المحاولة البديلة بـ Bot Token في حال تعذر الحصول على استجابة
                     const botMemberRes = await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}/members/${discordUserId}`, {
                         headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` }
                     });
@@ -1106,6 +1113,19 @@ export default async function handler(req, res) {
         let currentTaskUrl = "#";
         let targetUrl = "";
         let requiresClientApi = false;
+        let activeNetwork = "just"; // الشبكة الافتراضية
+
+        // 🟢 فحص الكوكيز التفاعلي للتنقل الديناميكي بين الإعلانات
+        const hasJustCooldown = cookieHeader.includes('linkjust_24h_cooldown=1');
+        const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
+
+        if (hasJustCooldown && !hasNitroCooldown) {
+            activeNetwork = "nitrolink";
+        } else if (hasNitroCooldown && !hasJustCooldown) {
+            activeNetwork = "just";
+        } else if (hasJustCooldown && hasNitroCooldown) {
+            activeNetwork = "lootlabs";
+        }
 
         if (keyStep < 1 && !activeKey) {
             const sessionToken = jwt.sign(
@@ -1117,23 +1137,41 @@ export default async function handler(req, res) {
             targetUrl = `${redirectUri}?token=${sessionToken}`;
             
             try {
-                const linkJustApiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
-                const response = await fetch(linkJustApiUrl);
-                const data = await response.json();
-                
-                if (data && data.status === 'success' && data.shortenedUrl) {
-                    currentTaskUrl = data.shortenedUrl; 
+                let apiUrl = "";
+                if (activeNetwork === "nitrolink") {
+                    apiUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API_KEY}&url=${encodeURIComponent(targetUrl)}`;
+                } else if (activeNetwork === "lootlabs") {
+                    // تحويل لـ LootLabs عند إنهاء الشبكتين
+                    const lootRes = await fetch("https://creators.lootlabs.gg/api/public/content_locker", {
+                        method: "POST",
+                        headers: { Authorization: `Bearer ${LOOTLABS_API_KEY}`, "Content-Type": "application/json" },
+                        body: JSON.stringify({ title: userHwid, url: targetUrl, tier_id: 1, number_of_tasks: 3, theme: 1 })
+                    });
+                    const lootData = await lootRes.json();
+                    const messageData = Array.isArray(lootData?.message) ? lootData.message[0] : lootData?.message;
+                    currentTaskUrl = messageData?.loot_url || lootData?.loot_url || targetUrl;
                 } else {
-                    requiresClientApi = true; 
+                    apiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
+                }
+
+                if (apiUrl) {
+                    const response = await fetch(apiUrl);
+                    const data = await response.json();
+                    
+                    if (data && data.status === 'success' && data.shortenedUrl) {
+                        currentTaskUrl = data.shortenedUrl; 
+                    } else {
+                        requiresClientApi = true; 
+                    }
                 }
             } catch (err) {
-                console.error("LinkJust Server API Blocked:", err);
+                console.error("Ad Network Server API Blocked:", err);
                 requiresClientApi = true; 
             }
         }
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage, requiresClientApi, targetUrl));
+        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage, requiresClientApi, targetUrl, activeNetwork));
     }
 
     return res.status(405).send("Method Not Allowed");
