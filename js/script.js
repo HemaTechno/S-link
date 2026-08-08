@@ -137,7 +137,7 @@ function removeTaskCard(cardId) {
   updatePreview();
 }
 
-// 6. اختيار شبكة الربح (Single Choice Toggle)
+// 6. اختيار شبكة الربح
 function selectNetwork(val, element) {
   const input = document.getElementById('monetization');
   if (input) input.value = val;
@@ -147,7 +147,7 @@ function selectNetwork(val, element) {
   if (element) element.classList.add('selected');
 }
 
-// 7. جلب بيانات يوتيوب (العنوان والصورة) تلقائياً وبأسرع طريقة بدون أخطاء
+// 7. جلب بيانات يوتيوب المباشرة بدون انقطاع
 async function fetchYoutubeData() {
   const mediaInput = document.getElementById("mediaUrl");
   if (!mediaInput) return;
@@ -158,7 +158,7 @@ async function fetchYoutubeData() {
     return;
   }
 
-  // استخرج ID الفيديو مباشرة لتشكيل صورة HD دون انتظار الـ API
+  // استخراج ID الفيديو مباشرة لتشكيل صورة HD دون انتظار الـ API
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|shorts\/|watch\?v=|\&v=)([^#\&\?]*).*/;
   const match = ytUrl.match(regExp);
   const videoId = (match && match[2].length === 11) ? match[2] : null;
