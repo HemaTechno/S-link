@@ -12,8 +12,8 @@ const config = {
   adminKey: process.env.ADMIN_SECRET_KEY || "Hema123i#",
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 60_000),
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS || 5),
-  taskDurationSeconds: 7, // إجمالي زمن العداد للتحقق
-  minStaySeconds: 5,     // الحد الأدنى الإجباري للتواجد خارج الصفحة
+  taskDurationSeconds: 7, 
+  minStaySeconds: 5,     
   vpnCheckEnabled: (process.env.VPN_CHECK_ENABLED ?? "true") === "true",
 };
 
@@ -21,17 +21,17 @@ const spamCache = new Map();
 
 /* ========================== 2) AD NETWORK HANDLERS ========================== */
 
-// توليد رابط الشبكة الربحية المحددة وتوجيهه بعد التخطي نحو /api/complete
+// توليد رابط اختصار لشبكة الأرباح المحددة
 async function resolveUnlockUrl(network, id, req) {
   const host = req.headers.host || "www.subx.click";
   const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
   
-  // رابط الصفحة النهائية التي سيتوجه إليها المستخدم بعد إتمام الإعلان[cite: 6, 7]
+  // رابط العودة إلى /api/complete بعد تخطي الإعلانات
   const completionUrl = `${protocol}://${host}/api/complete?id=${id}&network=${network}`;
 
   try {
     if (network === "just") {
-      // 1. تجربة الـ API الرسمي مع إضافة User-Agent لفك حظر الطلب من السيرفرات
+      // تجربة توليد الرابط عبر API الرسمية لـ LinkJust مع استخدام User-Agent صريح
       const apiUrl = `https://linkjust.com/api?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}&alias=${id}`;
       try {
         const res = await axios.get(apiUrl, { 
@@ -45,10 +45,10 @@ async function resolveUnlockUrl(network, id, req) {
           return res.data.shortenedUrl;
         }
       } catch (err) {
-        console.warn("LinkJust direct API timeout, switching to Quick St Link");
+        console.warn("LinkJust API fallback to QuickLink mode");
       }
       
-      // 2. التحويل التلقائي لطريقة الـ Quick Link المباشرة الخاصة بـ LinkJust وضمان عملها 100%
+      // التوجيه المباشر السريع لـ LinkJust لمنع التعليق
       return `https://linkjust.com/st?api=${config.linkJustApiToken}&url=${encodeURIComponent(completionUrl)}`;
     }
 
@@ -229,7 +229,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
   .btn{width:100%;padding:17px;border-radius:16px;font-size:15.5px;font-weight:800;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:10px;border:none;cursor:pointer;transition:all .25s}
   .default-btn{color:#050811;background:linear-gradient(135deg,#00f0ff 0%,#0077ff 100%);box-shadow:0 6px 20px rgba(0,136,255,.3)}
-  .default-btn.disabled{background:rgba(255,255,255,.08);color:#475569;cursor:not-allowed;box-shadow:none}
+  .default-btn.disabled{background:rgba(255,255,255,.08);color:#475569;cursor:not-allowed;box-shadow:none;pointer-events:none;}
 </style>
 </head>
 <body>
@@ -242,15 +242,14 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     
     ${tasksHtml}
 
-    <button id="unlockBtn" class="btn default-btn ${totalTasks > 0 ? "disabled" : ""}" onclick="handleUnlockClick()">
+    <a id="unlockBtn" href="${unlockUrl}" class="btn default-btn ${totalTasks > 0 ? "disabled" : ""}" onclick="handleUnlockClick(event)">
       <i class="fa-solid fa-lock" id="unlockIcon"></i> <span id="unlockText">Unlock Content</span>
-    </button>
+    </a>
   </div>
 
 <script>
 (function(){
   const totalTasks = ${totalTasks};
-  const targetRedirectUrl = ${JSON.stringify(unlockUrl)};
   const taskDuration = ${taskDurationSeconds};
   const minStay = ${minStaySeconds};
 
@@ -373,14 +372,12 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }
   }
 
-  // التحويل الصريح للتخلص من خطأ about:blank#blocked
-  window.handleUnlockClick = function() {
+  window.handleUnlockClick = function(event) {
     const btn = document.getElementById('unlockBtn');
     if (btn.classList.contains('disabled')) {
+      event.preventDefault();
       showToast('من فضلك أكمل كافة المهام المطلوبة أولاً لفتح الرابط!');
-      return;
     }
-    window.location.href = targetRedirectUrl;
   };
 
   if (totalTasks === 0) updateProgress();
@@ -470,6 +467,7 @@ export default async function handler(req, res) {
       const data = doc.data();
       const network = data.monetization || "just";
       
+      // التوجيه الصريح للرابط في السيرفر لتجاوز حظر about:blank#blocked
       const unlockUrl = await resolveUnlockUrl(network, id, req);
 
       res.setHeader("Content-Type", "text/html; charset=utf-8");
