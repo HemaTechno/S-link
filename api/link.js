@@ -213,6 +213,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     box-sizing: border-box; 
     font-family: 'Plus Jakarta Sans', 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
+    will-change: transform, opacity;
   }
 
   body {
@@ -293,7 +294,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     background: var(--theme-blue);
     border-radius: 10px;
     box-shadow: 0 0 12px rgba(0, 135, 252, 0.7);
-    transition: width 0.4s ease;
+    transition: width 0.3s ease;
   }
 
   /* Tasks Container */
@@ -309,7 +310,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 14px;
     overflow: hidden;
-    transition: all 0.25s ease;
+    transition: transform 0.2s ease, border-color 0.2s ease;
   }
   
   .task-card.locked-step {
@@ -411,41 +412,41 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   .task-alert-box.error { color: var(--danger); display: block; }
   .task-alert-box.success { color: var(--success); display: block; }
 
-  /* Toast Notification Structure */
+  /* Toast Notification */
   .toast-container {
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
     z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none;
-    width: 350px; max-width: 90%;
+    width: 340px; max-width: 90%;
   }
   .toast {
     background: rgba(18, 22, 32, 0.95); 
     border: 1px solid rgba(0, 135, 252, 0.4); 
     border-left: 4px solid var(--theme-blue);
     color: #fff;
-    padding: 13px 18px; 
+    padding: 12px 18px; 
     border-radius: 14px; 
-    font-size: 13px; 
+    font-size: 12.5px; 
     font-weight: 700;
     display: flex; 
     align-items: center; 
     gap: 10px; 
-    box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    animation: toastIn 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    animation: toastIn 0.25s ease-out;
     direction: rtl;
   }
   .toast.error-toast {
     border-color: rgba(239, 68, 68, 0.4);
     border-left-color: var(--danger);
   }
-  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -25px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -15px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
   /* Main Button Style */
   .btn {
     width: 100%; padding: 14px; border-radius: 14px; font-size: 14.5px; font-weight: 800;
     text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px;
-    border: none; cursor: pointer; transition: all 0.25s ease;
+    border: none; cursor: pointer; transition: transform 0.2s ease, background 0.2s ease;
     letter-spacing: -0.2px;
   }
   .default-btn {
@@ -509,34 +510,23 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
   let completedTasksCount = 0;
   const taskData = {};
 
-  // 1) إشعار ونطق الصلاة على النبي عند دخول الصفحة مباشرة
-  function speakSalawat() {
-    if ('speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-      const msg = new SpeechSynthesisUtterance("اللهم صل وسلم على نبينا محمد");
-      msg.lang = 'ar-SA';
-      msg.rate = 0.9;
-      msg.pitch = 1.0;
-      window.speechSynthesis.speak(msg);
+  // نظام الصوتيات عالي الجودة والسرعة بدون أي Lag
+  let audioCtx = null;
+
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
     }
   }
 
-  function triggerInitialSalawat() {
-    showToast("✨ اللهم صلي وسلم على نبينا محمد ﷺ", false);
-    speakSalawat();
-  }
-
-  // تفعيل عند الدخول المباشر أو التفاعل الأول مع الصفحة
-  window.addEventListener('load', () => {
-    setTimeout(triggerInitialSalawat, 500);
-  });
-
-  // 2) نظام الصوتيات التفاعلي القوي (مستوى صوت مرتفع وواضح)
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
   function playSound(type) {
     try {
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      initAudio();
+      if (!audioCtx) return;
+
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.connect(gain);
@@ -545,31 +535,52 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
       const now = audioCtx.currentTime;
 
       if (type === 'click') {
-        osc.frequency.setValueAtTime(700, now);
-        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
-        gain.gain.setValueAtTime(0.4, now); // رفع مستوى الصوت
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.exponentialRampToValueAtTime(1100, now + 0.07);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.07);
         osc.start(now);
-        osc.stop(now + 0.08);
+        osc.stop(now + 0.07);
       } else if (type === 'success') {
-        osc.frequency.setValueAtTime(580, now);
-        osc.frequency.setValueAtTime(750, now + 0.09);
-        osc.frequency.setValueAtTime(980, now + 0.18);
-        gain.gain.setValueAtTime(0.5, now); // رفع مستوى الصوت
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.frequency.setValueAtTime(520, now);
+        osc.frequency.setValueAtTime(740, now + 0.08);
+        osc.frequency.setValueAtTime(960, now + 0.16);
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
         osc.start(now);
-        osc.stop(now + 0.3);
+        osc.stop(now + 0.25);
+      } else if (type === 'salawat') {
+        // نغمة إشعار الصلاة على النبي النظيفة
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(880, now + 0.25);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+        osc.start(now);
+        osc.stop(now + 0.35);
       } else if (type === 'error') {
         osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(260, now);
-        osc.frequency.setValueAtTime(200, now + 0.12);
-        gain.gain.setValueAtTime(0.45, now); // رفع مستوى الصوت
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
+        osc.frequency.setValueAtTime(240, now);
+        osc.frequency.setValueAtTime(180, now + 0.1);
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
         osc.start(now);
-        osc.stop(now + 0.28);
+        osc.stop(now + 0.22);
       }
     } catch(e) {}
   }
+
+  // تفعيل نغمة الصلاة على النبي فور أول لمسة للمستخدم بدون استهلاك الموارد
+  let salawatDone = false;
+  function triggerSalawatOnFirstTouch() {
+    if (salawatDone) return;
+    salawatDone = true;
+    playSound('salawat');
+    showToast("✨ اللهم صلي وسلم على نبينا محمد ﷺ", false);
+  }
+
+  window.addEventListener('click', triggerSalawatOnFirstTouch, { once: true });
+  window.addEventListener('touchstart', triggerSalawatOnFirstTouch, { once: true });
 
   function updateStepUI() {
     const stepText = document.getElementById('stepCounterText');
@@ -591,14 +602,14 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     const icon = isError ? 'fa-triangle-exclamation' : 'fa-kaaba';
     const iconColor = isError ? '#ef4444' : '#0087FC';
     
-    toast.innerHTML = '<i class="fa-solid ' + icon + '" style="color:' + iconColor + '; font-size:16px;"></i> ' + message;
+    toast.innerHTML = '<i class="fa-solid ' + icon + '" style="color:' + iconColor + '; font-size:15px;"></i> ' + message;
     toastBox.appendChild(toast);
 
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transition = 'opacity 0.3s';
-      setTimeout(() => toast.remove(), 300);
-    }, 4500);
+      toast.style.transition = 'opacity 0.25s';
+      setTimeout(() => toast.remove(), 250);
+    }, 4000);
   }
 
   window.startTaskTracker = function(event, index) {
@@ -702,7 +713,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
     currentCard.classList.remove('active-step');
     
-    // فتح الخطوة التالية بالتتابع
     currentActiveIndex++;
     if (currentActiveIndex < totalTasks) {
       const nextCard = document.getElementById('task-card-' + currentActiveIndex);
