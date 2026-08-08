@@ -4,83 +4,351 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Content Locker & Link Shortener</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <title>SubX - Content Locker & Shortener Studio</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        :root { --primary: #ffd700; --bg-dark: #0c0d10; --glass-bg: rgba(20, 21, 25, 0.7); }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
-        body { background-color: var(--bg-dark); color: #fff; min-height: 100vh; padding: 20px; display: flex; justify-content: center; align-items: center; }
-        
-        .wrapper { display: flex; gap: 20px; max-width: 1100px; width: 100%; flex-wrap: wrap; }
-        .container { flex: 1; min-width: 320px; padding: 30px; border-radius: 24px; background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .preview-container { flex: 1; min-width: 320px; padding: 30px; border-radius: 24px; background: rgba(15, 16, 20, 0.9); border: 1px dashed var(--primary); display: flex; flex-direction: column; gap: 15px; }
+        :root {
+            --bg-dark: #07090e;
+            --card-bg: #121620;
+            --task-bg: #181d2a;
+            --theme-blue: #0087FC;
+            --theme-blue-hover: #0072dc;
+            --text-main: #ffffff;
+            --text-sub: #8a94a6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --border-color: rgba(255, 255, 255, 0.07);
+        }
 
-        h1, h2 { color: var(--primary); font-size: 1.5rem; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .input-group { position: relative; margin-bottom: 15px; }
-        .input-group i { position: absolute; right: 15px; top: 18px; color: var(--primary); }
-        
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+            font-family: 'Plus Jakarta Sans', 'Tajawal', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body { 
+            background-color: var(--bg-dark); 
+            background-image: radial-gradient(rgba(0, 135, 252, 0.28) 1.6px, transparent 1.6px);
+            background-size: 22px 22px;
+            color: var(--text-main); 
+            min-height: 100vh; 
+            padding: 25px 15px; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+        }
+
+        .wrapper { 
+            display: flex; 
+            gap: 25px; 
+            max-width: 1100px; 
+            width: 100%; 
+            flex-wrap: wrap; 
+            align-items: flex-start;
+        }
+
+        .container { 
+            flex: 1.2; 
+            min-width: 330px; 
+            padding: 32px 26px; 
+            border-radius: 24px; 
+            background: var(--card-bg); 
+            border: 1px solid var(--border-color);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.08); 
+        }
+
+        .preview-container { 
+            flex: 0.9; 
+            min-width: 320px; 
+            padding: 28px 22px; 
+            border-radius: 24px; 
+            background: #0d1018; 
+            border: 1px dashed rgba(0, 135, 252, 0.4); 
+            display: flex; 
+            flex-direction: column; 
+            gap: 16px; 
+            position: sticky;
+            top: 25px;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 22px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+
+        .brand-logo {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 1px solid var(--theme-blue);
+            box-shadow: 0 0 12px rgba(0, 135, 252, 0.3);
+        }
+
+        h1 { font-size: 1.45rem; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+        h2 { font-size: 1.15rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
+
+        .section-title { 
+            font-size: 12px; 
+            color: var(--theme-blue); 
+            font-weight: 800; 
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 20px 0 10px; 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-group { position: relative; margin-bottom: 14px; }
+        .input-group i { position: absolute; right: 16px; top: 16px; color: var(--theme-blue); font-size: 15px; }
+
         input, select, textarea {
-            width: 100%; padding: 14px 45px 14px 15px; background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: #fff; outline: none; font-size: 14px;
+            width: 100%; 
+            padding: 14px 45px 14px 16px; 
+            background: var(--task-bg);
+            border: 1px solid var(--border-color); 
+            border-radius: 14px; 
+            color: #fff; 
+            outline: none; 
+            font-size: 13.5px;
+            transition: all 0.25s ease;
         }
-        textarea { resize: vertical; min-height: 80px; }
-        
-        .section-title { font-size: 14px; color: var(--primary); font-weight: bold; margin: 15px 0 8px; }
-        .task-row { display: flex; gap: 8px; margin-bottom: 8px; }
-        .task-row select, .task-row input { padding: 10px; font-size: 12px; }
-        .btn-add { background: rgba(255,215,0,0.2); color: var(--primary); border: 1px solid var(--primary); padding: 8px 12px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
-
-        .main-btn {
-            width: 100%; padding: 16px; background: linear-gradient(135deg, #ffd700 0%, #b89b00 100%);
-            color: #000; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: 800; margin-top: 15px;
-            transition: all 0.3s;
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--theme-blue);
+            box-shadow: 0 0 12px rgba(0, 135, 252, 0.25);
         }
-        .main-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,215,0,0.25); }
+        textarea { resize: vertical; min-height: 85px; }
 
-        /* Preview Styles */
-        .preview-card { background: rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 15px; border: 1px solid rgba(255,255,255,0.05); }
-        .preview-img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 10px; display: none; margin-bottom: 10px; }
-        .preview-task { background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px; font-size: 13px; margin-top: 5px; display: flex; justify-content: space-between; }
-        
         /* Auto Fetch Button */
-        .btn-fetch { position: absolute; left: 8px; top: 8px; background: var(--primary); color: #000; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: bold; cursor: pointer; }
+        .btn-fetch { 
+            position: absolute; 
+            left: 8px; 
+            top: 8px; 
+            background: var(--theme-blue); 
+            color: #fff; 
+            border: none; 
+            padding: 8px 14px; 
+            border-radius: 10px; 
+            font-size: 11px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            transition: 0.2s ease;
+        }
+        .btn-fetch:hover { background: var(--theme-blue-hover); }
 
-        /* Result Box */
+        /* Dynamic Tasks UI */
+        .task-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .task-row select, .task-row input { padding: 12px; font-size: 12px; }
+        .btn-add { 
+            background: rgba(0, 135, 252, 0.12); 
+            color: var(--theme-blue); 
+            border: 1px solid var(--theme-blue); 
+            padding: 12px; 
+            border-radius: 12px; 
+            cursor: pointer; 
+            font-weight: 800; 
+            font-size: 13px;
+            width: 100%; 
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-add:hover { background: var(--theme-blue); color: #fff; }
+
+        /* Toggle Button Grid for Networks */
+        .network-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .network-card {
+            background: var(--task-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.25s ease;
+            user-select: none;
+        }
+
+        .network-card:hover {
+            border-color: rgba(0, 135, 252, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .network-card.selected {
+            border-color: var(--theme-blue);
+            background: rgba(0, 135, 252, 0.12);
+            box-shadow: 0 0 15px rgba(0, 135, 252, 0.25);
+        }
+
+        .network-icon-img {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        .network-info {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .network-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .network-sub {
+            font-size: 10px;
+            color: var(--text-sub);
+        }
+
+        .radio-indicator {
+            margin-left: auto;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid var(--text-sub);
+            transition: 0.2s ease;
+        }
+
+        .network-card.selected .radio-indicator {
+            border-color: var(--theme-blue);
+            background: var(--theme-blue);
+            box-shadow: inset 0 0 0 3px #121620;
+        }
+
+        /* Main Action Button */
+        .main-btn {
+            width: 100%; 
+            padding: 16px; 
+            background: var(--theme-blue);
+            color: #fff; 
+            border: none; 
+            border-radius: 14px; 
+            cursor: pointer; 
+            font-size: 15px; 
+            font-weight: 800; 
+            margin-top: 15px;
+            transition: all 0.25s ease;
+            box-shadow: 0 8px 25px rgba(0, 135, 252, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .main-btn:hover { 
+            background: var(--theme-blue-hover);
+            transform: translateY(-2px); 
+            box-shadow: 0 12px 30px rgba(0, 135, 252, 0.5); 
+        }
+
+        /* Live Preview Card */
+        .preview-card { 
+            background: var(--card-bg); 
+            border-radius: 18px; 
+            padding: 16px; 
+            border: 1px solid var(--border-color); 
+            text-align: center;
+        }
+        .preview-img { 
+            width: 100%; 
+            height: 140px; 
+            object-fit: cover; 
+            border-radius: 12px; 
+            display: none; 
+            margin-bottom: 12px; 
+            border: 1px solid rgba(0, 135, 252, 0.3);
+        }
+        .preview-task { 
+            background: var(--task-bg); 
+            padding: 10px 14px; 
+            border-radius: 10px; 
+            font-size: 12px; 
+            margin-top: 8px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Result Output Box */
         .result-box {
-            margin-top: 20px; padding: 15px; background: rgba(74, 222, 128, 0.1);
-            border: 1px solid rgba(74, 222, 128, 0.3); border-radius: 14px; text-align: center; display: none;
+            margin-top: 20px; 
+            padding: 18px; 
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3); 
+            border-radius: 16px; 
+            text-align: center; 
+            display: none;
         }
         .result-box input {
-            background: rgba(0, 0, 0, 0.5); text-align: center; font-weight: bold;
-            color: var(--primary); margin-bottom: 10px; border-color: rgba(255, 215, 0, 0.3);
+            background: rgba(0, 0, 0, 0.6); 
+            text-align: center; 
+            font-weight: bold;
+            color: var(--theme-blue); 
+            margin-bottom: 12px; 
+            border-color: rgba(0, 135, 252, 0.3);
+            padding: 12px;
         }
         .copy-btn {
-            width: 100%; padding: 10px; background: #4ade80; color: #000;
-            border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.2s;
+            width: 100%; 
+            padding: 12px; 
+            background: var(--success); 
+            color: #000;
+            border: none; 
+            border-radius: 12px; 
+            font-weight: 800; 
+            font-size: 13.5px;
+            cursor: pointer; 
+            transition: 0.2s ease;
         }
-        .copy-btn:hover { background: #22c55e; }
+        .copy-btn:hover { background: #059669; color: #fff; }
     </style>
 </head>
 
 <body>
 
 <div class="wrapper">
-    <!-- Form Section -->
+    <!-- Form Studio Section -->
     <div class="container">
-        <h1><i class="fa-solid fa-wand-magic-sparkles"></i> Create Content Locker</h1>
+        <div class="brand-header">
+            <img src="/logo.png" alt="SubX Logo" class="brand-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2933/2933116.png'">
+            <div>
+                <h1>Create Content Locker</h1>
+                <p style="font-size: 11.5px; color: var(--text-sub);">Monetize & Protect Your Links & Scripts</p>
+            </div>
+        </div>
         
         <!-- 1. Media Source & Auto Fetch -->
-        <div class="section-title">1. Media & Auto Fill (YouTube URL)</div>
+        <div class="section-title"><i class="fa-solid fa-play"></i> 1. Media & Auto Fill (YouTube)</div>
         <div class="input-group">
             <input id="mediaUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." oninput="updatePreview()">
             <button type="button" class="btn-fetch" onclick="fetchYoutubeData()">Auto Fetch</button>
-            <i class="fa-solid fa-play"></i>
+            <i class="fa-solid fa-link"></i>
         </div>
 
         <!-- 2. Basic Info -->
-        <div class="section-title">2. Title & Description</div>
+        <div class="section-title"><i class="fa-solid fa-pen"></i> 2. Title & Description</div>
         <div class="input-group">
             <input id="title" type="text" placeholder="Title (e.g., Download Mod Pack)" oninput="updatePreview()">
             <i class="fa-solid fa-heading"></i>
@@ -91,59 +359,98 @@
         </div>
 
         <!-- 3. Target Destination -->
-        <div class="section-title">3. Destination Content (URL or Text)</div>
+        <div class="section-title"><i class="fa-solid fa-lock"></i> 3. Destination Content (URL or Text)</div>
         <div class="input-group">
-            <input id="targetUrl" type="text" placeholder="Locked URL or Hidden Text">
-            <i class="fa-solid fa-lock"></i>
+            <input id="targetUrl" type="text" placeholder="Locked Target URL or Raw Script Text">
+            <i class="fa-solid fa-key"></i>
         </div>
 
-        <!-- Custom Alias -->
         <div class="input-group">
             <input id="slug" type="text" maxlength="30" placeholder="Custom Alias (Optional) e.g., my-file">
             <i class="fa-solid fa-signature"></i>
         </div>
 
         <!-- 4. Dynamic Tasks -->
-        <div class="section-title">4. Tasks Configuration</div>
+        <div class="section-title"><i class="fa-solid fa-list-check"></i> 4. Required Tasks Configuration</div>
         <div id="tasksList"></div>
-        <button type="button" class="btn-add" onclick="addTaskRow()"><i class="fa-solid fa-plus"></i> Add Task</button>
+        <button type="button" class="btn-add" onclick="addTaskRow()"><i class="fa-solid fa-plus"></i> Add New Task Step</button>
 
-        <!-- 5. Monetization -->
-        <div class="section-title">5. Profit Network</div>
-        <div class="input-group">
-            <select id="monetization">
-                <option value="just">LinkJust (Recommended)</option>
-                <option value="lootlabs">LootLabs</option>
-                <option value="linkvertise">Linkvertise</option>
-                <option value="nitrolink">Nitro-Link</option>
-                <option value="direct">Direct Access (No Ads)</option>
-            </select>
-            <i class="fa-solid fa-coins"></i>
+        <!-- 5. Monetization Network Selection (Toggle Single Choice Cards) -->
+        <div class="section-title"><i class="fa-solid fa-coins"></i> 5. Profit Ad Network</div>
+        <input type="hidden" id="monetization" value="just">
+        
+        <div class="network-grid">
+            <div class="network-card selected" onclick="selectNetwork('just', this)">
+                <img src="https://cdn-icons-png.flaticon.com/512/2933/2933116.png" class="network-icon-img" alt="LinkJust">
+                <div class="network-info">
+                    <span class="network-name">LinkJust</span>
+                    <span class="network-sub">Recommended</span>
+                </div>
+                <div class="radio-indicator"></div>
+            </div>
+
+            <div class="network-card" onclick="selectNetwork('lootlabs', this)">
+                <img src="https://lootlabs.gg/favicon.ico" class="network-icon-img" alt="LootLabs" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2111/2111463.png'">
+                <div class="network-info">
+                    <span class="network-name">LootLabs</span>
+                    <span class="network-sub">High CPM</span>
+                </div>
+                <div class="radio-indicator"></div>
+            </div>
+
+            <div class="network-card" onclick="selectNetwork('linkvertise', this)">
+                <img src="https://i.ibb.co/YFSmFQTL/linkvertise.png" class="network-icon-img" alt="Linkvertise" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1006/1006771.png'">
+                <div class="network-info">
+                    <span class="network-name">Linkvertise</span>
+                    <span class="network-sub">Global Network</span>
+                </div>
+                <div class="radio-indicator"></div>
+            </div>
+
+            <div class="network-card" onclick="selectNetwork('nitrolink', this)">
+                <img src="https://i.ibb.co/GQ22bMHN/nitrolink.png" class="network-icon-img" alt="Nitro Link" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1356/1356479.png'">
+                <div class="network-info">
+                    <span class="network-name">Nitro Link</span>
+                    <span class="network-sub">Fast Bypass</span>
+                </div>
+                <div class="radio-indicator"></div>
+            </div>
         </div>
 
-        <button id="shortBtn" class="main-btn" onclick="processLock()"><i class="fa-solid fa-link"></i> Create Link</button>
+        <button id="shortBtn" class="main-btn" onclick="processLock()"><i class="fa-solid fa-wand-magic-sparkles"></i> Create Content Locker</button>
 
-        <!-- Result Box -->
+        <!-- Result Output Box -->
         <div id="successBox" class="result-box">
-            <p style="color: #4ade80; font-weight: bold; margin-bottom: 8px;"><i class="fa-solid fa-circle-check"></i> Link Created Successfully!</p>
+            <p style="color: var(--success); font-weight: 800; font-size: 13.5px; margin-bottom: 10px;"><i class="fa-solid fa-circle-check"></i> Link Created Successfully!</p>
             <input type="text" id="finalUrl" readonly>
-            <button class="copy-btn" onclick="copyLink()"><i class="fa-solid fa-copy"></i> Copy Link</button>
+            <button class="copy-btn" onclick="copyLink()"><i class="fa-solid fa-copy"></i> Copy SubX Short Link</button>
         </div>
     </div>
 
     <!-- Live Preview Section -->
     <div class="preview-container">
-        <h2><i class="fa-solid fa-eye"></i> Live Page Preview</h2>
+        <h2><i class="fa-solid fa-eye" style="color: var(--theme-blue);"></i> Live Page Preview</h2>
+        
         <div class="preview-card">
             <img id="prevImg" class="preview-img" src="" alt="Thumbnail">
-            <h3 id="prevTitle" style="color: var(--primary); font-size: 16px;">Title Preview</h3>
-            <p id="prevDesc" style="color: #aaa; font-size: 13px; margin-top: 5px;">Description preview will show here...</p>
+            <h3 id="prevTitle" style="color: #fff; font-size: 15px; font-weight: 800;">Title Preview</h3>
+            <p id="prevDesc" style="color: var(--text-sub); font-size: 12px; margin-top: 4px;">Description preview will show here...</p>
         </div>
-        <div class="section-title">Required Tasks Preview:</div>
+
+        <div class="section-title"><i class="fa-solid fa-list-ol"></i> Step Progress Preview</div>
         <div id="prevTasks"></div>
     </div>
 </div>
 
+<script>
+    // دالة التبديل بين الشبكات بأسلوب Toggle Single Choice
+    function selectNetwork(val, element) {
+        document.getElementById('monetization').value = val;
+        const cards = document.querySelectorAll('.network-card');
+        cards.forEach(card => card.classList.remove('selected'));
+        element.classList.add('selected');
+    }
+</script>
 <script src="/js/script.js"></script>
 </body>
 </html>
