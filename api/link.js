@@ -184,7 +184,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         .map(
           (task, idx) => `
         <div class="task-card ${idx === 0 ? 'active-step' : 'locked-step'}" id="task-card-${idx}">
-          <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(event, ${idx}, '${task.link}')">
+          <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(event, ${idx})">
             <div class="task-info">
               <div class="icon-box">
                 <i class="fa-brands fa-${task.platform || "youtube"}"></i>
@@ -637,41 +637,8 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }, 4000);
   }
 
-  // 📲 دالة تحويل الروابط للعمل في التطبيق المباشر للهواتف (Deep Links)
-  function getDeepLink(url) {
-    if (!url) return url;
-    
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      const videoIdMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
-      if (videoIdMatch && videoIdMatch[1]) {
-        return 'vnd.youtube://' + videoIdMatch[1];
-      }
-    }
-    
-    if (url.includes('t.me/')) {
-      const cleanPath = url.split('t.me/')[1];
-      return 'tg://resolve?domain=' + cleanPath;
-    }
-
-    if (url.includes('discord.gg/')) {
-      const code = url.split('discord.gg/')[1];
-      return 'discord://discord.com/invite/' + code;
-    }
-
-    if (url.includes('instagram.com/')) {
-      const path = url.split('instagram.com/')[1];
-      return 'instagram://user?username=' + path.replace('/', '');
-    }
-
-    if (url.includes('tiktok.com/')) {
-      return url.replace('https://', 'snssdk1128://');
-    }
-
-    return url;
-  }
-
-  // 🟢 فتح الرابط مباشرة بضغطة واحدة في التطبيق المباشر + حساب الوقت الدقيق
-  window.startTaskTracker = function(event, index, rawTaskUrl) {
+  // 🟢 تتبع المهمة والعداد المباشر دون الحاجة لضغطتين
+  window.startTaskTracker = function(event, index) {
     playSound('click');
 
     if (index !== currentActiveIndex) {
@@ -682,12 +649,6 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
     if (taskData[index] && taskData[index].completed) return;
 
-    // 📲 فتح التطبيق مباشرة على الموبايل من الضغطة الأولى بدلاً من فتح المتصفح
-    if (rawTaskUrl && rawTaskUrl !== '#') {
-      const appUrl = getDeepLink(rawTaskUrl);
-      window.open(appUrl, '_blank');
-    }
-
     const badge = document.getElementById('timer-badge-' + index);
     const alertBox = document.getElementById('alert-' + index);
     const timerNum = document.getElementById('timer-num-' + index);
@@ -697,27 +658,22 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     alertBox.style.display = 'none';
 
     if (!taskData[index]) {
-      taskData[index] = { completed: false, awaySeconds: 0, timer: null, remaining: taskDuration };
+      taskData[index] = { completed: false, hasLeft: false, timer: null, remaining: taskDuration };
     }
     
     const current = taskData[index];
-    current.awaySeconds = 0;
     current.remaining = taskDuration;
+    current.hasLeft = false;
 
     badge.style.display = 'inline-block';
     linkOrb.style.display = 'none';
     subText.innerText = 'Waiting for completion...';
     timerNum.innerText = current.remaining;
 
-    let leaveTime = performance.now();
-
+    // تسجيل أن العميل غادر التبويب لتنفيذ المهمة
     const onVisibilityChange = () => {
       if (document.hidden) {
-        leaveTime = performance.now();
-      } else {
-        if (leaveTime > 0) {
-          current.awaySeconds += (performance.now() - leaveTime) / 1000;
-        }
+        current.hasLeft = true;
       }
     };
 
@@ -732,12 +688,9 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
       if (current.remaining <= 0) {
         clearInterval(current.timer);
         document.removeEventListener('visibilitychange', onVisibilityChange);
-        
-        if (document.hidden && leaveTime > 0) {
-          current.awaySeconds += (performance.now() - leaveTime) / 1000;
-        }
 
-        if (current.awaySeconds >= minStay || current.awaySeconds >= (taskDuration - 3)) {
+        // إذا أتم الثواني مع خروج حقيقي للتبويب الخارجي
+        if (current.hasLeft || document.hidden) {
           completeTask(index);
         } else {
           badge.style.display = 'none';
