@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 const LINKJUST_API_TOKEN = process.env.LINKJUST_API_TOKEN || "944c5ea148b949eb99be07963d8615e6904f460b";
 const NITRO_LINK_API_KEY = process.env.NITRO_LINK_API_KEY || "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9";
 const LOOTLABS_API_KEY = process.env.LOOTLABS_API_KEY || "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1535938435213295616/6dEu86D4MIYzaYnTnJQ55XtTzGmM2PwxfNPi9g4vpRilGXm3G7by6ZlHTsezEw4IJHsZ";
 
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
 
