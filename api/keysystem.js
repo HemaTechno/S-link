@@ -149,7 +149,16 @@ const vpnBlockUI = `
 </html>
 `;
 
-const discordAuthUI = (discordAuthUrl) => `
+const discordAuthUI = (discordAuthUrl, guildInfo = null) => {
+    const serverName = guildInfo?.name || "HT | HemaTech";
+    const totalMembers = guildInfo?.approximate_member_count ? guildInfo.approximate_member_count.toLocaleString() : "13,835";
+    const onlineMembers = guildInfo?.approximate_presence_count ? guildInfo.approximate_presence_count.toLocaleString() : "118";
+    
+    // الأيقونة والبانر مع قيم افتراضية في حالة عدم توفر البيانات المباشرة
+    const iconUrl = guildInfo?.icon ? `https://cdn.discordapp.com/icons/${DISCORD_SERVER_ID}/${guildInfo.icon}.png?size=128` : "/logo.png";
+    const bannerUrl = guildInfo?.banner ? `https://cdn.discordapp.com/banners/${DISCORD_SERVER_ID}/${guildInfo.banner}.png?size=600` : "";
+
+    return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -160,16 +169,86 @@ const discordAuthUI = (discordAuthUrl) => `
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         ${sharedCSS}
-        .container { border-color: rgba(88, 101, 242, 0.35); }
-        h1 { color: #a5b4fc; margin-bottom: 12px; font-size: 1.6rem; font-weight: 800; }
-        p { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
-        .discord-icon {
-            font-size: 60px;
-            color: var(--accent-discord);
-            margin-bottom: 20px;
-            display: inline-block;
-            filter: drop-shadow(0 0 18px rgba(88, 101, 242, 0.6));
+        .container { 
+            border-color: rgba(88, 101, 242, 0.35); 
+            padding: 0 0 32px 0;
         }
+        
+        /* 🔵 كارت السيرفر المصمم */
+        .server-card {
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 24px;
+            position: relative;
+            text-align: left;
+        }
+        .server-banner {
+            height: 100px;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+            ${bannerUrl ? `background-image: url('${bannerUrl}'); background-size: cover; background-position: center;` : ''}
+            position: relative;
+        }
+        .server-info-body {
+            padding: 0 24px 20px 24px;
+            position: relative;
+            margin-top: -40px;
+        }
+        .server-icon {
+            width: 76px;
+            height: 76px;
+            border-radius: 20px;
+            border: 4px solid var(--bg-dark);
+            background: #1e293b;
+            object-fit: cover;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+        .server-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-top: 8px;
+        }
+        .verified-badge {
+            color: #38bdf8;
+            font-size: 16px;
+        }
+        .server-stats {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .status-online { background-color: #10b981; box-shadow: 0 0 8px #10b981; }
+        .status-offline { background-color: #64748b; }
+        .est-date {
+            margin-top: 4px;
+            font-size: 12px;
+            color: #64748b;
+            font-weight: 600;
+        }
+
+        .content-padding {
+            padding: 0 32px;
+        }
+        h1 { color: #a5b4fc; margin-bottom: 8px; font-size: 1.5rem; font-weight: 800; }
+        p { color: var(--text-muted); font-size: 14px; margin-bottom: 22px; line-height: 1.6; }
+        
         .btn-group { display: flex; flex-direction: column; gap: 12px; }
         .btn-discord {
             display: flex;
@@ -206,21 +285,46 @@ const discordAuthUI = (discordAuthUrl) => `
 </head>
 <body>
     <div class="container">
-        <div class="discord-icon"><i class="fa-brands fa-discord"></i></div>
-        <h1>Discord Verification</h1>
-        <p>You must join our server, obtain the required role, and verify your account to continue.</p>
-        <div class="btn-group">
-            <a href="${DISCORD_INVITE_URL}" target="_blank" class="btn-discord btn-join">
-                <i class="fa-solid fa-right-to-bracket"></i> 1. Join Discord Server
-            </a>
-            <a href="${discordAuthUrl}" class="btn-discord">
-                <i class="fa-solid fa-user-check"></i> 2. Verify Role & Link Account
-            </a>
+        <!-- Server Card Integration -->
+        <div class="server-card">
+            <div class="server-banner"></div>
+            <div class="server-info-body">
+                <img src="${iconUrl}" alt="Server Icon" class="server-icon" onerror="this.src='/logo.png'">
+                <div class="server-title">
+                    <span>${serverName}</span>
+                    <i class="fa-solid fa-certificate verified-badge"></i>
+                </div>
+                <div class="server-stats">
+                    <div class="stat-item">
+                        <span class="status-dot status-online"></span>
+                        <span>${onlineMembers} Online</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="status-dot status-offline"></span>
+                        <span>${totalMembers} Members</span>
+                    </div>
+                </div>
+                <div class="est-date">Est. Aug 2023</div>
+            </div>
+        </div>
+
+        <div class="content-padding">
+            <h1>Discord Verification</h1>
+            <p>You must join our server, obtain the required role, and verify your account to continue.</p>
+            <div class="btn-group">
+                <a href="${DISCORD_INVITE_URL}" target="_blank" class="btn-discord btn-join">
+                    <i class="fa-solid fa-right-to-bracket"></i> 1. Join Discord Server
+                </a>
+                <a href="${discordAuthUrl}" class="btn-discord">
+                    <i class="fa-solid fa-user-check"></i> 2. Verify Role & Link Account
+                </a>
+            </div>
         </div>
     </div>
 </body>
 </html>
 `;
+};
 
 const tokenErrorUI = `
 <!DOCTYPE html>
@@ -921,10 +1025,22 @@ export default async function handler(req, res) {
     }
 
     if (!isDiscordVerified && DISCORD_CLIENT_ID !== "YOUR_DISCORD_CLIENT_ID") {
+        let guildInfo = null;
+        if (DISCORD_BOT_TOKEN) {
+            try {
+                const gRes = await fetch(`https://discord.com/api/guilds/${DISCORD_SERVER_ID}?with_counts=true`, {
+                    headers: { Authorization: `Bot ${DISCORD_BOT_TOKEN}` }
+                });
+                if (gRes.status === 200) {
+                    guildInfo = await gRes.json();
+                }
+            } catch (e) {}
+        }
+
         const discordAuthUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=identify%20guilds%20guilds.members.read&state=${userHwid}`;
         res.setHeader("Content-Type", "text/html; charset=utf-8");
         res.setHeader('Set-Cookie', cookieArray);
-        return res.status(200).send(discordAuthUI(discordAuthUrl));
+        return res.status(200).send(discordAuthUI(discordAuthUrl, guildInfo));
     }
 
     res.setHeader('Set-Cookie', cookieArray);
@@ -1113,9 +1229,8 @@ export default async function handler(req, res) {
         let currentTaskUrl = "#";
         let targetUrl = "";
         let requiresClientApi = false;
-        let activeNetwork = "just"; // الشبكة الافتراضية
+        let activeNetwork = "just"; 
 
-        // 🟢 فحص الكوكيز التفاعلي للتنقل الديناميكي بين الإعلانات
         const hasJustCooldown = cookieHeader.includes('linkjust_24h_cooldown=1');
         const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
 
@@ -1141,7 +1256,6 @@ export default async function handler(req, res) {
                 if (activeNetwork === "nitrolink") {
                     apiUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API_KEY}&url=${encodeURIComponent(targetUrl)}`;
                 } else if (activeNetwork === "lootlabs") {
-                    // تحويل لـ LootLabs عند إنهاء الشبكتين
                     const lootRes = await fetch("https://creators.lootlabs.gg/api/public/content_locker", {
                         method: "POST",
                         headers: { Authorization: `Bearer ${LOOTLABS_API_KEY}`, "Content-Type": "application/json" },
