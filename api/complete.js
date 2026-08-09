@@ -1,7 +1,7 @@
 import db from "./firebase.js";
 
 // ⚠️ يرجى ضبط المفتاح من متغيرات البيئة بدلاً من كتابته صريحة
-const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W";
+const DISCORD_WEBHOOK_URL = process.env.DISCORD_WEBHOOK_URL || "https://discord.com/api/webhooks/1535940997488443482/IBaWMh8QKijZHrORhq0iTbC-e5go5ZDKSkRbsOuiAhrhLizX7rRSPVBC--04HZUoAwwU";
 
 // 🛡️ نظام حماية الامان: منع احتساب أكثر من 1 إكمال لكل IP لنفس الرابط خلال 24 ساعة
 const recentCompletions = new Map();
