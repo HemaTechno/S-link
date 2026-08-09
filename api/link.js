@@ -23,7 +23,6 @@ async function resolveUnlockUrl(requestedNetwork, id, req) {
   const host = req.headers.host || "www.subx.click";
   const protocol = req.headers["x-forwarded-proto"] || (host.includes("localhost") ? "http" : "https");
   
-  // قراءة سجل الإكملات من الكوكيز
   const cookieHeader = req.headers.cookie || '';
   const hasNitroDone = cookieHeader.includes('nitro_24h_cooldown=1');
   const hasJustDone = cookieHeader.includes('linkjust_24h_cooldown=1');
@@ -31,19 +30,22 @@ async function resolveUnlockUrl(requestedNetwork, id, req) {
 
   let activeNetwork = requestedNetwork;
 
-  // 🔄 النظام التلقائي الذكي للتبديل عند التكرار
-  if (requestedNetwork === "nitrolink" || requestedNetwork === "just" || requestedNetwork === "lootlabs") {
-    if (hasNitroDone && !hasJustDone) {
-      // لو عمل NitroLink خلال 24 ساعة يُحول لـ LinkJust
-      activeNetwork = "just";
-    } else if (hasJustDone && !hasNitroDone) {
-      // لو عمل LinkJust خلال 24 ساعة يُحول لـ NitroLink
+  if (requestedNetwork === "just" || requestedNetwork === "nitrolink" || requestedNetwork === "lootlabs") {
+    if (requestedNetwork === "just" && hasJustDone) {
       activeNetwork = "nitrolink";
-    } else if (hasNitroDone && hasJustDone && !hasLootDone) {
-      // لو عمل الاثنين NitroLink + LinkJust يُحول لـ LootLabs
+      if (hasNitroDone) {
+        activeNetwork = "lootlabs";
+      }
+    } else if (requestedNetwork === "nitrolink" && hasNitroDone) {
+      activeNetwork = "just";
+      if (hasJustDone) {
+        activeNetwork = "lootlabs";
+      }
+    }
+
+    if (hasJustDone && hasNitroDone && !hasLootDone) {
       activeNetwork = "lootlabs";
-    } else if (hasNitroDone && hasJustDone && hasLootDone) {
-      // لو أتم الثلاث شبكات خلال 24 ساعة يُحول مباشر بدون إعلانات
+    } else if (hasJustDone && hasNitroDone && hasLootDone) {
       activeNetwork = "direct";
     }
   }
@@ -182,7 +184,7 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         .map(
           (task, idx) => `
         <div class="task-card ${idx === 0 ? 'active-step' : 'locked-step'}" id="task-card-${idx}">
-          <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(event, ${idx})">
+          <a href="${task.link}" target="_blank" rel="noopener" class="task-btn" id="task-btn-${idx}" onclick="startTaskTracker(event, ${idx}, '${task.link}')">
             <div class="task-info">
               <div class="icon-box">
                 <i class="fa-brands fa-${task.platform || "youtube"}"></i>
@@ -635,7 +637,8 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }, 4000);
   }
 
-  window.startTaskTracker = function(event, index) {
+  // 🟢 فتح الرابط مباشرة بضغطة واحدة + حساب الوقت الدقيق
+  window.startTaskTracker = function(event, index, taskUrl) {
     playSound('click');
 
     if (index !== currentActiveIndex) {
@@ -646,6 +649,11 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
     if (taskData[index] && taskData[index].completed) return;
 
+    // فتح الرابط المباشر للمهمة فوراً دون الحاجة لضغطتين
+    if (taskUrl && taskUrl !== '#') {
+      window.open(taskUrl, '_blank');
+    }
+
     const badge = document.getElementById('timer-badge-' + index);
     const alertBox = document.getElementById('alert-' + index);
     const timerNum = document.getElementById('timer-num-' + index);
@@ -655,12 +663,11 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     alertBox.style.display = 'none';
 
     if (!taskData[index]) {
-      taskData[index] = { completed: false, leaveTime: 0, backTime: 0, timer: null, remaining: taskDuration };
+      taskData[index] = { completed: false, awaySeconds: 0, timer: null, remaining: taskDuration };
     }
     
     const current = taskData[index];
-    current.leaveTime = 0;
-    current.backTime = 0;
+    current.awaySeconds = 0;
     current.remaining = taskDuration;
 
     badge.style.display = 'inline-block';
@@ -668,16 +675,19 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     subText.innerText = 'Waiting for completion...';
     timerNum.innerText = current.remaining;
 
-    const onLeave = () => {
-      current.leaveTime = performance.now();
+    let leaveTime = performance.now();
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        leaveTime = performance.now();
+      } else {
+        if (leaveTime > 0) {
+          current.awaySeconds += (performance.now() - leaveTime) / 1000;
+        }
+      }
     };
 
-    const onBack = () => {
-      current.backTime = performance.now();
-    };
-
-    window.addEventListener('blur', onLeave, { once: true });
-    window.addEventListener('focus', onBack, { once: true });
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     if (current.timer) clearInterval(current.timer);
 
@@ -687,17 +697,15 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
       if (current.remaining <= 0) {
         clearInterval(current.timer);
+        document.removeEventListener('visibilitychange', onVisibilityChange);
         
-        let awaySeconds = 0;
-        if (current.leaveTime > 0 && current.backTime > 0) {
-          awaySeconds = (current.backTime - current.leaveTime) / 1000;
-        } else if (current.leaveTime > 0) {
-          awaySeconds = (performance.now() - current.leaveTime) / 1000;
-        } else {
-          awaySeconds = 0;
+        // لو العميل كان برة التبويب ومستمر بالخروج
+        if (document.hidden && leaveTime > 0) {
+          current.awaySeconds += (performance.now() - leaveTime) / 1000;
         }
 
-        if (awaySeconds >= minStay) {
+        // تحصيل النتيجة
+        if (current.awaySeconds >= minStay || current.awaySeconds >= (taskDuration - 3)) {
           completeTask(index);
         } else {
           badge.style.display = 'none';
