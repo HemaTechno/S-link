@@ -30,7 +30,7 @@ local YOUTUBE_LINK = "https://youtube.com/@hema_tech1?si=jEjx8Ns9MFkfbGQr"
 local KEY_FILE_NAME = "SubX_SavedKey.txt"
 local AUTO_EXEC_CONFIG_FILE = "SubX_AutoExecConfig.json"
 
-local EXECUTION_WEBHOOK_URL = "https://discord.com/api/webhooks/1531313153600651375/56Hi7LrQ1gcsPad26A4PVCRJQpQ-al62TUB7L0ATwEANZvvPjUYMzzKN99DFx1seNm1W"
+local EXECUTION_WEBHOOK_URL = "https://discord.com/api/webhooks/1535938518553989123/pHXid7VZaPiHbstCBZQ2Q0Fhk6tezTM2K0Yp8ddFbvP5mVEKldZX0SmKalO8uL8cCS5w"
 
 -- ==========================================
 -- 3. دالة إرسال الويب هوك (مع اسم الماب وصورته)
