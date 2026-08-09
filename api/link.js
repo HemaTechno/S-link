@@ -637,8 +637,41 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
     }, 4000);
   }
 
-  // 🟢 فتح الرابط مباشرة بضغطة واحدة + حساب الوقت الدقيق
-  window.startTaskTracker = function(event, index, taskUrl) {
+  // 📲 دالة تحويل الروابط للعمل في التطبيق المباشر للهواتف (Deep Links)
+  function getDeepLink(url) {
+    if (!url) return url;
+    
+    if (url.includes('youtube.com') || url.includes('youtu.be')) {
+      const videoIdMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+      if (videoIdMatch && videoIdMatch[1]) {
+        return 'vnd.youtube://' + videoIdMatch[1];
+      }
+    }
+    
+    if (url.includes('t.me/')) {
+      const cleanPath = url.split('t.me/')[1];
+      return 'tg://resolve?domain=' + cleanPath;
+    }
+
+    if (url.includes('discord.gg/')) {
+      const code = url.split('discord.gg/')[1];
+      return 'discord://discord.com/invite/' + code;
+    }
+
+    if (url.includes('instagram.com/')) {
+      const path = url.split('instagram.com/')[1];
+      return 'instagram://user?username=' + path.replace('/', '');
+    }
+
+    if (url.includes('tiktok.com/')) {
+      return url.replace('https://', 'snssdk1128://');
+    }
+
+    return url;
+  }
+
+  // 🟢 فتح الرابط مباشرة بضغطة واحدة في التطبيق المباشر + حساب الوقت الدقيق
+  window.startTaskTracker = function(event, index, rawTaskUrl) {
     playSound('click');
 
     if (index !== currentActiveIndex) {
@@ -649,9 +682,10 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
 
     if (taskData[index] && taskData[index].completed) return;
 
-    // فتح الرابط المباشر للمهمة فوراً دون الحاجة لضغطتين
-    if (taskUrl && taskUrl !== '#') {
-      window.open(taskUrl, '_blank');
+    // 📲 فتح التطبيق مباشرة على الموبايل من الضغطة الأولى بدلاً من فتح المتصفح
+    if (rawTaskUrl && rawTaskUrl !== '#') {
+      const appUrl = getDeepLink(rawTaskUrl);
+      window.open(appUrl, '_blank');
     }
 
     const badge = document.getElementById('timer-badge-' + index);
@@ -699,12 +733,10 @@ const generatePageHtml = (linkData, unlockUrl, taskDurationSeconds, minStaySecon
         clearInterval(current.timer);
         document.removeEventListener('visibilitychange', onVisibilityChange);
         
-        // لو العميل كان برة التبويب ومستمر بالخروج
         if (document.hidden && leaveTime > 0) {
           current.awaySeconds += (performance.now() - leaveTime) / 1000;
         }
 
-        // تحصيل النتيجة
         if (current.awaySeconds >= minStay || current.awaySeconds >= (taskDuration - 3)) {
           completeTask(index);
         } else {
