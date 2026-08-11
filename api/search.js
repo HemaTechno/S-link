@@ -6,23 +6,42 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "الرجاء كتابة اسم الماب" });
     }
 
-    const searchUrl = `https://games.roblox.com/v1/games/list?keyword=${encodeURIComponent(name)}&limit=10`;
-
     try {
-        const response = await fetch(searchUrl);
-        const data = await response.json();
+        // 1. استخدام API البحث الجديد من روبلوكس (omni-search) للحصول على الـ Universe ID
+        const searchUrl = `https://apis.roblox.com/search-api/omni-search?searchQuery=${encodeURIComponent(name)}&pageType=all`;
+        const searchResponse = await fetch(searchUrl);
+        const searchData = await searchResponse.json();
 
-        if (data && data.games && data.games.length > 0) {
-            const placeId = data.games[0].placeId || data.games[0].rootPlaceId; 
-            
-            // كاش لمدة يوم كامل (لأن الـ ID بتاع المابات مبيتغيرش)
-            res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate'); 
-            return res.status(200).json({ placeId: placeId, name: data.games[0].name });
+        let universeId = null;
+        
+        // استخراج رقم اللعبة من نتائج البحث
+        if (searchData.searchResults && searchData.searchResults.length > 0) {
+            const gameResult = searchData.searchResults.find(item => item.universeId) || searchData.searchResults[0];
+            universeId = gameResult.universeId;
         }
 
-        return res.status(404).json({ error: "لم يتم العثور على الماب" });
+        if (!universeId) {
+            return res.status(404).json({ error: "لم يتم العثور على الماب" });
+        }
+
+        // 2. تحويل الـ Universe ID إلى Place ID (لأن بحث السيرفرات بيحتاج Place ID)
+        const gameDetailsUrl = `https://games.roblox.com/v1/games?universeIds=${universeId}`;
+        const gameDetailsResponse = await fetch(gameDetailsUrl);
+        const gameDetailsData = await gameDetailsResponse.json();
+
+        if (gameDetailsData && gameDetailsData.data && gameDetailsData.data.length > 0) {
+            const placeId = gameDetailsData.data[0].rootPlaceId;
+            const gameName = gameDetailsData.data[0].name;
+
+            // حفظ النتيجة في الكاش لمدة يوم عشان تقليل الضغط وسرعة البحث
+            res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate'); 
+            return res.status(200).json({ placeId: placeId, name: gameName });
+        }
+
+        return res.status(404).json({ error: "تعذر استخراج بيانات الماب" });
 
     } catch (error) {
-        res.status(500).json({ error: "فشل الاتصال بخوادم روبلوكس" });
+        console.error(error);
+        return res.status(500).json({ error: "فشل الاتصال بخوادم روبلوكس" });
     }
 }
