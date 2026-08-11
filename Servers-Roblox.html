@@ -28,7 +28,6 @@
         h1 { margin-top: 0; color: #00d2ff; }
         p.subtitle { color: #aaa; margin-bottom: 30px; font-size: 16px; }
         
-        /* تصميم شبكة المابات */
         .maps-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -59,11 +58,6 @@
             box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
         }
 
-        .map-btn.disabled {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-
         .server-card {
             background: rgba(0, 255, 136, 0.1);
             padding: 20px;
@@ -72,6 +66,13 @@
             border: 1px solid rgba(0, 255, 136, 0.3);
             animation: fadeIn 0.5s ease;
         }
+        /* كارت السيرفر البديل (الأقل عدداً) */
+        .server-card.warning {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.4);
+        }
+        .server-card.warning h3 { color: #ffc107; }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -89,6 +90,13 @@
             transition: 0.3s;
         }
         .join-btn:hover { background: #218838; box-shadow: 0 0 15px rgba(40, 167, 69, 0.5); }
+        
+        .join-btn.warning-btn {
+            background: #ffc107;
+            color: #000;
+        }
+        .join-btn.warning-btn:hover { background: #e0a800; box-shadow: 0 0 15px rgba(255, 193, 7, 0.5); }
+
         #status { font-size: 16px; color: #fff; margin-top: 20px; min-height: 25px; font-weight: bold; }
     </style>
 </head>
@@ -98,10 +106,10 @@
         <h1>صائد السيرفرات الفاضية 🎯</h1>
         <p class="subtitle">اختر اللعبة اللي عاوز تفرّم فيها، وهنجيبلك سيرفر فاضي فوراً!</p>
         
-        <!-- قسم أزرار المابات المشهورة -->
         <div class="maps-grid" id="mapsGrid">
             <div class="map-btn" onclick="startSearch('2753915549', 'Blox Fruits')">🍎 Blox Fruits</div>
             <div class="map-btn" onclick="startSearch('4924922222', 'Brookhaven')">🏡 Brookhaven</div>
+            <div class="map-btn" onclick="startSearch('13822889', 'Lumber Tycoon 2')">🪓 Lumber Tycoon 2</div>
             <div class="map-btn" onclick="startSearch('142823681', 'Murder Mystery 2')">🔪 MM2</div>
             <div class="map-btn" onclick="startSearch('4520749081', 'King Legacy')">👑 King Legacy</div>
             <div class="map-btn" onclick="startSearch('8737899170', 'Pet Simulator 99')">🐶 Pet Sim 99</div>
@@ -118,10 +126,9 @@
 
     <script>
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-        let isSearching = false; // عشان نمنع المستخدم من الضغط على كذا ماب في نفس الوقت
+        let isSearching = false;
 
         async function startSearch(placeId, mapName) {
-            // لو هو بيبحث حالياً، نمنعه يبدأ بحث جديد لحد ما يخلص
             if (isSearching) return;
             isSearching = true;
 
@@ -129,7 +136,6 @@
             const resultDiv = document.getElementById('result');
             const mapsGrid = document.getElementById('mapsGrid');
             
-            // إضافة تأثير بهتان للأزرار وقت البحث
             mapsGrid.style.opacity = "0.5";
             mapsGrid.style.pointerEvents = "none";
             
@@ -140,8 +146,8 @@
                 let cursor = '';
                 let found = false;
                 let pageCount = 1;
+                let lowestServer = null; // متغير عشان نحفظ فيه أقل سيرفر نلاقيه
 
-                // حلقة البحث
                 while (!found) {
                     statusText.innerText = `🔍 جاري فحص سيرفرات ${mapName} (الصفحة ${pageCount})...`;
 
@@ -155,14 +161,20 @@
                     }
 
                     const data = await res.json();
-                    statusText.style.color = "#00d2ff"; // رجع اللون الأساسي
+                    statusText.style.color = "#00d2ff";
 
                     if (!data.data || data.data.length === 0) {
-                        statusText.innerText = `السيرفرات خلصت ومفيش سيرفر فاضي في ${mapName} حالياً!`;
-                        break;
+                        break; // السيرفرات خلصت
                     }
 
-                    // البحث عن سيرفر فيه 0 أو 1 لاعبين
+                    // تحديث أقل سيرفر في كل صفحة بنفحصها
+                    data.data.forEach(s => {
+                        if (!lowestServer || s.playing < lowestServer.playing) {
+                            lowestServer = s;
+                        }
+                    });
+
+                    // لو لقينا سيرفر فيه 0 أو 1 لاعبين، نوقف البحث فوراً
                     const emptyServer = data.data.find(s => s.playing <= 1);
 
                     if (emptyServer) {
@@ -183,17 +195,39 @@
                     if (data.nextPageCursor) {
                         cursor = data.nextPageCursor;
                         pageCount++;
-                        await sleep(500); // تأخير نص ثانية بين كل صفحة
+                        await sleep(500); 
                     } else {
-                        statusText.innerText = `تم فحص كل السيرفرات، مفيش سيرفر فاضي لـ ${mapName} للأسف.`;
-                        break;
+                        break; // وصلنا لأخر صفحة
                     }
                 }
+
+                // لو لفينا على كل السيرفرات وملقيناش سيرفر فاضي تماماً (found = false)
+                if (!found) {
+                    if (lowestServer) {
+                        statusText.innerText = `مفيش سيرفر 0 لاعبين في ${mapName} حالياً.`;
+                        statusText.style.color = "#aaa";
+                        
+                        // بنعرض كارت باللون الأصفر لأقل سيرفر لقيناه
+                        resultDiv.innerHTML = `
+                            <div class="server-card warning">
+                                <h3>ملقيناش سيرفر فاضي تماماً 😕</h3>
+                                <p>بس ده أقل سيرفر متاح حالياً فيه <strong>${lowestServer.playing}</strong> لاعبين | البينج: ${lowestServer.ping || 'غير متوفر'}ms</p>
+                                <p style="font-size: 14px; color: #ccc;">تحب تدخله؟</p>
+                                <a href="roblox://placeId=${placeId}&gameInstanceId=${lowestServer.id}" class="join-btn warning-btn">
+                                    دخول أقل سيرفر 🚀
+                                </a>
+                            </div>
+                        `;
+                    } else {
+                        statusText.innerText = `مفيش أي سيرفرات متاحة لـ ${mapName} حالياً!`;
+                        statusText.style.color = "#ff4d4d";
+                    }
+                }
+
             } catch (err) {
                 statusText.innerText = "⚠️ حصلت مشكلة في الاتصال، تأكد من الإنترنت أو جرب تاني.";
                 statusText.style.color = "#ff4d4d";
             } finally {
-                // نرجع الأزرار تشتغل تاني بعد ما البحث يخلص
                 isSearching = false;
                 mapsGrid.style.opacity = "1";
                 mapsGrid.style.pointerEvents = "auto";
