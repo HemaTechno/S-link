@@ -6,42 +6,64 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "الرجاء كتابة اسم الماب" });
     }
 
+    // 1. Headers وهمية عشان نعدي من حماية روبلوكس (Cloudflare / Anti-Bot)
+    const headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "application/json",
+        "Accept-Language": "en-US,en;q=0.9"
+    };
+
     try {
-        // 1. استخدام API البحث الجديد من روبلوكس (omni-search) للحصول على الـ Universe ID
-        const searchUrl = `https://apis.roblox.com/search-api/omni-search?searchQuery=${encodeURIComponent(name)}&pageType=all`;
-        const searchResponse = await fetch(searchUrl);
-        const searchData = await searchResponse.json();
-
-        let universeId = null;
+        // --- المحاولة الأولى: استخدام API الألعاب المباشر ---
+        const url1 = `https://games.roblox.com/v1/games/list?keyword=${encodeURIComponent(name)}&limit=10`;
+        const res1 = await fetch(url1, { headers });
         
-        // استخراج رقم اللعبة من نتائج البحث
-        if (searchData.searchResults && searchData.searchResults.length > 0) {
-            const gameResult = searchData.searchResults.find(item => item.universeId) || searchData.searchResults[0];
-            universeId = gameResult.universeId;
+        if (res1.ok) {
+            const data1 = await res1.json();
+            if (data1.games && data1.games.length > 0) {
+                const placeId = data1.games[0].placeId || data1.games[0].rootPlaceId;
+                res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate');
+                return res.status(200).json({ placeId: placeId, name: data1.games[0].name });
+            }
         }
 
-        if (!universeId) {
-            return res.status(404).json({ error: "لم يتم العثور على الماب" });
+        // --- المحاولة الثانية: لو الأولى مقفولة، نجرب نظام Omni-Search ---
+        const url2 = `https://apis.roblox.com/search-api/omni-search?searchQuery=${encodeURIComponent(name)}&pageType=all`;
+        const res2 = await fetch(url2, { headers });
+        
+        if (res2.ok) {
+            const data2 = await res2.json();
+            let universeId = null;
+            
+            // استخراج الـ Universe ID
+            if (data2.searchResults) {
+                const result = data2.searchResults.find(item => item.universeId);
+                if (result) universeId = result.universeId;
+            }
+
+            if (universeId) {
+                // تحويل الـ Universe ID لـ Place ID
+                const url3 = `https://games.roblox.com/v1/games?universeIds=${universeId}`;
+                const res3 = await fetch(url3, { headers });
+                
+                if (res3.ok) {
+                    const data3 = await res3.json();
+                    if (data3.data && data3.data.length > 0) {
+                        res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate');
+                        return res.status(200).json({ 
+                            placeId: data3.data[0].rootPlaceId, 
+                            name: data3.data[0].name 
+                        });
+                    }
+                }
+            }
         }
 
-        // 2. تحويل الـ Universe ID إلى Place ID (لأن بحث السيرفرات بيحتاج Place ID)
-        const gameDetailsUrl = `https://games.roblox.com/v1/games?universeIds=${universeId}`;
-        const gameDetailsResponse = await fetch(gameDetailsUrl);
-        const gameDetailsData = await gameDetailsResponse.json();
-
-        if (gameDetailsData && gameDetailsData.data && gameDetailsData.data.length > 0) {
-            const placeId = gameDetailsData.data[0].rootPlaceId;
-            const gameName = gameDetailsData.data[0].name;
-
-            // حفظ النتيجة في الكاش لمدة يوم عشان تقليل الضغط وسرعة البحث
-            res.setHeader('Cache-Control', 's-maxage=86400, stale-while-revalidate'); 
-            return res.status(200).json({ placeId: placeId, name: gameName });
-        }
-
-        return res.status(404).json({ error: "تعذر استخراج بيانات الماب" });
+        // لو المحاولتين فشلوا أو الماب مش موجودة
+        return res.status(404).json({ error: "لم يتم العثور على الماب، جرب استخدام الـ ID أو اللينك." });
 
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: "فشل الاتصال بخوادم روبلوكس" });
+        console.error("Search API Error:", error);
+        return res.status(500).json({ error: "روبلوكس رفضت الطلب (حظر مؤقت). استخدم اللينك أو الـ ID." });
     }
 }
