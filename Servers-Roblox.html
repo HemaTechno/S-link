@@ -11,7 +11,7 @@
     <meta name="author" content="HemaTech">
     <meta name="robots" content="index, follow">
     
-    <!-- Open Graph (For Discord/Facebook/Twitter embeds) -->
+    <!-- Open Graph (For Discord embeds) -->
     <meta property="og:title" content="Roblox Empty Server Finder 🎯">
     <meta property="og:description" content="Click instantly to find a zero-player server for your favorite Roblox games.">
     <meta property="og:type" content="website">
@@ -25,7 +25,6 @@
             padding: 40px 20px;
             min-height: 100vh;
             background-color: #050505;
-            /* Dotted background pattern */
             background-image: radial-gradient(#1a1d24 1.5px, transparent 1.5px);
             background-size: 20px 20px;
             color: #e6e6e6;
@@ -36,7 +35,7 @@
 
         .container {
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
             background: #0d1117;
             padding: 30px;
             border-radius: 16px;
@@ -127,6 +126,14 @@
             <div class="map-btn" onclick="startSearch('142823681', 'Murder Mystery 2')">🔪 MM2</div>
             <div class="map-btn" onclick="startSearch('4520749081', 'King Legacy')">👑 King Legacy</div>
             <div class="map-btn" onclick="startSearch('8737899170', 'Pet Simulator 99')">🐶 Pet Sim 99</div>
+            <div class="map-btn" onclick="startSearch('920587237', 'Adopt Me!')">🦄 Adopt Me!</div>
+            <div class="map-btn" onclick="startSearch('606849621', 'Jailbreak')">🚓 Jailbreak</div>
+            <div class="map-btn" onclick="startSearch('286090429', 'Arsenal')">🔫 Arsenal</div>
+            <div class="map-btn" onclick="startSearch('2788229376', 'Da Hood')">👊 Da Hood</div>
+            <div class="map-btn" onclick="startSearch('13772394625', 'Blade Ball')">⚔️ Blade Ball</div>
+            <div class="map-btn" onclick="startSearch('1962086868', 'Tower of Hell')">🗼 Tower of Hell</div>
+            <div class="map-btn" onclick="startSearch('379614936', 'MeepCity')">🏙️ MeepCity</div>
+            <div class="map-btn" onclick="startSearch('6872265039', 'BedWars')">🛏️ BedWars</div>
         </div>
 
         <p id="status"></p>
@@ -137,13 +144,13 @@
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
         let isSearching = false;
 
-        // إرسال النتيجة لملف proxy.js بطريقة POST لتشغيل الويب هوك
-        async function notifyDiscord(mapName, placeId, players, serverId) {
+        // دالة إرسال الإشعار لملف الباك إند (تم إضافة resultType)
+        async function notifyDiscord(mapName, placeId, players, serverId, resultType) {
             try {
                 await fetch('/api/proxy', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ mapName, placeId, players, serverId })
+                    body: JSON.stringify({ mapName, placeId, players, serverId, resultType })
                 });
             } catch (e) {
                 console.log("Failed to send webhook notification.");
@@ -172,7 +179,6 @@
                 while (!found) {
                     statusText.innerText = `🔍 Scanning servers for ${mapName} (Page ${pageCount})...`;
 
-                    // جلب البيانات من proxy.js بطريقة GET
                     const res = await fetch(`/api/proxy?placeId=${placeId}&cursor=${cursor}`);
                     
                     if (res.status === 429) {
@@ -207,7 +213,8 @@
                                 </a>
                             </div>
                         `;
-                        notifyDiscord(mapName, placeId, emptyServer.playing, emptyServer.id);
+                        // إرسال إشعار بالنجاح الكامل
+                        notifyDiscord(mapName, placeId, emptyServer.playing, emptyServer.id, "SUCCESS");
                         break;
                     }
 
@@ -237,10 +244,13 @@
                                 </a>
                             </div>
                         `;
-                        notifyDiscord(mapName, placeId, lowestServer.playing, lowestServer.id);
+                        // إرسال إشعار بوجود أقل سيرفر
+                        notifyDiscord(mapName, placeId, lowestServer.playing, lowestServer.id, "WARNING");
                     } else {
                         statusText.innerText = `No servers available for ${mapName} right now!`;
                         statusText.style.color = "#f85149";
+                        // إرسال إشعار بعدم وجود سيرفرات نهائياً
+                        notifyDiscord(mapName, placeId, null, null, "FAILED");
                     }
                 }
 
