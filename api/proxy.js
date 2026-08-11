@@ -7,7 +7,7 @@ export default async function handler(req, res) {
         const { mapName, placeId, players, serverId, resultType } = req.body;
         
         // حط رابط الويب هوك بتاعك هنا
-        const DISCORD_WEBHOOK_URL = "YOUR_DISCORD_WEBHOOK_URL_HERE";
+        const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1536851517783412736/dR3kKSOwr_Zw3S9Si871CrIaE-vZbTv-cL1vsckw8VYcf8UsrV2AlIQ0buVUyMHZIakz";
 
         const gameLink = `https://www.roblox.com/games/${placeId}`;
         const joinDirectLink = serverId ? `roblox://placeId=${placeId}&gameInstanceId=${serverId}` : null;
