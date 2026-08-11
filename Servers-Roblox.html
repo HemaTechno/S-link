@@ -15,7 +15,7 @@
             min-height: 100vh;
         }
         .container {
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
@@ -26,39 +26,57 @@
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
         h1 { margin-top: 0; color: #00d2ff; }
-        input, button {
+        p.subtitle { color: #aaa; margin-bottom: 30px; font-size: 16px; }
+        
+        /* تصميم شبكة المابات */
+        .maps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .map-btn {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border: none;
-            font-size: 16px;
-            outline: none;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        input {
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-            transition: 0.3s;
-        }
-        input:focus { border-color: #00d2ff; }
-        button {
-            background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
-            color: white;
+            border-radius: 12px;
             cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 15px;
             font-weight: bold;
-            transition: transform 0.2s;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
-        button:hover { transform: scale(1.02); }
-        button:disabled { background: #555; cursor: not-allowed; transform: none; }
+        
+        .map-btn:hover {
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+            border-color: transparent;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.3);
+        }
+
+        .map-btn.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
         .server-card {
             background: rgba(0, 255, 136, 0.1);
             padding: 20px;
-            margin-top: 20px;
+            margin-top: 30px;
             border-radius: 12px;
             border: 1px solid rgba(0, 255, 136, 0.3);
+            animation: fadeIn 0.5s ease;
         }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .join-btn {
             display: inline-block;
             padding: 12px 25px;
@@ -71,100 +89,80 @@
             transition: 0.3s;
         }
         .join-btn:hover { background: #218838; box-shadow: 0 0 15px rgba(40, 167, 69, 0.5); }
-        #status { font-size: 15px; color: #ccc; margin-top: 15px; min-height: 20px; }
+        #status { font-size: 16px; color: #fff; margin-top: 20px; min-height: 25px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h1>صائد السيرفرات الفاضية 🎯</h1>
-        <p>ابحث باسم الماب (مثال: Blox Fruits) أو باللينك أو بالـ ID</p>
+        <p class="subtitle">اختر اللعبة اللي عاوز تفرّم فيها، وهنجيبلك سيرفر فاضي فوراً!</p>
         
-        <input type="text" id="placeInput" placeholder="أدخل اسم الماب، الرابط، أو الـ ID..." />
-        <button onclick="startSearch()" id="searchBtn">ابحث عن سيرفر فاضي</button>
-        
+        <!-- قسم أزرار المابات المشهورة -->
+        <div class="maps-grid" id="mapsGrid">
+            <div class="map-btn" onclick="startSearch('2753915549', 'Blox Fruits')">🍎 Blox Fruits</div>
+            <div class="map-btn" onclick="startSearch('4924922222', 'Brookhaven')">🏡 Brookhaven</div>
+            <div class="map-btn" onclick="startSearch('142823681', 'Murder Mystery 2')">🔪 MM2</div>
+            <div class="map-btn" onclick="startSearch('4520749081', 'King Legacy')">👑 King Legacy</div>
+            <div class="map-btn" onclick="startSearch('8737899170', 'Pet Simulator 99')">🐶 Pet Sim 99</div>
+            <div class="map-btn" onclick="startSearch('606849621', 'Jailbreak')">🚓 Jailbreak</div>
+            <div class="map-btn" onclick="startSearch('2788229376', 'Da Hood')">👊 Da Hood</div>
+            <div class="map-btn" onclick="startSearch('13772394625', 'Blade Ball')">⚔️ Blade Ball</div>
+            <div class="map-btn" onclick="startSearch('920587237', 'Adopt Me!')">🦄 Adopt Me!</div>
+            <div class="map-btn" onclick="startSearch('286090429', 'Arsenal')">🔫 Arsenal</div>
+        </div>
+
         <p id="status"></p>
         <div id="result"></div>
     </div>
 
     <script>
         const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+        let isSearching = false; // عشان نمنع المستخدم من الضغط على كذا ماب في نفس الوقت
 
-        // دالة لتحليل المدخل (اسم، رابط، أو ID)
-        async function extractPlaceId(input) {
-            const statusText = document.getElementById('status');
+        async function startSearch(placeId, mapName) {
+            // لو هو بيبحث حالياً، نمنعه يبدأ بحث جديد لحد ما يخلص
+            if (isSearching) return;
+            isSearching = true;
 
-            // 1. لو المستخدم دخل أرقام فقط (ID)
-            if (/^\d+$/.test(input)) {
-                return input;
-            }
-
-            // 2. لو المستخدم دخل لينك الماب (يستخرج الأرقام من الرابط)
-            const linkMatch = input.match(/(?:games\/)(\d+)/);
-            if (linkMatch && linkMatch[1]) {
-                return linkMatch[1];
-            }
-
-            // 3. لو المستخدم دخل اسم الماب
-            statusText.innerText = "جاري البحث عن اسم الماب في روبلوكس...";
-            try {
-                const res = await fetch(`/api/search?name=${encodeURIComponent(input)}`);
-                const data = await res.json();
-                
-                if (data.placeId) {
-                    statusText.innerText = `تم العثور على ماب: ${data.name}.. بنجيب السيرفرات...`;
-                    return data.placeId;
-                } else {
-                    throw new Error("ملقيناش ماب بالاسم ده، جرب اسم تاني!");
-                }
-            } catch (error) {
-                throw new Error("فشل البحث عن الماب. جرب تحط اللينك أو الـ ID.");
-            }
-        }
-
-        async function startSearch() {
-            const rawInput = document.getElementById('placeInput').value.trim();
             const statusText = document.getElementById('status');
             const resultDiv = document.getElementById('result');
-            const searchBtn = document.getElementById('searchBtn');
+            const mapsGrid = document.getElementById('mapsGrid');
             
-            if(!rawInput) return alert("الرجاء إدخال اسم، لينك، أو ID الماب!");
-
-            searchBtn.disabled = true;
+            // إضافة تأثير بهتان للأزرار وقت البحث
+            mapsGrid.style.opacity = "0.5";
+            mapsGrid.style.pointerEvents = "none";
+            
             resultDiv.innerHTML = "";
-            statusText.style.color = "#ccc";
+            statusText.style.color = "#00d2ff";
 
             try {
-                // استخراج الـ ID
-                const placeId = await extractPlaceId(rawInput);
-                
                 let cursor = '';
                 let found = false;
                 let pageCount = 1;
 
-                // حلقة البحث في صفحات السيرفرات
+                // حلقة البحث
                 while (!found) {
-                    statusText.innerText = `جاري فحص الصفحة رقم ${pageCount}...`;
+                    statusText.innerText = `🔍 جاري فحص سيرفرات ${mapName} (الصفحة ${pageCount})...`;
 
                     const res = await fetch(`/api/proxy?placeId=${placeId}&cursor=${cursor}`);
                     
-                    // لو وصلنا لليمت روبلوكس، المتصفح هيريح 3 ثواني ويكمل
                     if (res.status === 429) {
-                        statusText.innerText = `روبلوكس طلبت نهدي اللعب شوية.. هنستنى 3 ثواني ونكمل..`;
+                        statusText.innerText = `⏳ روبلوكس طلبت نهدي اللعب شوية.. هنستنى 3 ثواني ونكمل..`;
                         statusText.style.color = "#ffc107";
                         await sleep(3000);
                         continue;
                     }
 
                     const data = await res.json();
-                    statusText.style.color = "#ccc"; // نرجع اللون الطبيعي
+                    statusText.style.color = "#00d2ff"; // رجع اللون الأساسي
 
                     if (!data.data || data.data.length === 0) {
-                        statusText.innerText = "السيرفرات خلصت ومفيش سيرفر فاضي تماماً!";
+                        statusText.innerText = `السيرفرات خلصت ومفيش سيرفر فاضي في ${mapName} حالياً!`;
                         break;
                     }
 
-                    // البحث عن سيرفر فيه لاعب واحد أو أقل
+                    // البحث عن سيرفر فيه 0 أو 1 لاعبين
                     const emptyServer = data.data.find(s => s.playing <= 1);
 
                     if (emptyServer) {
@@ -172,7 +170,7 @@
                         statusText.innerText = "";
                         resultDiv.innerHTML = `
                             <div class="server-card">
-                                <h3>لقينا سيرفر! 🎉</h3>
+                                <h3>لقينا سيرفر فاضي في ${mapName}! 🎉</h3>
                                 <p>عدد اللاعبين: <strong>${emptyServer.playing}</strong> | البينج: ${emptyServer.ping || 'غير متوفر'}ms</p>
                                 <a href="roblox://placeId=${placeId}&gameInstanceId=${emptyServer.id}" class="join-btn">
                                     دخول السيرفر الآن 🚀
@@ -182,22 +180,23 @@
                         break;
                     }
 
-                    // الانتقال للصفحة التالية إن وجدت
                     if (data.nextPageCursor) {
                         cursor = data.nextPageCursor;
                         pageCount++;
-                        // تأخير نص ثانية بين كل صفحة عشان نتجنب الـ Rate Limit
-                        await sleep(500); 
+                        await sleep(500); // تأخير نص ثانية بين كل صفحة
                     } else {
-                        statusText.innerText = "تم فحص كل السيرفرات المتاحة، مفيش سيرفر فاضي للأسف.";
+                        statusText.innerText = `تم فحص كل السيرفرات، مفيش سيرفر فاضي لـ ${mapName} للأسف.`;
                         break;
                     }
                 }
             } catch (err) {
-                statusText.innerText = err.message;
+                statusText.innerText = "⚠️ حصلت مشكلة في الاتصال، تأكد من الإنترنت أو جرب تاني.";
                 statusText.style.color = "#ff4d4d";
             } finally {
-                searchBtn.disabled = false;
+                // نرجع الأزرار تشتغل تاني بعد ما البحث يخلص
+                isSearching = false;
+                mapsGrid.style.opacity = "1";
+                mapsGrid.style.pointerEvents = "auto";
             }
         }
     </script>
