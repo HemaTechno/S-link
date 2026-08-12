@@ -1,43 +1,54 @@
 // api/proxy.js
 export default async function handler(req, res) {
     // ---------------------------------------------------------
+    // 0. إعدادات حماية CORS للسماح بالطلبات بشكل صحيح
+    // ---------------------------------------------------------
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
+    // ---------------------------------------------------------
     // 1. نظام إرسال إشعارات الديسكورد (لو الطلب نوعه POST)
     // ---------------------------------------------------------
     if (req.method === 'POST') {
         const { mapName, placeId, players, serverId, resultType } = req.body;
         
-        // حط رابط الويب هوك بتاعك هنا
+        // رابط الويب هوك الخاص بك
         const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1536851517783412736/dR3kKSOwr_Zw3S9Si871CrIaE-vZbTv-cL1vsckw8VYcf8UsrV2AlIQ0buVUyMHZIakz";
 
         const gameLink = `https://www.roblox.com/games/${placeId}`;
-        const joinDirectLink = serverId ? `roblox://placeId=${placeId}&gameInstanceId=${serverId}` : null;
+        const joinDirectLink = serverId ? `roblox://placeId=${placeId}&gameInstanceId=${serverId}` : "N/A";
 
-        let embedTitle = "";
+        let embedTitle = `Search Result: ${mapName}`;
         let embedColor = 0;
         let embedDescription = "";
         let fields = [];
 
-        // تحديد محتوى الإشعار بناءً على النتيجة
+        // معالجة البيانات حسب النتيجة بدقة لتجنب أخطاء الديسكورد
         if (resultType === "SUCCESS") {
             embedTitle = `🎉 Empty Server Found: ${mapName}`;
             embedColor = 3066993; // أخضر
-            embedDescription = `A user just found an empty server!\n\n**Quick Join (PC):**\n\`${joinDirectLink}\``;
-            fields.push({ name: "👥 Players Inside", value: `**${players}** Player(s)`, inline: true });
-            fields.push({ name: "🔗 Game Page", value: `[View on Roblox](${gameLink})`, inline: true });
+            embedDescription = `**Quick Join (PC):**\n\`${joinDirectLink}\``;
+            fields.push({ name: "👥 Players Inside", value: `**${players || 0}** Player(s)`, inline: true });
             
         } else if (resultType === "WARNING") {
             embedTitle = `⚠️ Lowest Server Found: ${mapName}`;
             embedColor = 16766720; // أصفر
-            embedDescription = `No completely empty servers, but found the lowest populated one.\n\n**Quick Join (PC):**\n\`${joinDirectLink}\``;
-            fields.push({ name: "👥 Players Inside", value: `**${players}** Player(s)`, inline: true });
-            fields.push({ name: "🔗 Game Page", value: `[View on Roblox](${gameLink})`, inline: true });
+            embedDescription = `**Quick Join (PC):**\n\`${joinDirectLink}\``;
+            fields.push({ name: "👥 Players Inside", value: `**${players || 0}** Player(s)`, inline: true });
             
-        } else if (resultType === "FAILED") {
+        } else {
             embedTitle = `❌ Search Failed: ${mapName}`;
             embedColor = 15158332; // أحمر
-            embedDescription = `A user searched for an empty server, but absolutely no servers were available to join.`;
-            fields.push({ name: "🔗 Game Page", value: `[View on Roblox](${gameLink})`, inline: true });
+            embedDescription = `No servers were available to join at this moment.`;
         }
+
+        fields.push({ name: "🔗 Game Page", value: `[View on Roblox](${gameLink})`, inline: true });
 
         const payload = {
             username: "Server Hunter Bot",
@@ -56,11 +67,17 @@ export default async function handler(req, res) {
         };
 
         try {
-            await fetch(DISCORD_WEBHOOK_URL, {
+            const discordRes = await fetch(DISCORD_WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+            
+            if (!discordRes.ok) {
+                console.error("Discord API rejected payload.");
+                return res.status(500).json({ error: "Discord Error" });
+            }
+            
             return res.status(200).json({ success: true });
         } catch (error) {
             return res.status(500).json({ error: "Failed to trigger webhook" });
@@ -77,7 +94,6 @@ export default async function handler(req, res) {
     }
 
     let url = `https://games.roblox.com/v1/games/${placeId}/servers/Public?sortOrder=Asc&limit=100`;
-    
     if (cursor) {
         url += `&cursor=${cursor}`;
     }
@@ -90,8 +106,6 @@ export default async function handler(req, res) {
         }
 
         const data = await response.json();
-        
-        // كاش لمدة 10 ثواني لتخفيف الضغط
         res.setHeader('Cache-Control', 's-maxage=10, stale-while-revalidate');
         res.status(200).json(data);
         
