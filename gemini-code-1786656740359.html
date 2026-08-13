@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Whiteboard Draw Studio - Fixed & Fast</title>
+<style>
+:root {
+  --bg: #070b12; --p: #0d1521; --p2: #111d2d; --line: #263850;
+  --txt: #eef5ff; --muted: #91a3ba; --a: #58a6ff; --red: #ff6378;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: radial-gradient(circle at 20% 0, #112642 0, #070b12 38%);
+  color: var(--txt); font-family: system-ui, -apple-system, sans-serif; user-select: none;
+}
+header {
+  height: 62px; background: #08101aEF; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 16px;
+  position: sticky; top: 0; z-index: 20; backdrop-filter: blur(12px);
+}
+.logo { font-weight: 900; display: flex; align-items: center; gap: 9px; font-size: 1.1rem; }
+.logo b { width: 35px; height: 35px; border-radius: 10px; background: linear-gradient(135deg, #58a6ff, #8b5cf6); display: grid; place-items: center; color: #fff; }
+.actions { display: flex; gap: 8px; }
+.btn { background: var(--p2); border: 1px solid var(--line); color: #fff; border-radius: 9px; padding: 8px 14px; cursor: pointer; font-size: 13px; font-weight: 600; }
+.btn:hover { background: #18283d; }
+.primary { background: var(--a); border-color: var(--a); color: #03101d; font-weight: 800; }
+
+.app { height: calc(100vh - 62px); display: grid; grid-template-columns: 300px minmax(0, 1fr) 320px; gap: 12px; padding: 12px; }
+.panel { background: #0c1420EF; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; }
+.pt { padding: 14px; border-bottom: 1px solid var(--line); font-weight: 800; font-size: 14px; background: #08101a80; }
+.scroll { padding: 14px; overflow-y: auto; flex: 1; }
+
+.upload { border: 2px dashed #3a5575; border-radius: 12px; padding: 24px 12px; text-align: center; color: var(--muted); cursor: pointer; transition: 0.2s; background: #08101a40; }
+.upload:hover { border-color: var(--a); background: #08101a80; }
+.upload strong { display: block; color: #fff; margin: 8px 0 4px; }
+.file { display: none; }
+
+.stage { min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.stagebox { flex: 1; min-height: 300px; border: 1px solid var(--line); border-radius: 14px; background: repeating-conic-gradient(#0d1622 0 25%, #09111a 0 50%) 50%/24px 24px; display: grid; place-items: center; overflow: hidden; padding: 10px; position: relative; }
+.board { width: min(100%, 960px); aspect-ratio: 16/9; background: #fff; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.6); border-radius: 4px; overflow: hidden; }
+.board canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 2; }
+.base { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; z-index: 1; opacity: 0.6; }
+
+.select { position: absolute; border: 2px dashed var(--a); background: rgba(88, 166, 255, 0.2); cursor: pointer; border-radius: 4px; z-index: 3; }
+.select.active { border-style: solid; box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.5); }
+.select span { position: absolute; right: 0; top: -26px; background: var(--a); color: #03101d; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+
+.controls { background: var(--p); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
+.transport { display: flex; align-items: center; gap: 10px; }
+.transport input[type="range"] { flex: 1; accent-color: var(--a); cursor: pointer; }
+.time { font-size: 12px; color: var(--muted); min-width: 90px; text-align: center; }
+
+.hint { font-size: 11px; color: #a1b3c8; background: #0a1725; border: 1px solid #1e3956; padding: 10px; border-radius: 8px; line-height: 1.6; }
+.group { margin-bottom: 14px; }
+.label { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; margin-bottom: 6px; font-weight: 600; }
+.field { width: 100%; padding: 8px 10px; border-radius: 8px; background: #080f18; color: #fff; border: 1px solid var(--line); outline: none; font-size: 12px; }
+.range { width: 100%; accent-color: var(--a); cursor: pointer; }
+
+.layers { display: flex; flex-direction: column; gap: 8px; }
+.layer { display: flex; align-items: center; gap: 10px; background: #09111b; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; cursor: pointer; }
+.layer.active { border-color: var(--a); background: #0e1d2f; }
+.num { width: 22px; height: 22px; border-radius: 6px; background: #17283c; color: var(--a); display: grid; place-items: center; font-weight: 800; font-size: 11px; }
+.li { flex: 1; font-size: 12px; font-weight: 600; }
+
+.danger { color: #fff; background: var(--red); border-color: var(--red); }
+.hidden { display: none !important; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translate(-50%, 20px); opacity: 0; background: #142235; border: 1px solid #2b4564; color: #fff; border-radius: 8px; padding: 10px 18px; transition: 0.25s; z-index: 99; pointer-events: none; }
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><b>✍</b> Whiteboard Draw Studio</div>
+  <div class="actions">
+    <button class="btn" id="newBtn">مشروع جديد</button>
+    <button class="btn primary" id="exportBtn">🎬 تصدير WebM</button>
+  </div>
+</header>
+
+<div class="app">
+  <aside class="panel">
+    <div class="pt">① رفع الصورة والطبقات</div>
+    <div class="scroll">
+      <div class="upload" id="upload">
+        <div style="font-size:36px">🖼️</div>
+        <strong>اضغط هنا لرفع صورة</strong>
+        <span>ثم اسحب الماوس لتحديد الجزء المطلوب</span>
+        <input id="file" class="file" type="file" accept="image/*">
+      </div>
+      <div class="hint" style="margin-top:12px">الصورة ستظهر خلفية شفافة لتتمكن من تحديد العناصر بسحب الماوس فوقها بسهولة.</div>
+      <div class="label" style="margin-top:14px">الطبقات المحددة</div>
+      <div class="layers" id="layers"></div>
+    </div>
+  </aside>
+
+  <main class="stage">
+    <div class="stagebox">
+      <div class="board" id="board">
+        <img id="base" class="base hidden">
+        <canvas id="draw"></canvas>
+        <div id="selects"></div>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="transport">
+        <button class="btn primary" id="play">▶</button>
+        <button class="btn" id="stop">■</button>
+        <span class="time" id="clock">00:00 / 00:10</span>
+        <input id="scrub" type="range" min="0" max="10" step="0.01" value="0">
+      </div>
+    </div>
+  </main>
+
+  <aside class="panel">
+    <div class="pt">② إعدادات الرسم</div>
+    <div class="scroll">
+      <div id="empty" class="hint">يرجى رفع صورة أولاً ثم السحب بالماوس فوق الجزء المطلوب رسمه.</div>
+      <div id="settings" class="hidden">
+        <div class="group">
+          <label class="label">اسم العنصر</label>
+          <input class="field" id="name">
+        </div>
+        <div class="group">
+          <label class="label">سرعة الرسم <b id="speedV">2s</b></label>
+          <input class="range" id="speed" type="range" min="0.5" max="10" step="0.1" value="2">
+        </div>
+        <div class="group">
+          <label class="label">سمك القلم <b id="thickV">3px</b></label>
+          <input class="range" id="thick" type="range" min="1" max="10" step="0.5" value="3">
+        </div>
+        <button class="btn danger" style="width:100%" id="remove">حذف العنصر</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+const board = $('#board'), base = $('#base'), overlay = $('#selects'), out = $('#draw'), ctx = out.getContext('2d');
+let img = new Image(), imgURL = '', items = [], selected = null, drag = false, sx = 0, sy = 0, playing = false, now = 0, last = 0, raf = null;
+const state = { total: 10, bg: '#ffffff' };
+
+function toast(t) {
+  const x = $('#toast'); x.textContent = t; x.classList.add('on');
+  setTimeout(() => x.classList.remove('on'), 2000);
+}
+function uid() { return Math.random().toString(36).slice(2, 9); }
+function clock(t) { return '00:' + String(Math.floor(Math.max(0, t))).padStart(2, '0'); }
+
+function setCanvasSize() {
+  const r = board.getBoundingClientRect();
+  out.width = Math.round(r.width);
+  out.height = Math.round(r.height);
+  drawAt(now);
+}
+window.addEventListener('resize', setCanvasSize);
+
+$('#upload').onclick = () => $('#file').click();
+$('#file').onchange = e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const fr = new FileReader();
+  fr.onload = z => load(z.target.result);
+  fr.readAsDataURL(file);
+};
+
+function load(src) {
+  imgURL = src;
+  img = new Image();
+  img.onload = () => {
+    base.src = src;
+    base.classList.remove('hidden');
+    setCanvasSize();
+    toast('تمت إظهار الصورة! حدد العنصر بالسحب');
+  };
+  img.src = src;
+  items = []; selected = null; renderSelections();
+}
+
+function boardPoint(e) {
+  const r = board.getBoundingClientRect();
+  return {
+    x: (e.clientX - r.left) / r.width * img.naturalWidth,
+    y: (e.clientY - r.top) / r.height * img.naturalHeight,
+    rx: (e.clientX - r.left) / r.width * 100,
+    ry: (e.clientY - r.top) / r.height * 100
+  };
+}
+
+board.addEventListener('pointerdown', e => {
+  if (!imgURL || !img.naturalWidth || e.target.closest('.select')) return;
+  const p = boardPoint(e); sx = p.x; sy = p.y; drag = true;
+  const ghost = document.createElement('div');
+  ghost.className = 'select active'; ghost.style.left = p.rx + '%'; ghost.style.top = p.ry + '%'; ghost.style.width = '0'; ghost.style.height = '0';
+  overlay.appendChild(ghost);
+
+  function mv(ev) {
+    if (!drag) return;
+    const q = boardPoint(ev);
+    ghost.style.left = Math.min(p.rx, q.rx) + '%'; ghost.style.top = Math.min(p.ry, q.ry) + '%';
+    ghost.style.width = Math.abs(q.rx - p.rx) + '%'; ghost.style.height = Math.abs(q.ry - p.ry) + '%';
+  }
+  function up(ev) {
+    drag = false; window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up);
+    ghost.remove();
+    const q = boardPoint(ev), x = Math.min(sx, q.x), y = Math.min(sy, q.y), w = Math.abs(q.x - sx), h = Math.abs(q.y - sy);
+    if (w < 10 || h < 10) return toast('حدد مساحة أكبر');
+    createItem(x, y, w, h);
+  }
+  window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+});
+
+function createItem(x, y, w, h) {
+  const item = {
+    id: uid(), name: 'عنصر ' + (items.length + 1),
+    x, y, w, h, duration: 2, delay: 0, thick: 3,
+    paths: extractPaths(x, y, w, h)
+  };
+  items.push(item); recalc(); selected = item; renderSelections();
+  toast('تم تحويل العنصر لجهاز الرسم');
+}
+
+function recalc() {
+  let t = 0; items.forEach(i => { i.delay = t; t += i.duration; });
+  state.total = Math.max(3, Math.ceil(t + 1));
+  $('#scrub').max = state.total;
+  updateClock();
+}
+
+// Fast & Optimized Path Extraction (No Freeze)
+function extractPaths(x, y, w, h) {
+  const c = document.createElement('canvas');
+  const W = 150, H = Math.round(150 * (h / w)); // Fast downsampling
+  c.width = W; c.height = H;
+  const cctx = c.getContext('2d');
+  cctx.drawImage(img, x, y, w, h, 0, 0, W, H);
+
+  const imgData = cctx.getImageData(0, 0, W, H).data;
+  const paths = [];
+
+  for (let yy = 0; yy < H; yy += 3) {
+    const stroke = [];
+    for (let xx = 0; xx < W; xx += 3) {
+      const idx = (yy * W + xx) * 4;
+      const r = imgData[idx], g = imgData[idx+1], b = imgData[idx+2], a = imgData[idx+3];
+      if (a > 50 && (r + g + b) / 3 < 180) {
+        stroke.push([xx / W, yy / H]);
+      }
+    }
+    if (stroke.length > 2) paths.push(stroke);
+  }
+  return paths;
+}
+
+function renderSelections() {
+  overlay.innerHTML = '';
+  items.forEach((it, i) => {
+    const b = document.createElement('div');
+    b.className = 'select' + (selected?.id === it.id ? ' active' : '');
+    b.style.left = (it.x / img.naturalWidth * 100) + '%';
+    b.style.top = (it.y / img.naturalHeight * 100) + '%';
+    b.style.width = (it.w / img.naturalWidth * 100) + '%';
+    b.style.height = (it.h / img.naturalHeight * 100) + '%';
+    b.innerHTML = `<span>${i + 1}. ${it.name}</span>`;
+    b.onclick = e => { e.stopPropagation(); selected = it; renderSelections(); };
+    overlay.appendChild(b);
+  });
+  renderLayers(); updateSettings(); drawAt(now);
+}
+
+function renderLayers() {
+  $('#layers').innerHTML = '';
+  items.forEach((it, i) => {
+    const d = document.createElement('div');
+    d.className = 'layer' + (selected?.id === it.id ? ' active' : '');
+    d.innerHTML = `<div class="num">${i + 1}</div><div class="li">${it.name} (${it.duration}s)</div>`;
+    d.onclick = () => { selected = it; renderSelections(); };
+    $('#layers').appendChild(d);
+  });
+}
+
+function updateSettings() {
+  const on = !!selected;
+  $('#settings').classList.toggle('hidden', !on);
+  $('#empty').classList.toggle('hidden', on);
+  if (!on) return;
+  $('#name').value = selected.name;
+  $('#speed').value = selected.duration;
+  $('#thick').value = selected.thick;
+  $('#speedV').textContent = selected.duration + 's';
+  $('#thickV').textContent = selected.thick + 'px';
+}
+
+$('#name').oninput = e => { if (selected) { selected.name = e.target.value; renderSelections(); } };
+$('#speed').oninput = e => { if (selected) { selected.duration = +e.target.value; $('#speedV').textContent = selected.duration + 's'; recalc(); renderLayers(); } };
+$('#thick').oninput = e => { if (selected) { selected.thick = +e.target.value; $('#thickV').textContent = selected.thick + 'px'; } };
+$('#remove').onclick = () => { if (!selected) return; items = items.filter(x => x.id !== selected.id); selected = null; recalc(); renderSelections(); };
+
+function updateClock() {
+  $('#clock').textContent = clock(now) + ' / ' + clock(state.total);
+  $('#scrub').value = now;
+}
+$('#scrub').oninput = e => { now = +e.target.value; drawAt(now); };
+
+function drawAt(t) {
+  ctx.clearRect(0, 0, out.width, out.height);
+  if (!img.naturalWidth) return;
+
+  const sx = out.width / img.naturalWidth;
+  const sy = out.height / img.naturalHeight;
+
+  items.forEach(it => {
+    const p = Math.max(0, Math.min(1, (t - it.delay) / it.duration));
+    if (p <= 0) return;
+
+    ctx.strokeStyle = '#111';
+    ctx.lineWidth = it.thick;
+    ctx.lineCap = 'round';
+
+    let totalPts = it.paths.reduce((a, x) => a + x.length, 0);
+    let target = Math.floor(totalPts * p);
+    let drawn = 0;
+
+    for (const path of it.paths) {
+      if (drawn >= target) break;
+      ctx.beginPath();
+      let first = true;
+      for (const pt of path) {
+        if (drawn >= target) break;
+        const px = (it.x + pt[0] * it.w) * sx;
+        const py = (it.y + pt[1] * it.h) * sy;
+        if (first) { ctx.moveTo(px, py); first = false; }
+        else { ctx.lineTo(px, py); }
+        drawn++;
+      }
+      ctx.stroke();
+    }
+  });
+}
+
+function animate() {
+  if (!playing) return;
+  const t = performance.now();
+  if (!last) last = t;
+  now += (t - last) / 1000;
+  last = t;
+  if (now > state.total) now = 0;
+  updateClock(); drawAt(now);
+  raf = requestAnimationFrame(animate);
+}
+
+$('#play').onclick = () => {
+  playing = !playing;
+  $('#play').textContent = playing ? '⏸' : '▶';
+  if (playing) { last = 0; raf = requestAnimationFrame(animate); }
+  else cancelAnimationFrame(raf);
+};
+$('#stop').onclick = () => {
+  playing = false; cancelAnimationFrame(raf); now = 0; updateClock(); drawAt(0);
+};
+$('#newBtn').onclick = () => {
+  imgURL = ''; items = []; selected = null; base.classList.add('hidden');
+  overlay.innerHTML = ''; ctx.clearRect(0, 0, out.width, out.height); updateSettings();
+};
+
+updateClock();
+</script>
+</body>
+</html>
