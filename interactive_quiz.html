@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبار الميكروبيولوجي والمناعة - تمريض بلس</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .option-btn {
+            transition: all 0.3s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-smhadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .correct-ans {
+            background-color: #10B981 !important; /* Emerald 500 */
+            color: white !important;
+            border-color: #10B981 !important;
+        }
+        .wrong-ans {
+            background-color: #EF4444 !important; /* Red 500 */
+            color: white !important;
+            border-color: #EF4444 !important;
+        }
+        .telegram-btn {
+            background: linear-gradient(to right, #0088cc, #00aaff);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .telegram-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 136, 204, 0.4);
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md p-4 sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">اختبار المراجعة الشاملة</h1>
+            <a href="https://t.me/News_Nursing" target="_blank" class="telegram-btn text-white px-4 py-2 rounded-full font-bold shadow-lg flex items-center gap-2 text-sm md:text-base">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.287 5.906c-.778.324-2.334.994-4.666 2.01-.378.15-.577.298-.595.442-.03.243.275.339.69.47l.175.055c.408.133.958.288 1.243.292.26.004.545-.106.855-.332 2.07-1.41 3.118-2.134 3.14-2.172.03-.053.067-.116-.01-.163-.077-.047-.15-.015-.224.032-.121.08-1.954 1.282-2.77 1.832-.178.12-.352.24-.526.36-.217.147-.417.283-.448.448-.04.223.238.452.485.642.433.332 1.05.748 1.488 1.051.408.283.74.512 1.182.498.225-.007.453-.24.582-.572.247-.636 1.127-4.223 1.258-5.068.012-.08.016-.145.006-.184-.01-.039-.035-.06-.067-.06-.051 0-.175.044-.608.224z"/>
+                </svg>
+                قناة تمريض بلس
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto p-4 flex flex-col items-center justify-center max-w-3xl">
+        
+        <!-- Start Screen -->
+        <div id="start-screen" class="bg-white rounded-2xl shadow-xl p-8 w-full text-center fade-in">
+            <h2 class="text-3xl font-extrabold text-gray-800 mb-4">أهلاً بك في الاختبار التفاعلي 🩺</h2>
+            <p class="text-gray-600 mb-8 text-lg">يحتوي هذا الاختبار على جميع الأسئلة الخاصة بالبكتيريا، المناعة، الفيروسات، العدوى المكتسبة، التعقيم، اللقاحات، وجمع العينات.</p>
+            
+            <div class="mb-8 p-4 bg-blue-50 rounded-lg border border-blue-100 text-right">
+                <h3 class="font-bold text-blue-800 mb-2">تعليمات:</h3>
+                <ul class="list-disc list-inside text-gray-700 space-y-1 text-sm">
+                    <li>الأسئلة مقسمة ومدمجة في اختبار واحد شامل.</li>
+                    <li>اختر الإجابة الصحيحة لكل سؤال للمتابعة.</li>
+                    <li>في نهاية الاختبار ستظهر نتيجتك النهائية.</li>
+                </ul>
+            </div>
+
+            <button onclick="startQuiz()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-10 rounded-xl shadow-lg transition duration-300 text-lg w-full md:w-auto">
+                ابدأ الاختبار الآن
+            </button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" class="bg-white rounded-2xl shadow-xl p-6 md:p-8 w-full hidden fade-in">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+                <span id="question-category" class="bg-blue-100 text-blue-800 text-xs md:text-sm font-bold px-3 py-1 rounded-full">القسم</span>
+                <span class="text-gray-500 font-bold" dir="ltr">
+                    <span id="current-q-num">1</span> / <span id="total-q-num">100</span>
+                </span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-200 rounded-full h-2 mb-6">
+                <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+
+            <h3 id="question-text" class="text-xl md:text-2xl font-bold text-gray-800 mb-6 text-left" dir="ltr">Question text goes here?</h3>
+
+            <div id="options-container" class="space-y-3 flex flex-col" dir="ltr">
+                <!-- Options will be injected here -->
+            </div>
+
+            <div class="mt-8 flex justify-end">
+                <button id="next-btn" onclick="nextQuestion()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-8 rounded-lg shadow hidden transition duration-300">
+                    السؤال التالي <span dir="ltr">→</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="bg-white rounded-2xl shadow-xl p-8 w-full text-center hidden fade-in">
+            <h2 class="text-3xl font-extrabold text-gray-800 mb-2">اكتمل الاختبار! 🎉</h2>
+            <p class="text-gray-600 mb-6">لقد أتممت جميع الأسئلة بنجاح.</p>
+            
+            <div class="bg-gray-100 rounded-xl p-6 mb-8 inline-block w-full max-w-sm">
+                <p class="text-gray-500 text-sm mb-1">نتيجتك النهائية</p>
+                <p class="text-5xl font-black text-blue-600" dir="ltr">
+                    <span id="score-text">0</span><span class="text-2xl text-gray-400">/<span id="total-score">0</span></span>
+                </p>
+            </div>
+
+            <div class="space-y-4 flex flex-col items-center">
+                <button onclick="location.reload()" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 px-8 rounded-xl shadow transition duration-300 w-full max-w-sm">
+                    إعادة الاختبار 🔄
+                </button>
+                <a href="https://t.me/News_Nursing" target="_blank" class="telegram-btn text-white font-bold py-3 px-8 rounded-xl shadow-lg w-full max-w-sm flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8.287 5.906c-.778.324-2.334.994-4.666 2.01-.378.15-.577.298-.595.442-.03.243.275.339.69.47l.175.055c.408.133.958.288 1.243.292.26.004.545-.106.855-.332 2.07-1.41 3.118-2.134 3.14-2.172.03-.053.067-.116-.01-.163-.077-.047-.15-.015-.224.032-.121.08-1.954 1.282-2.77 1.832-.178.12-.352.24-.526.36-.217.147-.417.283-.448.448-.04.223.238.452.485.642.433.332 1.05.748 1.488 1.051.408.283.74.512 1.182.498.225-.007.453-.24.582-.572.247-.636 1.127-4.223 1.258-5.068.012-.08.016-.145.006-.184-.01-.039-.035-.06-.067-.06-.051 0-.175.044-.608.224z"/>
+                    </svg>
+                    تابعنا على تمريض بلس للمزيد
+                </a>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="mt-auto py-4 text-center text-gray-500 text-sm">
+        تم إعداد هذا الاختبار التفاعلي بناءً على طلبك - مع تمنياتنا بالتوفيق!
+    </footer>
+
+    <script>
+        // Data containing all parsed questions
+        const quizData = [
+            // Bacteriology
+            { c: "Bacteriology", q: "Transposons are also known as:", o: ["Jumping genes", "Ribosomal genes", "Structural genes", "Virulence factors"], a: 0 },
+            { c: "Bacteriology", q: "Which group of bacteria grows only in the absence of oxygen?", o: ["Obligate anaerobes", "Obligate aerobes", "Facultative anaerobes", "Microaerophiles"], a: 0 },
+            { c: "Bacteriology", q: "Which bacterial product acts as a biological catalyst?", o: ["Toxin", "Pigment", "Capsule", "Enzyme"], a: 3 },
+            { c: "Bacteriology", q: "The optimum temperature for growth of most pathogenic bacteria?", o: ["37°C", "30°C", "45°C", "25°C"], a: 0 },
+            { c: "Bacteriology", q: "Which of the following is considered a bacterial virulence factor?", o: ["Cell size", "Gram reaction", "Toxin production", "Cell shape"], a: 2 },
+            { c: "Bacteriology", q: "Endotoxins are primarily associated with:", o: ["Fungi", "Gram-positive bacteria", "Gram-negative bacteria", "Viruses"], a: 2 },
+            { c: "Bacteriology", q: "Teichoic acids are characteristic components of:", o: ["Gram-positive bacteria", "Mycoplasma", "Gram-negative bacteria", "Mycobacteria"], a: 0 },
+            { c: "Bacteriology", q: "The major function of the cytoplasmic membrane is:", o: ["Active transport of molecules", "DNA replication", "Capsule formation", "Protein synthesis"], a: 0 },
+            { c: "Bacteriology", q: "Which statement about bacterial endospores is INCORRECT?", o: ["They have no metabolic activity", "They can germinate into vegetative cells under favorable conditions", "They are reproductive structures", "They are highly resistant to heat and chemicals"], a: 2 },
+            { c: "Bacteriology", q: "Which bacterial structure determines the Gram stain reaction?", o: ["Cell wall", "Ribosomes", "Plasmid", "Capsule"], a: 0 },
+            { c: "Bacteriology", q: "Which of the following components is present in Gram-negative bacteria but not in Gram-positive bacteria?", o: ["Peptidoglycan", "Lipid A", "Capsule", "Flagella"], a: 1 },
+            { c: "Bacteriology", q: "Which structure protects the bacterium from unfavorable environmental conditions?", o: ["Cell wall", "Capsule", "Flagellum", "Spore"], a: 3 },
+            { c: "Bacteriology", q: "Which of the following is the proper temperature for bacterial growth?", o: ["25°C", "37°C", "42°C", "65°C"], a: 1 },
+            { c: "Bacteriology", q: "All of these are gaseous requirements EXCEPT:", o: ["Microaerophilic", "Strict anaerobe", "Aerobe facult. Anaerobes", "Endospores"], a: 3 },
+            { c: "Bacteriology", q: "Which of the following is the proper pH for bacterial growth?", o: ["4.5", "7.5", "8.5", "6.5"], a: 1 },
+            { c: "Bacteriology", q: "What is the most active phase of curve, with maximum rate of bacterial division?", o: ["Lag phase", "Log phase", "Decline phase", "Stationary phase"], a: 1 },
+            { c: "Bacteriology", q: "For carriers, the following statements are correct EXCEPT:", o: ["They are not easily detected", "They are not known to the public", "They are not confined to bed", "They cannot infect others"], a: 3 },
+            { c: "Bacteriology", q: "Which of the following is virulence factor for bacteria?", o: ["Shape", "Size", "Toxin", "Cell wall"], a: 2 },
+            { c: "Bacteriology", q: "Which antimicrobial agent inhibits folic acid formation by bacterial cell?", o: ["Aminoglycosides", "Penicillin", "Tetracycline", "Sulphamethoxazole"], a: 3 },
+            { c: "Bacteriology", q: "Which antimicrobial agent inhibits protein synthesis by binding to 30S subunit?", o: ["Aminoglycosides", "Penicillin", "Rifampicin", "Sulphamethoxazole"], a: 0 },
+            { c: "Bacteriology", q: "Which bacterial species is responsible for causing Antibiotic associated diarrhea?", o: ["Clostridium perfringens", "Clostridium tetani", "Clostridium botulinum", "Clostridium difficile"], a: 3 },
+            { c: "Bacteriology", q: "What is the most common bacterial cause of pharyngitis and tonsillitis?", o: ["Staphylococcus aureus", "Streptococcus pyogenes", "Neisseria meningitidis", "Mycobacterium tuberculosis"], a: 1 },
+            { c: "Bacteriology", q: "In bacterial meningitis, which two organisms are the most common causes?", o: ["Neisseria gonorrhoeae and Streptococcus pyogenes", "Meningococci and Pneumococci", "Salmonella and Shigella", "Mycobacterium tuberculosis and Clostridium difficile"], a: 1 },
+            { c: "Bacteriology", q: "What is the mode of transmission for meningococcal meningitis?", o: ["Contaminated food", "Respiratory droplets", "Direct contact with wounds", "Sexual contact"], a: 1 },
+            { c: "Bacteriology", q: "Which bacteria causes bacillary dysentery?", o: ["Salmonella", "Shigella", "Helicobacter pylori", "Clostridium botulinum"], a: 1 },
+            { c: "Bacteriology", q: "What is the main bacterial cause of skin abscesses?", o: ["Streptococcus pyogenes", "Staphylococcus aureus", "Clostridium tetani", "Neisseria meningitidis"], a: 1 },
+            { c: "Bacteriology", q: "Bacteria have very small size measured by:", o: ["Microns", "Nanometers", "Millimeter", "None of above"], a: 0 },
+            { c: "Bacteriology", q: "The structure that is responsible for the shape of bacteria is:", o: ["Cell wall", "Spores", "Cytoplasm", "Capsule"], a: 0 },
+            { c: "Bacteriology", q: "Bacteria need all of the following for their growth except:", o: ["Nutrition", "Gases", "Light", "Moisture"], a: 2 },
+            { c: "Bacteriology", q: "Bacteria which can grow in absence of oxygen are known as:", o: ["Strict aerobes", "Anaerobes", "Microaerophilic", "None of these"], a: 1 },
+            { c: "Bacteriology", q: "Which of the following bacteria is comma shaped?", o: ["Streptococci", "Vibrio Cholera", "Diphtheria", "None of these"], a: 1 },
+            { c: "Bacteriology", q: "Food poisoning with 1-6 hours incubation periods is due to:", o: ["Salmonella enteritidis", "Staphylococcus aureus", "Clostridium botulinum", "None of these"], a: 1 },
+            { c: "Bacteriology", q: "Epidemic cerebrospinal meningitis is caused by:", o: ["Neisseria meningitidis", "Neisseria gonorrhea", "Salmonella", "None of these"], a: 0 },
+            { c: "Bacteriology", q: "Enteric fever is caused by:", o: ["Staphylococcus aureus", "Streptococcus pyogenes", "Salmonella typhi", "Vibrio Cholera"], a: 2 },
+            { c: "Bacteriology", q: "Tuberculosis is transmitted by:", o: ["Droplet spread", "Through skin and mucous membrane", "Sexual route", "None of these"], a: 0 },
+            { c: "Bacteriology", q: "The organism that causes diphtheria produces:", o: ["Toxin", "Enzyme", "Vitamin"], a: 0 },
+            { c: "Bacteriology", q: "The test for diagnosis of rheumatic fever is:", o: ["Oxidase", "Catalase", "Coagulase", "ASOT"], a: 3 },
+            { c: "Bacteriology", q: "Whooping cough is caused by:", o: ["Bordetella", "Streptococci", "Tuberculosis", "None of the above"], a: 0 },
+            { c: "Bacteriology", q: "The organism causing pyogenic tonsillitis is:", o: ["Staphylococcus aureus", "Streptococcus pyogenes", "Salmonella typhi", "Vibrio Cholera"], a: 1 },
+            { c: "Bacteriology", q: "The organism causing whooping cough is:", o: ["Staphylococcus aureus", "Streptococcus pyogenes", "Salmonella typhi", "Bordetella pertussis"], a: 3 },
+            { c: "Bacteriology", q: "Complications of streptococcal tonsillitis is:", o: ["Rheumatic fever", "Enteric fever", "Botulism", "None of the above"], a: 0 },
+            { c: "Bacteriology", q: "Rice water stool is characteristic in:", o: ["Enteric fever", "Botulism", "Cholera", "Tetanus"], a: 2 },
+            { c: "Bacteriology", q: "Neurological manifestations are present in:", o: ["Botulism", "Brucellosis", "Cholera", "Puerperal sepsis"], a: 0 },
+            { c: "Bacteriology", q: "Widal test is used for diagnosis of:", o: ["Cholera", "Brucellosis", "Enteric fever", "Tetanus"], a: 2 },
+            { c: "Bacteriology", q: "TAB vaccine is used for protection from:", o: ["Cholera", "Brucellosis", "Enteric fever", "Tetanus"], a: 2 },
+            { c: "Bacteriology", q: "The causative organism of gonorrhea is:", o: ["Neisseria gonorrhoeae (intracellular gram -ve diplococci)"], a: 0 },
+            { c: "Bacteriology", q: "Lockjaw is caused by:", o: ["Bacillus anthracis", "Bacillus cereus", "Clostridium tetani", "Staphylococcus aureus"], a: 2 },
+            { c: "Bacteriology", q: "Canned food may transmit:", o: ["Botulism", "Lockjaw", "Rheumatic fever"], a: 0 },
+            { c: "Bacteriology", q: "Clostridium perfringens causes:", o: ["Botulism", "Lockjaw", "Gas gangrene", "Anthrax"], a: 2 },
+            { c: "Bacteriology", q: "Rice-water diarrhea is caused by:", o: ["E. coli", "Vibrio cholerae"], a: 1 },
+            { c: "Bacteriology", q: "Gastritis and peptic ulcers are caused by:", o: ["Staphylococcus aureus", "Helicobacter pylori", "Food poisoning", "Streptococci"], a: 1 },
+            { c: "Bacteriology", q: "Klebsiella pneumoniae causes pneumonia with:", o: ["Thick, bloody sputum"], a: 0 },
+            { c: "Bacteriology", q: "The study of incidence and prevalence of diseases in populations is called:", o: ["Pathology", "Parasitology", "Biotechnology", "Epidemiology"], a: 3 },
+            { c: "Bacteriology", q: "Intracellular gram-negative diplococci in urethral discharge indicate:", o: ["Chlamydia", "Neisseria gonorrhoeae", "E. coli", "Mycoplasma"], a: 1 },
+            { c: "Bacteriology", q: "Which organism ferments lactose on MacConkey agar?", o: ["Salmonella", "Shigella", "E. coli", "Pseudomonas"], a: 2 },
+            { c: "Bacteriology", q: "Microbes with optimal temperature below 20°C are called:", o: ["Psychotrophs", "Thermophiles", "Xerophiles", "Mesophiles"], a: 0 },
+            { c: "Bacteriology", q: "Ciprofloxacin inhibits:", o: ["DNA gyrase", "Cell wall", "Cell membrane", "Capsule"], a: 0 },
+            { c: "Bacteriology", q: "Legionella pneumophila are associated with environmental water sources such as air conditioners and cause:", o: ["Botulism", "Legionnaires' disease", "Food poisoning", "Gastritis"], a: 1 },
+
+            // Immunology
+            { c: "Immunology", q: "Plasma cells are mainly responsible for:", o: ["Killing tumor cells directly", "Antigen presentation only", "Phagocytosis", "Antibody secretion"], a: 3 },
+            { c: "Immunology", q: "Which cells are considered professional antigen-presenting cells (APCs)?", o: ["Macrophages and dendritic cells", "NK cells and plasma cells", "Neutrophils and eosinophils", "B cells and NK cells only"], a: 0 },
+            { c: "Immunology", q: "Type I hypersensitivity is also called:", o: ["Delayed hypersensitivity", "Anaphylactic or immediate reaction", "Cytotoxic reaction", "Immune complex reaction"], a: 1 },
+            { c: "Immunology", q: "Which of the following is an example of Type II hypersensitivity?", o: ["Atopy", "Arthus reaction", "Tuberculin test", "ABO-incompatible blood transfusion reaction"], a: 3 },
+            { c: "Immunology", q: "The tuberculin skin test is an example of:", o: ["Type IV hypersensitivity", "Type I hypersensitivity", "Type II hypersensitivity", "Type III hypersensitivity"], a: 0 },
+            { c: "Immunology", q: "Mechanisms of innate immunity could be all EXCEPT:", o: ["Ciliated mucous membrane", "Antibody production", "Natural killer cells", "Lysozymes", "Phagocytosis"], a: 1 },
+            { c: "Immunology", q: "Stomach innate immunity clears out pathogens by all EXCEPT:", o: ["Secreting HCL", "Secreting digestive enzymes", "Mucous lining", "T-lymphocytes"], a: 3 },
+            { c: "Immunology", q: "Innate immunity is also called:", o: ["Familial", "Inborn", "Genetic", "None of these"], a: 1 },
+            { c: "Immunology", q: "Skin prevents pathogen entry by:", o: ["Intact cells of the skin outer layer prevents pathogen entry", "Skin secrets oil by sebaceous gland that makes surface acidic", "Skin secrets sweat that makes surface acidic", "All of these"], a: 3 },
+            { c: "Immunology", q: "Which of the following cells is primarily responsible for antibody production?", o: ["T-lymphocytes", "Plasma cells", "Macrophages", "Basophils"], a: 1 },
+            { c: "Immunology", q: "The major function of cytotoxic T lymphocytes is:", o: ["Secretion of antibodies", "Killing virus-infected cells", "Presentation of antigen", "Activation of macrophages"], a: 1 },
+            { c: "Immunology", q: "IgM antibodies:", o: ["Cross placenta", "Produced by secondary immune response", "Activate the complement", "Found in secretion"], a: 2 },
+            { c: "Immunology", q: "IgA antibody is characterized by:", o: ["Cross placenta", "Fix complement", "Allergy reaction", "Found in saliva"], a: 3 },
+            { c: "Immunology", q: "Delayed type hypersensitivity is mediated by:", o: ["T cell", "B cell", "IgE", "IgM"], a: 0 },
+            { c: "Immunology", q: "Which type of hypersensitivity describes blood transfusion reaction?", o: ["Anaphylaxis", "Cytotoxic", "Immune complex", "Delayed hypersensitivity"], a: 1 },
+            { c: "Immunology", q: "Which reaction is Type I hypersensitivity?", o: ["Serum sickness", "Tuberculin test", "Atopy", "Arthus reaction"], a: 2 },
+            { c: "Immunology", q: "The reaction occurs in type III hypersensitivity is:", o: ["Antigen reaction with IgE", "Antibody reacting with cell bound antigen", "Formation of antigen/antibody immune complex", "Sensitive T cell reacting with specific antigen"], a: 2 },
+            { c: "Immunology", q: "Which of the following cells can kill tumor cell directly?", o: ["T helper", "T cytotoxic", "Plasma cell", "Phagocytic cell"], a: 1 },
+            { c: "Immunology", q: "The following are characteristics of adaptive immunity EXCEPT:", o: ["Specific", "Acquired due to previous exposure", "Depends on lymphocytes which have specific receptors", "Do not have memory"], a: 3 },
+            { c: "Immunology", q: "Antibodies are secreted by:", o: ["T helper lymphocytes", "Plasma cells", "Cytotoxic T lymphocytes", "Phagocytes"], a: 1 },
+            { c: "Immunology", q: "IgM is characterized by:", o: ["Produced in secondary immune response", "Cross placenta", "Produced in primary immune response", "None of these"], a: 2 },
+            { c: "Immunology", q: "IgG is characterized by:", o: ["Produced in primary immune response", "Cross placenta", "Present in allergic reaction", "None of these"], a: 1 },
+            { c: "Immunology", q: "IgE is characterized by:", o: ["Present in allergic reaction", "Cross placenta", "Produced in primary immune response", "None of these"], a: 0 },
+            { c: "Immunology", q: "Antibodies that can cross the placenta are:", o: ["IgG", "IgM", "IgE", "IgD"], a: 0 },
+            { c: "Immunology", q: "Antibodies that are present on mucous membranes are:", o: ["IgG", "IgM", "IgE", "IgA"], a: 3 },
+            { c: "Immunology", q: "Antibodies that are present in Type I hypersensitivity are:", o: ["IgG", "IgM", "IgE", "IgD"], a: 2 },
+            { c: "Immunology", q: "Incompatible blood transfusion is an example of:", o: ["Type I", "Type II: Cytotoxic reactions", "Type III", "Type IV"], a: 1 },
+            { c: "Immunology", q: "Injection of penicillin may lead to anaphylactic shock which is an example of:", o: ["Type I", "Type II", "Type III", "Type IV"], a: 0 },
+            { c: "Immunology", q: "Which immunoglobulin is responsible for allergic reactions?", o: ["IgG", "IgA", "IgE", "IgD"], a: 2 },
+
+            // Virology
+            { c: "Virology", q: "All of the following are functions of capsid EXCEPT:", o: ["Protein synthesis", "Viral symmetry", "Protection of NA", "Antigenicity"], a: 0 },
+            { c: "Virology", q: "Which of these viruses can be prevented post exposure?", o: ["HCV", "HBV", "Mumps", "Herpes simplex"], a: 1 },
+            { c: "Virology", q: "Kaposi sarcoma is a complication that occurs after infection of:", o: ["HCV", "HBV", "HIV", "Mumps"], a: 2 },
+            { c: "Virology", q: "The viruses possess:", o: ["Only one type of nucleic acid DNA or RNA", "Both DNA and RNA", "Neither DNA nor RNA", "Proteins only"], a: 0 },
+            { c: "Virology", q: "All of the following are characters of Hepatitis virus (A) EXCEPT:", o: ["Transmitted by the fecal-oral route", "Ingestion of contaminated food or water", "Turn to chronic infection", "No carriers"], a: 2 },
+            { c: "Virology", q: "All of the following are characters of Hepatitis virus (E) EXCEPT:", o: ["Fecal-oral transmission", "Water-borne infection", "High mortality rates among pregnant women", "There is a vaccine for prophylaxis"], a: 3 },
+            { c: "Virology", q: "All of the following are characters of Hepatitis virus (B) EXCEPT:", o: ["No vaccine for prophylaxis", "Transmitted by blood, sexual intercourse and perinatally", "Chronic carriers", "Leads to cirrhosis of the liver and HCC"], a: 0 },
+            { c: "Virology", q: "All of the following are characters of Hepatitis virus (D) EXCEPT:", o: ["Co-infection with HBV", "No chronic liver disease", "Super-infection of an already HBV-infected individual", "Prevented by HBV prophylaxis"], a: 1 },
+            { c: "Virology", q: "All of the following are characters of Hepatitis virus (C) EXCEPT:", o: ["Post-transfusion hepatitis", "Has a vaccine for prophylaxis (It DOES NOT have a vaccine)"], a: 0 }, // Adjusted slightly for logic
+
+            // Nosocomial Infections
+            { c: "Nosocomial", q: "What are the most common types of hospital-acquired infections?", o: ["Catheter-associated UTI", "Surgical sites infections", "Hospital-acquired pneumonia", "All of the above (جميع ما سبق صحيح)"], a: 3 },
+            { c: "Nosocomial", q: "Which of the following is the weakest link in the chain of infection that can be broken to control HAIs?", o: ["Mode of transmission", "Reservoir", "Portal of exit", "Susceptible host"], a: 0 },
+            { c: "Nosocomial", q: "What is the definition of a susceptible host the last link in the chain of infection?", o: ["The host who is vulnerable to infection", "The host that is immune to the pathogen", "The host that is resistant", "The host that is a carrier"], a: 0 },
+            { c: "Nosocomial", q: "The Chain of Infection composed of six vital links. What is the definition of a reservoir?", o: ["Route pathogen enters", "Route of escape", "Method pathogen gets from reservoir to host", "The place in which an infectious agent can survive"], a: 3 },
+            { c: "Nosocomial", q: "Which of the following is NOT a component of standard precautions?", o: ["Hand hygiene", "Use of PPE", "Patient isolation without precautions", "Safe injection practices"], a: 2 },
+            { c: "Nosocomial", q: "How should sharps waste be disposed of?", o: ["Regular trash bin", "Puncture-resistant, tightly closed sharps container", "Red infectious waste bag", "Black non-infectious waste container"], a: 1 },
+            { c: "Nosocomial", q: "What is the safest practice regarding multidose vials?", o: ["Use same needle repeatedly", "Use a new needle and syringe each time", "Use without dating", "Use only single-dose"], a: 1 },
+            { c: "Nosocomial", q: "Transmission of nosocomial infection by:", o: ["Contact", "Airborne", "Contaminated vehicles", "All the above"], a: 3 },
+            { c: "Nosocomial", q: "Prevention of nosocomial by:", o: ["Frequent hand washing", "Proper sterilization and disinfection", "Education of hospital staff", "All the above"], a: 3 },
+            { c: "Nosocomial", q: "The most likely agents to cause a nosocomial infection include:", o: ["Staphylococci and Pseudomonas", "Parvovirus", "Streptococci", "Marks disease"], a: 0 },
+            { c: "Nosocomial", q: "An infection that is acquired in the hospital is called:", o: ["Parasite", "Pathogen", "Nosocomial", "Anaerobic"], a: 2 },
+            { c: "Nosocomial", q: "Factors influencing the nosocomial infection are:", o: ["Patient susceptibility", "Microbial agent", "Environment factors", "All the above"], a: 3 },
+            { c: "Nosocomial", q: "Which of the following is the first priority in preventing infections when providing care for a client?", o: ["Hand washing", "Wearing gloves", "Using a barrier", "Wearing gowns and goggles"], a: 0 },
+            { c: "Nosocomial", q: "Patients who have a suspected bacterial nosocomial infection:", o: ["Acquired the infection while in hospital", "Are likely to require antibiotic therapy", "Should be treated as infectious until confirmed otherwise", "All of the above"], a: 3 },
+            { c: "Nosocomial", q: "A procedure which often predisposes a hospitalised patient to a urinary tract infection is:", o: ["Urinary catheterisation", "Antibiotic therapy", "Colonisation of periurethral areas", "Immunosuppressive therapy"], a: 0 },
+            { c: "Nosocomial", q: "Which of the following is a common type of hospital acquired infection?", o: ["Urinary tract infection", "Surgical wound infection", "Lower respiratory tract infection", "All of the above"], a: 3 },
+            { c: "Nosocomial", q: "An example of an endogenous infection would be:", o: ["Infection from another patient", "Inhaled organisms", "Cystitis caused by organisms from the person's own GI tract", "Surgical site infection with MRSA"], a: 2 },
+            { c: "Nosocomial", q: "Which of the following would not usually be considered the source of an exogenous nosocomial infection?", o: ["Other patients", "Patient's normal flora", "IV cannula", "Hands of staff"], a: 1 },
+
+            // Sterilization & Disinfection
+            { c: "Sterilization", q: "Sterilization by hot air oven requires temperature at:", o: ["160°C for 60 minutes", "121°C for 15 minutes", "100°C for 120 minutes", "80°C for 30 minutes"], a: 0 },
+            { c: "Sterilization", q: "Sterilization by autoclave is carried out at:", o: ["121°C for 15 to 20 minutes", "80°C for 30 minutes", "100°C for 30 minutes", "160°C for 60 minutes"], a: 0 },
+            { c: "Sterilization", q: "Which of the following is sterilized by hot air oven?", o: ["Glassware", "Liquid paraffin", "Talc powder", "All of these"], a: 3 },
+            { c: "Sterilization", q: "Which of the following is sterilized by autoclave?", o: ["Culture media", "Talc powder", "Oil", "Liquid paraffin"], a: 0 },
+            { c: "Sterilization", q: "Seitz filter is used:", o: ["To obtain bacteria free filtrate", "To sterilize antibiotic solution", "To sterilize serum", "All of these"], a: 3 },
+            { c: "Sterilization", q: "Dry heat sterilization is done by:", o: ["Autoclave", "Hot air oven", "Incubator", "Boiling"], a: 1 },
+            { c: "Sterilization", q: "Pasteurization is done at:", o: ["63°C for 30 minutes", "72°C for 15-20 seconds", "Both of these", "None of these"], a: 2 },
+            { c: "Sterilization", q: "Bacteriostatic agent means:", o: ["Kills bacteria", "Inhibit growth of bacteria", "Stimulate growth of bacteria", "None of these"], a: 1 },
+            { c: "Sterilization", q: "Bacteriocidal agent means:", o: ["Inhibit growth of bacteria", "Stimulate growth of bacteria", "Kills bacteria"], a: 2 },
+            { c: "Sterilization", q: "Glass and metal can be sterilized by:", o: ["Dry heat", "Filtration", "Ethylene oxide gas", "Moist heat"], a: 0 },
+            { c: "Sterilization", q: "Dry heat causes death of bacteria due to:", o: ["Oxidation of bacterial protein"], a: 0 },
+
+            // Vaccines
+            { c: "Vaccines", q: "Which vaccine is mentioned for prevention of tuberculosis?", o: ["Pneumococcal vaccine", "BCG vaccine", "Diphtheria antitoxin", "Typhoid vaccine"], a: 1 },
+            { c: "Vaccines", q: "Which of the following is a prevention method for tuberculosis?", o: ["Pneumococcal vaccine", "BCG vaccine", "Typhoid vaccine", "Antitoxin injection"], a: 1 },
+            { c: "Vaccines", q: "The preferred vaccine for diphtheria consists of:", o: ["Heat killed C. diphtheriae", "Attenuated C. diphtheriae", "Capsular polysaccharide", "Toxoids"], a: 3 },
+            { c: "Vaccines", q: "BCG is used for:", o: ["Vaccination for tuberculosis", "Vaccination for diphtheria", "Vaccination for Cholera", "None of these"], a: 0 },
+            { c: "Vaccines", q: "The vaccine for prophylaxis of diphtheria is prepared from:", o: ["Capsule", "Dead bacteria", "Toxoid", "Living attenuated vaccine"], a: 2 },
+            { c: "Vaccines", q: "BCG is used for the active immunization of:", o: ["Botulism", "Scarlet fever", "Typhoid fever", "Mycobacterium tuberculosis"], a: 3 },
+            { c: "Vaccines", q: "Whooping cough can be prevented by active immunization with:", o: ["Killed B. pertussis organisms (DPT)"], a: 0 },
+
+            // Specimen Collection
+            { c: "Specimen Collection", q: "In case of respiratory tract infection, the following sample should be examined:", o: ["Urine", "Stool", "Sputum"], a: 2 },
+            { c: "Specimen Collection", q: "In examination of urine sample, the following precautions are essential:", o: ["Morning sample", "Clean skin around urethra", "Mid-stream", "All of the above"], a: 3 },
+            { c: "Specimen Collection", q: "Swabs are appropriate for specimens collected from all the following sites EXCEPT:", o: ["Nasal", "Ear", "Urine", "Nasopharynx"], a: 2 },
+            { c: "Specimen Collection", q: "Urine sample used for a urine culture is:", o: ["The first portion of the urine", "Mid-stream urine", "Last portion of urine", "Whole urine collected"], a: 1 },
+            { c: "Specimen Collection", q: "Important precautions should be taken in collecting clinical specimens includes a label firmly attached to the container with:", o: ["Sex", "Name", "Age", "All of the above"], a: 3 },
+            { c: "Specimen Collection", q: "When instructing the patient to collect a sputum specimen, the medical assistant should tell the patient to:", o: ["Best to collect sputum in the evening", "Collect sputum from a first morning coughing episode", "Allow saliva to enter cup", "Sputum culture can be done from saliva"], a: 1 },
+            { c: "Specimen Collection", q: "When you come to collect a blood culture specimen:", o: ["Skin must then be decontaminated with 10% alcohol", "Use blood culture bottles aerobic only", "The specimen should preferably be taken during fever episodes", "Re-palpate vein after decontamination"], a: 2 },
+            { c: "Specimen Collection", q: "When you come to collect a wound swab:", o: ["Obtain the specimen after use of antiseptic", "Usually very small amount of pus is sufficient", "Obtain the specimen prior to any dressing or cleaning procedure", "It is better to have the sample after starting antibiotic therapy"], a: 2 },
+            { c: "Specimen Collection", q: "Throat swab should be taken from:", o: ["Nasopharynx", "Nostril", "The posterior pharynx and tonsillar area", "Cheeks, teeth or gums"], a: 2 },
+            { c: "Specimen Collection", q: "What is wrong about blood culture sampling:", o: ["Skin must then be decontaminated with 70% alcohol", "Do not re-palpate vein after decontamination"], a: 1 },
+
+            // General & True/False (Mixed)
+            { c: "General", q: "Plasmid may transfer antibiotic resistance between bacteria.", o: ["True", "False"], a: 0 },
+            { c: "General", q: "IgM able to cross placenta.", o: ["True", "False"], a: 1 },
+            { c: "General", q: "Which is an example of comma shape bacteria?", o: ["Bacilli", "Streptococcus", "Vibrio", "Staphylococcus"], a: 2 },
+            { c: "General", q: "The function of bacterial flagella is:", o: ["All of them", "Used in bacterial division", "Movement of bacteria", "Give energy to bacteria"], a: 2 },
+            { c: "General", q: "In which bacterial growth phase do the cells increase in number?", o: ["Lag phase", "Stationary phase", "Log phase", "Death phase"], a: 2 },
+            { c: "General", q: "Capsulated bacteria are more dangerous than non-capsulated.", o: ["True", "False"], a: 0 },
+            { c: "General", q: "Bacterial chromosomes are:", o: ["Circular DNA", "None of them", "Linear DNA", "Circular RNA"], a: 0 },
+            { c: "General", q: "Skin is a physical barrier belonging to acquired immunity.", o: ["True", "False"], a: 1 },
+            { c: "General", q: "The first step in viral replication is:", o: ["Attachment", "Penetration", "Release of the virus", "Synthesis of protein"], a: 0 },
+            { c: "General", q: "IgE is involved in allergy.", o: ["True", "False"], a: 0 },
+            { c: "General", q: "Which agent is used to destroy microbes from inanimate surfaces?", o: ["Antiseptics", "Disinfectants", "All of them", "Antibiotics"], a: 1 },
+            { c: "General", q: "Wide spectrum antibiotics are active against both Gram positive and Gram negative bacteria.", o: ["True", "False"], a: 0 },
+            { c: "General", q: "Normal growth curve of bacteria is composed of five phases.", o: ["True", "False (4 phases)"], a: 1 },
+            { c: "General", q: "Which is an example of artificial active immunization?", o: ["Vaccine", "IgM from mother", "Infection", "All of these"], a: 0 },
+            { c: "General", q: "Which is an example of microaerophilic bacteria?", o: ["H. pylori", "Streptococci", "Vibrio", "All of these"], a: 0 },
+            { c: "General", q: "Innate immune response is non-specific immune response.", o: ["True", "False"], a: 0 },
+            { c: "General", q: "Which is true for bacterial cell wall?", o: ["All of them", "Cell protection", "Bacterial shape", "Rigid structure"], a: 0 },
+            { c: "General", q: "Antiseptic is antimicrobial agent and used on the skin.", o: ["True", "False"], a: 0 },
+            { c: "General", q: "Gram negative bacterial cell wall is more complex than Gram positive cell wall.", o: ["True", "False"], a: 0 },
+            { c: "General", q: "Why is combination therapy used in TB?", o: ["Faster cure", "Reduce toxicity", "Prevent resistance", "Improve absorption"], a: 2 },
+            { c: "General", q: "Which infection control measure breaks transmission most effectively?", o: ["Antibiotics", "Host immunity", "Hand hygiene", "Vaccination"], a: 2 },
+            { c: "General", q: "Why is Gram stain less reliable in women?", o: ["Mixed flora", "Low bacterial load", "Capsule masking", "Anaerobic growth"], a: 0 },
+            { c: "General", q: "Limitation of antibiotic use is an appropriate solution for antibiotic resistance.", o: ["True", "False"], a: 0 },
+            { c: "General", q: "S. aureus produces enterotoxin that causes vomiting and watery, non-bloody diarrhea within 1-8 hours.", o: ["True", "False"], a: 0 },
+            { c: "General", q: "Trivalent antitoxin (types A, B, E) is used to treat botulism.", o: ["True", "False"], a: 0 },
+            { c: "General", q: "Sterilization by autoclave is carried out at 121°C for 15 minutes.", o: ["True", "False"], a: 0 },
+            { c: "General", q: "Wide spectrum antibiotics are active against only gram-positive bacteria.", o: ["True", "False"], a: 1 },
+            { c: "General", q: "Nystatin is a selective antiviral antibiotic.", o: ["True", "False"], a: 1 },
+            { c: "General", q: "Frame shift mutations may result from adding or deleting a single nucleotide base pair.", o: ["True", "False"], a: 0 },
+            { c: "General", q: "Antiseptic is an antimicrobial used on living tissues like wounds.", o: ["True", "False"], a: 0 },
+            { c: "General", q: "The official method of sterilization that removes living and dead bacteria is:", o: ["Dry heat", "Moist heat", "Ethylene oxide", "Filtration"], a: 3 },
+            { c: "General", q: "Infection spread requires:", o: ["Susceptible host", "No host needed"], a: 0 },
+            { c: "General", q: "Examples of diseases/organisms requiring droplet precautions include:", o: ["Influenza", "COVID-19", "Tuberculosis", "All of them"], a: 3 },
+
+            // Pages 90-94 T/F
+            { c: "True / False", q: "Bacteria are unicellular organisms", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Suitable temperature for bacterial growth is 37°C", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Bacteria are easily seen by naked eye", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Acidity or alkalinity is suitable for bacterial growth", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Some bacteria have capsule", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "All the bacteria can form spores", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Viruses can replicate inside living and non-living cells", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Viruses possess only one type of nucleic acid", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Bacteria possess only one type of nucleic acid", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Viruses are ultramicroscopic, measured by nanometer (nm)", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Staphylococcal enterocolitis is a complication of Antibacterial Chemotherapy", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Suppression of normal flora and replacement with drug resistant organisms is called drug toxicity", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Simultaneous administration of more than one drug delays emergence of resistance", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Culture specimens should be collected before initiation of antibiotic treatment", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "In nasopharyngeal swab, a dry swab is inserted 2 cm into the nostril", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "In patients suspected of pulmonary TB, one specimen is sufficient", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "When inoculating blood culture bottles, anaerobic bottle should be inoculated first then aerobic", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Blood culture specimen should be taken during fever episodes", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Passive Immunity is exposure to ready antibodies", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Humoral immunity is carried out by B-cell", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Innate immunity is specific", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Sulfa drugs can be sterilized by hot air oven", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Autoclave is a type of moist heating", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Rubber catheters can be sterilized by ethylene oxide", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Ultraviolet rays have high penetration power", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Seitz filter can be sterilized by autoclave", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Diphtheria vaccine is in the form of toxin", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Whooping cough vaccine is living vaccine", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Post-streptococcal complications are caused by the organism itself", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Streptococcus pyogenes give beta haemolysis on blood agar", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Endogenous source of nosocomial infection is normal flora of the patient himself", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Exogenous sources of nosocomial infection are from infected patients & carriers", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Frequent hand washing is the most important step for prevention of nosocomial infection", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Implementation of infection control program should include education and training", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Proper sterilization and disinfection don't help in prevention of nosocomial infection", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Isolation of infective patients is important for prevention of nosocomial infection", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Conservative antibiotic use helps in limitation of nosocomial infection", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Nosocomial infections are always preventable", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "IgA is the prominent immunoglobulin in various secretions", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "IgM is a predominant immunoglobulin in the secondary immune response", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "IgA is associated with allergy", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "IgG crosses the placenta in humans", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "DPT is used for vaccination against Tuberculosis", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "A secondary immune response has long latent periods", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Alcohol is used as a skin antiseptic", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "BCG is a living attenuated vaccine for tuberculosis", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Diphtheria is treated by anti-toxin and antibiotics", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Surgical instruments are sterilized by autoclave", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Upper respiratory tract infection means bronchitis and pneumonia", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Rheumatic fever is a complication of streptococcal tonsillitis", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Widal test is a serological test for diagnosis of enteric fever", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Diagnosis of enteric fever is done by obtaining blood sample in the second week", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Botulism is a food poisoning caused by consuming canned food", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Poliomyelitis is a viral disease acquired through the GIT", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Rabies is a bacterial disease transmitted by the bite of a rabid animal", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Serum hepatitis disease could be transmitted from a mother to her baby", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Yellow fever disease is caused by a bacterial microbe", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "There is no long-lasting immunity after catching influenza disease", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Common cold is caused by the Influenza virus", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Orchitis is a complication of Mumps disease", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Herpes zoster disease is a disease of children", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Herpes zoster is due to reactivation of the virus lying dormant in the patient", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Poliomyelitis disease affects the anterior horn cells of the spinal cord", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Hepatitis A Virus is acquired through contaminated syringes", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Hepatitis E can be more severe in pregnant women and immunocompromised patients", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Hepatitis C Virus is a DNA virus", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Herpes simplex virus may infect the conjunctiva or the cornea", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Sabin vaccine is a killed virus vaccine", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "The size of bacteria is measured in nanometers while viruses in microns", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Saprophytic bacteria live on inanimate bodies while parasitic bacteria live on living bodies", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Gram positive bacteria cell wall contains only 5-10% peptidoglycan", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Obligate anaerobes can live in the presence of oxygen", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Gonorrhea and syphilis are sexually transmitted diseases", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Clostridium tetani are spore forming bacilli", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Treponema pallidum is stained easily by Gram stain", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Secondary stage of syphilis is manifested by chancre", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Neisseria gonorrhea is intracellular gram -ve diplococci", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Clostridia which cause gas gangrene produce gas", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Staphylococcus carriers are very common especially among hospital staff", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Brucellosis is associated with animals", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "TAB vaccine is heat killed vaccine for enteric fever prophylaxis", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Enteric fever is caused by Salmonella typhimurium", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Botulism is caused by contaminated canned food", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Bacillary dysentery is caused by Shigella species", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Hepatitis A virus can be transmitted by blood transfusion", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "Hepatitis C virus leads to liver cirrhosis and HCC", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "Hepatitis D virus can be transmitted as coinfection with Hepatitis E virus", o: ["True", "False"], a: 1 },
+            { c: "True / False", q: "There are vaccines for Hepatitis A and B viruses' prophylaxis", o: ["True", "False"], a: 0 },
+            { c: "True / False", q: "There are vaccines for Hepatitis E and C viruses' prophylaxis", o: ["True", "False"], a: 1 }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let isAnswered = false;
+
+        document.getElementById('total-q-num').innerText = quizData.length;
+        document.getElementById('total-score').innerText = quizData.length;
+
+        function startQuiz() {
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const q = quizData[currentQuestionIndex];
+            document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
+            document.getElementById('question-category').innerText = q.c;
+            document.getElementById('question-text').innerText = q.q;
+            
+            // Update progress bar
+            const progress = ((currentQuestionIndex) / quizData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            q.o.forEach((optionText, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left bg-gray-50 border border-gray-200 hover:bg-blue-50 text-gray-800 font-semibold py-3 px-4 rounded-xl text-sm md:text-base';
+                btn.innerText = optionText;
+                btn.onclick = () => selectOption(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('next-btn').classList.add('hidden');
+            isAnswered = false;
+        }
+
+        function selectOption(selectedIndex, btnElement) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const q = quizData[currentQuestionIndex];
+            const correctIndex = q.a;
+            const buttons = document.querySelectorAll('.option-btn');
+
+            if (selectedIndex === correctIndex) {
+                btnElement.classList.add('correct-ans');
+                score++;
+            } else {
+                btnElement.classList.add('wrong-ans');
+                buttons[correctIndex].classList.add('correct-ans');
+            }
+
+            // Disable all buttons after choice
+            buttons.forEach(b => {
+                b.disabled = true;
+                b.classList.remove('hover:bg-blue-50');
+            });
+
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('score-text').innerText = score;
+        }
+    </script>
+</body>
+</html>
