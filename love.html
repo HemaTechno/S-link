@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Everything ❤️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #3a000a;
+            --bg-light: #7a0016;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            --text-glow: 0 0 8px rgba(255, 182, 193, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-light), #1a0003);
+            background-size: 200% 200%;
+            animation: gradientBG 12s ease infinite;
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            text-align: center;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* القلوب */
+        .floating-hearts {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
+        }
+        .heart {
+            position: absolute; bottom: -10%;
+            color: rgba(255, 105, 180, 0.3);
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.8) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(-120vh) scale(1.2) rotate(360deg); opacity: 0; }
+        }
+
+        /* الشاشات */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+            z-index: 10; padding: 20px; padding-bottom: 120px;
+        }
+        .screen.active {
+            opacity: 1; visibility: visible; transform: translateY(0); position: relative;
+        }
+
+        /* الحاويات الزجاجية */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px 20px;
+            width: 100%; max-width: 380px; 
+            box-shadow: var(--glass-shadow);
+            margin-bottom: 20px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* الشاشة 1 */
+        .profile-pic {
+            width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.5); margin-bottom: 15px;
+        }
+        .login-input {
+            width: 90%; padding: 12px; margin: 15px 0;
+            border-radius: 10px; border: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.2); color: white;
+            text-align: center; font-size: 15px; outline: none; transition: 0.3s;
+        }
+        .login-input:focus { border-color: rgba(255, 182, 193, 0.7); background: rgba(0, 0, 0, 0.3); }
+        .shake-error { animation: shake 0.4s ease-in-out; border-color: #ff4d4d !important; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-8px); } 50% { transform: translateX(8px); } }
+
+        /* الزراير */
+        .btn {
+            background: rgba(255,255,255,0.05); color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 30px; border-radius: 20px;
+            cursor: pointer; transition: all 0.3s ease;
+            font-size: 15px; font-weight: 500; backdrop-filter: blur(5px);
+        }
+        .btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
+
+        /* الشاشة 2: الكتابة */
+        .typing-container {
+            font-size: 17px; line-height: 1.7;
+            min-height: 100px; margin-bottom: 20px;
+            font-weight: 500; color: #f8f8f8;
+            white-space: pre-wrap; 
+        }
+        .cursor { display: inline-block; width: 2px; background-color: white; animation: blink 0.7s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        #btn-screen2 { opacity: 0; pointer-events: none; transition: 0.5s; }
+        #btn-screen2.show { opacity: 1; pointer-events: auto; }
+
+        /* الشاشة 3: العداد والصور */
+        .counter-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; width: 100%; }
+        .counter-box {
+            background: rgba(0,0,0,0.15); padding: 12px 5px;
+            border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .counter-box h3 { font-size: 20px; font-weight: 700; color: #ffb6c1; margin-bottom: 3px; }
+        .counter-box p { font-size: 11px; opacity: 0.8; }
+
+        .photo-card {
+            width: 100%; max-width: 380px; background: var(--glass-bg);
+            border-radius: 15px; padding: 12px; margin-bottom: 20px;
+            border: 1px solid var(--glass-border);
+            opacity: 0; transform: translateY(20px);
+        }
+        .photo-card img { width: 100%; border-radius: 10px; object-fit: cover; aspect-ratio: 4/3; }
+        .photo-card p { margin-top: 12px; font-size: 16px; font-weight: 500; }
+
+        .screen.active .animate-up { animation: slideUpFade 0.6s ease forwards; }
+        @keyframes slideUpFade { to { opacity: 1; transform: translateY(0); } }
+
+        /* مشغل الموسيقى */
+        .music-player {
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%) translateY(100px);
+            width: 92%; max-width: 380px;
+            background: rgba(20, 0, 5, 0.85); backdrop-filter: blur(20px);
+            border-radius: 25px; padding: 10px 15px;
+            display: flex; align-items: center; justify-content: space-between;
+            z-index: 100; border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            transition: all 0.5s ease; opacity: 0;
+        }
+        .music-player.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        
+        .music-info { display: flex; align-items: center; gap: 12px; flex: 1; overflow: hidden; }
+        .music-info img {
+            width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
+            border: 1px solid rgba(255,182,193,0.5);
+            animation: spin 5s linear infinite; animation-play-state: paused;
+        }
+        .music-text { text-align: right; display: flex; flex-direction: column; justify-content: center; white-space: nowrap; }
+        .song-title { font-size: 13px; font-weight: 600; color: white; margin-bottom: 2px; }
+        .song-time { font-size: 10px; color: #ffb6c1; font-family: monospace; }
+        
+        .music-controls { display: flex; align-items: center; gap: 15px; margin-left: 10px; }
+        .music-controls button {
+            background: none; border: none; color: white; cursor: pointer;
+            transition: 0.2s; display: flex; align-items: center; justify-content: center;
+        }
+        .music-controls button:active { transform: scale(0.8); opacity: 0.7; }
+        .btn-prev-next { font-size: 16px; color: #ddd; }
+        .btn-play { font-size: 26px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.4); }
+        
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <!-- ملفات الصوت -->
+    <audio id="clickSound" src="click.mp3" preload="auto"></audio>
+    <audio id="mySong" preload="auto"></audio>
+
+    <div class="floating-hearts" id="hearts-container"></div>
+
+    <!-- الشاشة 1: تسجيل الدخول -->
+    <div class="screen active" id="screen1">
+        <div class="glass-panel" style="padding-top: 40px;">
+            <img src="https://pngup.com/LtIh/e11858a9a4d4b4eae59f8bbf2cd5f152.jpg" alt="Profile" class="profile-pic">
+            <h2 style="font-size: 22px; margin-bottom: 5px;">love</h2>
+            <p style="font-size: 13px; color: #ffb6c1; margin-bottom: 15px;">❤ my everything</p>
+            <input type="password" id="password" class="login-input" placeholder="Password">
+            <button class="btn" onclick="checkPassword()">💕 Unlock 💕</button>
+            <p id="error-msg" style="color: #ff4d4d; opacity: 0; transition: 0.3s; margin-top: 12px; font-size: 12px;">الباسورد غلط يا روحي، حاولي تاني</p>
+        </div>
+    </div>
+
+    <!-- الشاشة 2: الرسالة -->
+    <div class="screen" id="screen2">
+        <div class="glass-panel">
+            <h1 style="font-size: 35px; margin-bottom: 15px;">😍</h1>
+            <div class="typing-container"><span id="typing-text"></span><span class="cursor">|</span></div>
+            <button class="btn" id="btn-screen2" onclick="playClick(); nextScreen('screen2', 'screen3')">✨ يلا بينا ✨</button>
+        </div>
+    </div>
+
+    <!-- الشاشة 3: المحتوى -->
+    <div class="screen" id="screen3" style="justify-content: flex-start; padding-top: 30px;">
+        
+        <div class="glass-panel animate-up" style="animation-delay: 0.1s;">
+            <h2 style="font-size: 20px;">💞 بدايتنا 💞</h2>
+            <p style="font-size: 13px; color: #ffb6c1; margin-top: 5px;">✨ سوا من 19-06-2021 ✨</p>
+            <div class="counter-container">
+                <div class="counter-box"><h3 id="days">00</h3><p>يوم</p></div>
+                <div class="counter-box"><h3 id="hours">00</h3><p>ساعة</p></div>
+                <div class="counter-box"><h3 id="minutes">00</h3><p>دقيقة</p></div>
+                <div class="counter-box"><h3 id="seconds">00</h3><p>ثانية</p></div>
+            </div>
+            <p style="margin-top: 15px; font-size: 13px;">كل ثانية بتعدي وانتِ في قلبي ❤</p>
+        </div>
+
+        <div class="glass-panel animate-up" style="animation-delay: 0.3s; padding: 15px;">
+            <p style="font-size: 15px;">❤ يوم ما قولتلك بحبك ❤</p>
+            <div style="background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 8px; margin-top: 8px; font-size: 13px;">
+                📅 2021-06-19
+            </div>
+        </div>
+
+        <!-- الصور -->
+        <div class="photo-card animate-up" style="animation-delay: 0.5s;">
+            <img src="https://i.ibb.co/yc2htZRq/51485b76d497a8ed6cb69bfa7e4c3863.jpg" alt="Memory">
+            <p>حب الطفوله 💗💓 </p>
+        </div>
+
+<div class="photo-card animate-up" style="animation-delay: 0.5s;">
+            <img src="https://i.ibb.co/YT1QXgHS/6bab63f558155fbe9a00b2ea23f72fb1.jpg" alt="Memory">
+            <p>😍💗 </p>
+        </div>
+
+
+        
+
+        <div class="glass-panel animate-up" style="animation-delay: 0.9s; padding: 25px 20px;">
+            <h2 style="font-size: 18px; color: #ffb6c1;">بحبك اوي</h2>
+            <h3 style="font-size: 16px; margin: 10px 0;">قلبي❤️ </h3>
+            <p style="font-size: 14px; opacity: 0.9;">وعايزين بقا نملاه صور كتير<br>متنسيش 😂</p>
+            <button class="btn" style="margin-top: 20px;" onclick="playClick(); nextScreen('screen3', 'screen1')">🔄 رجوع للبداية</button>
+            <h2 style="margin-top: 15px; font-size: 16px; letter-spacing: 1px;">💓 نــتـصـالــح 💓</h2>
+        </div>
+    </div>
+
+    <!-- مشغل الموسيقى -->
+    <div class="music-player" id="player-ui">
+        <div class="music-info">
+            <img src="" alt="Cover" id="disk">
+            <div class="music-text">
+                <span class="song-title" id="song-title">جاري التحميل...</span>
+                <span class="song-time" id="music-time">0:00 / 0:00</span>
+            </div>
+        </div>
+        <div class="music-controls">
+            <button class="btn-prev-next" onclick="prevSong(); playClick()">⏮</button>
+            <button class="btn-play" onclick="toggleMusic(); playClick()" id="play-btn">▶</button>
+            <button class="btn-prev-next" onclick="nextSong(); playClick()">⏭</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. قائمة الأغاني (Playlist)
+        // ==========================================
+        const playlist = [
+            { 
+                title: "وحشتيني", 
+                src: "song1.mp3", 
+                cover: "https://pngup.com/LtIh/e11858a9a4d4b4eae59f8bbf2cd5f152.jpg" 
+            },
+            { 
+                title: "أغنيتك المفضله 😂❤️ ", 
+                src: "song2.mp3", 
+                cover: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" 
+            }
+        ];
+
+        let currentSongIndex = 0;
+        const songAudio = document.getElementById("mySong");
+        const playBtn = document.getElementById("play-btn");
+        const disk = document.getElementById("disk");
+        const songTitleUI = document.getElementById("song-title");
+
+        function loadSong(index) {
+            songAudio.src = playlist[index].src;
+            songTitleUI.innerText = playlist[index].title;
+            disk.src = playlist[index].cover;
+        }
+
+        function toggleMusic() {
+            if (songAudio.paused) {
+                songAudio.play();
+                playBtn.innerHTML = "⏸";
+                disk.style.animationPlayState = 'running';
+            } else {
+                songAudio.pause();
+                playBtn.innerHTML = "▶";
+                disk.style.animationPlayState = 'paused';
+            }
+        }
+
+        function nextSong() {
+            currentSongIndex = (currentSongIndex + 1) % playlist.length;
+            loadSong(currentSongIndex);
+            if (!songAudio.paused || playBtn.innerHTML === "⏸") { 
+                songAudio.play(); disk.style.animationPlayState = 'running'; 
+            }
+        }
+
+        function prevSong() {
+            currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length;
+            loadSong(currentSongIndex);
+            if (!songAudio.paused || playBtn.innerHTML === "⏸") { 
+                songAudio.play(); disk.style.animationPlayState = 'running'; 
+            }
+        }
+
+        songAudio.addEventListener('ended', nextSong);
+
+        function formatTime(seconds) {
+            let min = Math.floor(seconds / 60);
+            let sec = Math.floor(seconds % 60);
+            if (sec < 10) sec = "0" + sec;
+            return min + ":" + sec;
+        }
+
+        songAudio.addEventListener('timeupdate', () => {
+            if (songAudio.duration) {
+                let current = formatTime(songAudio.currentTime);
+                let total = formatTime(songAudio.duration);
+                document.getElementById("music-time").innerText = current + " / " + total;
+            }
+        });
+
+        loadSong(currentSongIndex);
+
+        // ==========================================
+        // 2. باقي الأكواد (الصوتيات والانيميشن والعداد)
+        // ==========================================
+        const clickAudio = document.getElementById("clickSound");
+        function playClick() {
+            clickAudio.currentTime = 0; 
+            clickAudio.play().catch(() => {}); 
+        }
+
+        function createHearts() {
+            const container = document.getElementById('hearts-container');
+            const heartChars = ['❤', '💕', '💖'];
+            setInterval(() => {
+                const heart = document.createElement('div');
+                heart.classList.add('heart');
+                heart.innerHTML = heartChars[Math.floor(Math.random() * heartChars.length)];
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.fontSize = Math.random() * 20 + 20 + 'px';
+                heart.style.animationDuration = Math.random() * 4 + 5 + 's';
+                container.appendChild(heart);
+                setTimeout(() => { heart.remove(); }, 9000);
+            }, 500);
+        }
+        createHearts();
+
+        const messageText = `٢٦/٨/٢٠٢٦ ، المكالمات معرفتش تصالحك، الرسايل منفعتش تصالحك، حتي الورد معرفش يصالحك، يا شيخه المسيخ الدجال هيقنع المسلمين في وقت اقل من الي خدته اصالحك فيه، المهم المره دي فكره مختلفه واتمني اتمني اتمني تنجح واعرف اصالحك ♥️♥️♥️♥️♥️♥️😂👀
+تعالي برجلك اليمين يانور عيني`;
+
+        const textArray = [...messageText]; 
+        let typeIndex = 0; let isTypingStarted = false;
+
+        function typeWriter() {
+            if (typeIndex < textArray.length) {
+                document.getElementById("typing-text").innerHTML += textArray[typeIndex];
+                typeIndex++;
+                setTimeout(typeWriter, Math.random() * 30 + 40);
+            } else {
+                document.getElementById("btn-screen2").classList.add("show");
+            }
+        }
+
+        function checkPassword() {
+            playClick();
+            const passInput = document.getElementById('password');
+            const errorMsg = document.getElementById('error-msg');
+            
+            if (passInput.value === "love" || passInput.value === "بحبك") { 
+                passInput.classList.remove('shake-error'); errorMsg.style.opacity = '0';
+                nextScreen('screen1', 'screen2');
+                
+                setTimeout(() => {
+                    document.getElementById("player-ui").classList.add('show');
+                    songAudio.play().catch(() => { });
+                    playBtn.innerHTML = "⏸";
+                    disk.style.animationPlayState = 'running';
+                }, 500);
+
+                if (!isTypingStarted) {
+                    setTimeout(() => { isTypingStarted = true; typeWriter(); }, 800);
+                }
+            } else {
+                passInput.classList.remove('shake-error'); void passInput.offsetWidth; 
+                passInput.classList.add('shake-error'); errorMsg.style.opacity = '1';
+            }
+        }
+
+        function nextScreen(currentId, nextId) {
+            document.getElementById(currentId).classList.remove('active');
+            setTimeout(() => {
+                document.getElementById(nextId).classList.add('active');
+                window.scrollTo(0, 0);
+            }, 600);
+        }
+
+        // تم تعديل صيغة التاريخ هنا عشان يشتغل على كل الأجهزة والمتصفحات بدون أخطاء
+        const startDate = new Date("2021/06/19 00:00:00").getTime();
+        
+        setInterval(function updateCounter() {
+            const difference = new Date().getTime() - startDate;
+            if (difference > 0) {
+                document.getElementById("days").innerText = Math.floor(difference / (1000 * 60 * 60 * 24));
+                let h = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                document.getElementById("hours").innerText = h < 10 ? "0" + h : h;
+                let m = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById("minutes").innerText = m < 10 ? "0" + m : m;
+                let s = Math.floor((difference % (1000 * 60)) / 1000);
+                document.getElementById("seconds").innerText = s < 10 ? "0" + s : s;
+            }
+        }, 1000);
+
+        document.getElementById("password").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); checkPassword(); }
+        });
+    </script>
+</body>
+</html>
