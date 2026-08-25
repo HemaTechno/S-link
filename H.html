@@ -110,7 +110,7 @@
             font-size: 17px; line-height: 1.7;
             min-height: 100px; margin-bottom: 20px;
             font-weight: 500; color: #f8f8f8;
-            white-space: pre-wrap; /* تم الإضافة عشان يدعم السطور الجديدة */
+            white-space: pre-wrap; 
         }
         .cursor { display: inline-block; width: 2px; background-color: white; animation: blink 0.7s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
@@ -207,7 +207,7 @@
         
         <div class="glass-panel animate-up" style="animation-delay: 0.1s;">
             <h2 style="font-size: 20px;">💞 بدايتنا 💞</h2>
-            <p style="font-size: 13px; color: #ffb6c1; margin-top: 5px;">✨ سوا من 19-6-2021 ✨</p>
+            <p style="font-size: 13px; color: #ffb6c1; margin-top: 5px;">✨ سوا من 19-06-2021 ✨</p>
             <div class="counter-container">
                 <div class="counter-box"><h3 id="days">00</h3><p>يوم</p></div>
                 <div class="counter-box"><h3 id="hours">00</h3><p>ساعة</p></div>
@@ -244,7 +244,7 @@
         </div>
     </div>
 
-    <!-- مشغل الموسيقى (بيدعم أكتر من أغنية) -->
+    <!-- مشغل الموسيقى -->
     <div class="music-player" id="player-ui">
         <div class="music-info">
             <img src="" alt="Cover" id="disk">
@@ -275,7 +275,6 @@
                 src: "song2.mp3", 
                 cover: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" 
             }
-            
         ];
 
         let currentSongIndex = 0;
@@ -354,7 +353,7 @@
                 heart.classList.add('heart');
                 heart.innerHTML = heartChars[Math.floor(Math.random() * heartChars.length)];
                 heart.style.left = Math.random() * 100 + 'vw';
-                heart.style.fontSize = Math.random() * 10 + 10 + 'px';
+                heart.style.fontSize = Math.random() * 20 + 20 + 'px';
                 heart.style.animationDuration = Math.random() * 4 + 5 + 's';
                 container.appendChild(heart);
                 setTimeout(() => { heart.remove(); }, 9000);
@@ -362,7 +361,6 @@
         }
         createHearts();
 
-        // استخدام الـ Backticks لحل مشكلة السطور المتعددة
         const messageText = `٢٦/٨/٢٠٢٦ ، المكالمات معرفتش تصالحك، الرسايل منفعتش تصالحك، حتي الورد معرفش يصالحك، يا شيخه المسيخ الدجال هيقنع المسلمين في وقت اقل من الي خدته اصالحك فيه، المهم المره دي فكره مختلفه واتمني اتمني اتمني تنجح واعرف اصالحك ♥️♥️♥️♥️♥️♥️😂👀
 تعالي برجلك اليمين يانور عيني`;
 
@@ -412,7 +410,9 @@
             }, 600);
         }
 
-        const startDate = new Date("2021-6-19T00:00:00").getTime();
+        // تم تعديل صيغة التاريخ هنا عشان يشتغل على كل الأجهزة والمتصفحات بدون أخطاء
+        const startDate = new Date("2021/06/19 00:00:00").getTime();
+        
         setInterval(function updateCounter() {
             const difference = new Date().getTime() - startDate;
             if (difference > 0) {
