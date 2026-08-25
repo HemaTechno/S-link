@@ -30,7 +30,7 @@
             color: white;
             min-height: 100vh;
             overflow-x: hidden;
-            text-align: center; /* توسيط كل النصوص افتراضياً */
+            text-align: center;
         }
 
         @keyframes gradientBG {
@@ -67,14 +67,14 @@
             opacity: 1; visibility: visible; transform: translateY(0); position: relative;
         }
 
-        /* الحاويات الزجاجية (أكثر تناسقاً ورقة) */
+        /* الحاويات الزجاجية */
         .glass-panel {
             background: var(--glass-bg);
             backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
             padding: 30px 20px;
-            width: 100%; max-width: 380px; /* تصغير العرض قليلاً للموبايل */
+            width: 100%; max-width: 380px; 
             box-shadow: var(--glass-shadow);
             margin-bottom: 20px;
             display: flex; flex-direction: column; align-items: center;
@@ -95,7 +95,7 @@
         .shake-error { animation: shake 0.4s ease-in-out; border-color: #ff4d4d !important; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-8px); } 50% { transform: translateX(8px); } }
 
-        /* الزراير (حجم متناسق) */
+        /* الزراير */
         .btn {
             background: rgba(255,255,255,0.05); color: white;
             border: 1px solid rgba(255,255,255,0.3);
@@ -110,6 +110,7 @@
             font-size: 17px; line-height: 1.7;
             min-height: 100px; margin-bottom: 20px;
             font-weight: 500; color: #f8f8f8;
+            white-space: pre-wrap; /* تم الإضافة عشان يدعم السطور الجديدة */
         }
         .cursor { display: inline-block; width: 2px; background-color: white; animation: blink 0.7s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
@@ -137,7 +138,7 @@
         .screen.active .animate-up { animation: slideUpFade 0.6s ease forwards; }
         @keyframes slideUpFade { to { opacity: 1; transform: translateY(0); } }
 
-        /* مشغل الموسيقى (تصميم احترافي جديد) */
+        /* مشغل الموسيقى */
         .music-player {
             position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%) translateY(100px);
             width: 92%; max-width: 380px;
@@ -196,9 +197,7 @@
     <div class="screen" id="screen2">
         <div class="glass-panel">
             <h1 style="font-size: 35px; margin-bottom: 15px;">😍</h1>
-            <div class="typing-container">
-                <span id="typing-text"></span><span class="cursor">|</span>
-            </div>
+            <div class="typing-container"><span id="typing-text"></span><span class="cursor">|</span></div>
             <button class="btn" id="btn-screen2" onclick="playClick(); nextScreen('screen2', 'screen3')">✨ يلا بينا ✨</button>
         </div>
     </div>
@@ -263,7 +262,7 @@
 
     <script>
         // ==========================================
-        // 1. قائمة الأغاني (Playlist) - ضيف براحتك هنا!
+        // 1. قائمة الأغاني (Playlist)
         // ==========================================
         const playlist = [
             { 
@@ -272,7 +271,7 @@
                 cover: "https://images.unsplash.com/photo-1518199268815-f5534740960f?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" 
             },
             { 
-                title: "أجمل يوم 💖", 
+                title: "أغنيتك المفضله 😂❤️ ", 
                 src: "song2.mp3", 
                 cover: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" 
             },
@@ -289,14 +288,12 @@
         const disk = document.getElementById("disk");
         const songTitleUI = document.getElementById("song-title");
 
-        // تحميل بيانات الأغنية
         function loadSong(index) {
             songAudio.src = playlist[index].src;
             songTitleUI.innerText = playlist[index].title;
             disk.src = playlist[index].cover;
         }
 
-        // تشغيل أو إيقاف
         function toggleMusic() {
             if (songAudio.paused) {
                 songAudio.play();
@@ -309,7 +306,6 @@
             }
         }
 
-        // الأغنية التالية
         function nextSong() {
             currentSongIndex = (currentSongIndex + 1) % playlist.length;
             loadSong(currentSongIndex);
@@ -318,7 +314,6 @@
             }
         }
 
-        // الأغنية السابقة
         function prevSong() {
             currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length;
             loadSong(currentSongIndex);
@@ -327,10 +322,8 @@
             }
         }
 
-        // لما الأغنية تخلص، شغل اللي بعدها تلقائي
         songAudio.addEventListener('ended', nextSong);
 
-        // تنسيق وقت الأغنية (الدقائق والثواني)
         function formatTime(seconds) {
             let min = Math.floor(seconds / 60);
             let sec = Math.floor(seconds % 60);
@@ -346,7 +339,6 @@
             }
         });
 
-        // تحميل أول أغنية في الخلفية بمجرد فتح الصفحة
         loadSong(currentSongIndex);
 
         // ==========================================
@@ -355,7 +347,7 @@
         const clickAudio = document.getElementById("clickSound");
         function playClick() {
             clickAudio.currentTime = 0; 
-            clickAudio.play().catch(() => {}); // catch عشان لو مفيش ملف صوت ميعملش ايرور
+            clickAudio.play().catch(() => {}); 
         }
 
         function createHearts() {
@@ -374,8 +366,10 @@
         }
         createHearts();
 
-        const messageText = "٢٦/٨/٢٠٢٦ ، المكالمات معرفتش تصالحك، الرسايل منفعتش تصالحك، حتي الورد معرفش يصالحك، يا شيخه المسيخ الدجال هيقنع المسلمين في وقت اقل من الي خدته اصالحك فيه، المهم المره دي فكره مختلفه واتمني اتمني اتمني تنجح واعرف اصالحك ♥️♥️♥️♥️♥️♥️😂👀 
-تعالي برجلك اليمين يانور عيني";
+        // استخدام الـ Backticks لحل مشكلة السطور المتعددة
+        const messageText = `٢٦/٨/٢٠٢٦ ، المكالمات معرفتش تصالحك، الرسايل منفعتش تصالحك، حتي الورد معرفش يصالحك، يا شيخه المسيخ الدجال هيقنع المسلمين في وقت اقل من الي خدته اصالحك فيه، المهم المره دي فكره مختلفه واتمني اتمني اتمني تنجح واعرف اصالحك ♥️♥️♥️♥️♥️♥️😂👀
+تعالي برجلك اليمين يانور عيني`;
+
         const textArray = [...messageText]; 
         let typeIndex = 0; let isTypingStarted = false;
 
@@ -394,14 +388,13 @@
             const passInput = document.getElementById('password');
             const errorMsg = document.getElementById('error-msg');
             
-            if (passInput.value === "1234" || passInput.value === "بحبك") { 
+            if (passInput.value === "love" || passInput.value === "بحبك") { 
                 passInput.classList.remove('shake-error'); errorMsg.style.opacity = '0';
                 nextScreen('screen1', 'screen2');
                 
                 setTimeout(() => {
                     document.getElementById("player-ui").classList.add('show');
-                    // تشغيل أول أغنية
-                    songAudio.play().catch(() => { /* لو المتصفح منع التشغيل التلقائي */ });
+                    songAudio.play().catch(() => { });
                     playBtn.innerHTML = "⏸";
                     disk.style.animationPlayState = 'running';
                 }, 500);
