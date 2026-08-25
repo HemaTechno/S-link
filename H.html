@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Everything ❤️</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #4a000e;
-            --bg-light: #91001f;
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            --text-glow: 0 0 10px rgba(255, 182, 193, 0.5);
+            --bg-dark: #3a000a;
+            --bg-light: #7a0016;
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            --text-glow: 0 0 8px rgba(255, 182, 193, 0.4);
         }
 
         * {
@@ -24,12 +24,13 @@
         }
 
         body {
-            background: linear-gradient(135deg, var(--bg-dark), var(--bg-light), #2d0006);
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-light), #1a0003);
             background-size: 200% 200%;
-            animation: gradientBG 10s ease infinite;
+            animation: gradientBG 12s ease infinite;
             color: white;
             min-height: 100vh;
             overflow-x: hidden;
+            text-align: center; /* توسيط كل النصوص افتراضياً */
         }
 
         @keyframes gradientBG {
@@ -38,186 +39,136 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* أنيميشن القلوب */
+        /* القلوب */
         .floating-hearts {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 0;
         }
         .heart {
-            position: absolute;
-            bottom: -10%;
-            color: rgba(255, 105, 180, 0.4);
+            position: absolute; bottom: -10%;
+            color: rgba(255, 105, 180, 0.3);
             animation: floatUp linear infinite;
-            filter: drop-shadow(0 0 5px rgba(255,105,180,0.5));
         }
         @keyframes floatUp {
             0% { transform: translateY(0) scale(0.8) rotate(0deg); opacity: 0; }
             10% { opacity: 1; }
-            100% { transform: translateY(-120vh) scale(1.5) rotate(360deg); opacity: 0; }
+            100% { transform: translateY(-120vh) scale(1.2) rotate(360deg); opacity: 0; }
         }
 
-        /* إدارة الشاشات والانتقالات */
+        /* الشاشات */
         .screen {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(30px) scale(0.95);
+            position: absolute; top: 0; left: 0; width: 100%; min-height: 100vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transform: translateY(20px);
             transition: all 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
-            z-index: 10;
-            padding: 20px;
-            padding-bottom: 120px;
+            z-index: 10; padding: 20px; padding-bottom: 120px;
         }
         .screen.active {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0) scale(1);
-            position: relative; /* للسماح بالسكرول في الشاشة الأخيرة */
+            opacity: 1; visibility: visible; transform: translateY(0); position: relative;
         }
 
-        /* الحاويات الزجاجية */
+        /* الحاويات الزجاجية (أكثر تناسقاً ورقة) */
         .glass-panel {
             background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
-            border-top: 1px solid rgba(255,255,255,0.4);
-            border-left: 1px solid rgba(255,255,255,0.4);
-            border-radius: 24px;
-            padding: 35px 25px;
-            text-align: center;
-            width: 100%;
-            max-width: 420px;
+            border-radius: 20px;
+            padding: 30px 20px;
+            width: 100%; max-width: 380px; /* تصغير العرض قليلاً للموبايل */
             box-shadow: var(--glass-shadow);
-            margin-bottom: 25px;
+            margin-bottom: 20px;
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        /* الشاشة 1: تسجيل الدخول */
+        /* الشاشة 1 */
         .profile-pic {
-            width: 110px; height: 110px;
-            border-radius: 50%; object-fit: cover;
-            border: 3px solid rgba(255, 255, 255, 0.6);
-            box-shadow: 0 0 20px rgba(255, 182, 193, 0.4);
-            margin-bottom: 15px;
+            width: 90px; height: 90px; border-radius: 50%; object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.5); margin-bottom: 15px;
         }
         .login-input {
-            width: 100%; padding: 15px; margin: 20px 0;
-            border-radius: 12px; border: 1px solid var(--glass-border);
+            width: 90%; padding: 12px; margin: 15px 0;
+            border-radius: 10px; border: 1px solid var(--glass-border);
             background: rgba(0, 0, 0, 0.2); color: white;
-            text-align: center; font-size: 18px; outline: none;
-            transition: all 0.3s ease;
+            text-align: center; font-size: 15px; outline: none; transition: 0.3s;
         }
-        .login-input:focus {
-            background: rgba(0, 0, 0, 0.4);
-            border-color: rgba(255, 182, 193, 0.8);
-            box-shadow: 0 0 15px rgba(255, 182, 193, 0.3);
-        }
-        
-        /* تأثير الهزة لو الباسورد غلط */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            50% { transform: translateX(10px); }
-            75% { transform: translateX(-10px); }
-        }
+        .login-input:focus { border-color: rgba(255, 182, 193, 0.7); background: rgba(0, 0, 0, 0.3); }
         .shake-error { animation: shake 0.4s ease-in-out; border-color: #ff4d4d !important; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-8px); } 50% { transform: translateX(8px); } }
 
-        /* الزراير */
+        /* الزراير (حجم متناسق) */
         .btn {
-            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.0));
-            color: white; border: 1px solid var(--glass-border);
-            padding: 12px 35px; border-radius: 20px;
-            font-weight: bold; cursor: pointer; transition: all 0.3s ease;
-            font-size: 18px; backdrop-filter: blur(5px);
-            position: relative; overflow: hidden;
+            background: rgba(255,255,255,0.05); color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+            padding: 10px 30px; border-radius: 20px;
+            cursor: pointer; transition: all 0.3s ease;
+            font-size: 15px; font-weight: 500; backdrop-filter: blur(5px);
         }
-        .btn::before {
-            content: ''; position: absolute; top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: all 0.4s ease;
-        }
-        .btn:hover::before { left: 100%; }
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-            border-color: rgba(255,255,255,0.6);
-        }
-        .btn:active { transform: translateY(1px); }
+        .btn:hover { background: rgba(255,255,255,0.15); transform: translateY(-2px); }
 
-        /* الشاشة 2: تأثير الكتابة */
+        /* الشاشة 2: الكتابة */
         .typing-container {
-            font-size: 22px; line-height: 1.8;
-            min-height: 120px; margin-bottom: 20px;
-            text-shadow: var(--text-glow);
+            font-size: 17px; line-height: 1.7;
+            min-height: 100px; margin-bottom: 20px;
+            font-weight: 500; color: #f8f8f8;
         }
-        .cursor {
-            display: inline-block; width: 3px; background-color: white;
-            animation: blink 0.7s infinite; margin-right: 2px;
-        }
+        .cursor { display: inline-block; width: 2px; background-color: white; animation: blink 0.7s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        
-        #btn-screen2 { opacity: 0; transform: translateY(20px); transition: all 0.5s ease; pointer-events: none;}
-        #btn-screen2.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        #btn-screen2 { opacity: 0; pointer-events: none; transition: 0.5s; }
+        #btn-screen2.show { opacity: 1; pointer-events: auto; }
 
         /* الشاشة 3: العداد والصور */
-        .counter-container {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 20px;
-        }
+        .counter-container { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 15px; width: 100%; }
         .counter-box {
-            background: rgba(0,0,0,0.2); padding: 15px 5px;
-            border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(5px); box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+            background: rgba(0,0,0,0.15); padding: 12px 5px;
+            border-radius: 10px; border: 1px solid rgba(255,255,255,0.05);
         }
-        .counter-box h3 { font-size: 26px; font-weight: 700; color: #ffb6c1; text-shadow: 0 0 5px rgba(255,182,193,0.5); }
-        .counter-box p { font-size: 13px; opacity: 0.9; margin-top: 5px; }
+        .counter-box h3 { font-size: 20px; font-weight: 700; color: #ffb6c1; margin-bottom: 3px; }
+        .counter-box p { font-size: 11px; opacity: 0.8; }
 
         .photo-card {
-            width: 100%; max-width: 420px; background: var(--glass-bg);
-            border-radius: 20px; padding: 15px; margin-bottom: 25px;
+            width: 100%; max-width: 380px; background: var(--glass-bg);
+            border-radius: 15px; padding: 12px; margin-bottom: 20px;
             border: 1px solid var(--glass-border);
-            box-shadow: var(--glass-shadow);
-            opacity: 0; transform: translateY(30px); /* للأنيميشن المتدرج */
+            opacity: 0; transform: translateY(20px);
         }
-        .photo-card img {
-            width: 100%; border-radius: 12px; object-fit: cover; aspect-ratio: 4/3;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .photo-card p { margin-top: 15px; font-size: 20px; font-weight: bold; text-shadow: var(--text-glow); }
+        .photo-card img { width: 100%; border-radius: 10px; object-fit: cover; aspect-ratio: 4/3; }
+        .photo-card p { margin-top: 12px; font-size: 16px; font-weight: 500; }
 
-        /* أنيميشن دخول عناصر الشاشة التالتة */
         .screen.active .animate-up { animation: slideUpFade 0.6s ease forwards; }
         @keyframes slideUpFade { to { opacity: 1; transform: translateY(0); } }
 
-        /* مشغل الموسيقى الثابت */
+        /* مشغل الموسيقى (تصميم احترافي جديد) */
         .music-player {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px);
-            width: 90%; max-width: 400px;
-            background: rgba(30, 0, 10, 0.85); backdrop-filter: blur(15px);
-            border-radius: 40px; padding: 10px 20px; display: flex;
-            align-items: center; justify-content: space-between;
-            z-index: 100; border: 1px solid rgba(255,255,255,0.15);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            opacity: 0;
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%) translateY(100px);
+            width: 92%; max-width: 380px;
+            background: rgba(20, 0, 5, 0.85); backdrop-filter: blur(20px);
+            border-radius: 25px; padding: 10px 15px;
+            display: flex; align-items: center; justify-content: space-between;
+            z-index: 100; border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            transition: all 0.5s ease; opacity: 0;
         }
         .music-player.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-        .music-info { display: flex; align-items: center; gap: 12px; }
+        
+        .music-info { display: flex; align-items: center; gap: 12px; flex: 1; overflow: hidden; }
         .music-info img {
-            width: 45px; height: 45px; border-radius: 50%; object-fit: cover;
-            border: 2px solid #ffb6c1; animation: spin 4s linear infinite; animation-play-state: paused;
+            width: 42px; height: 42px; border-radius: 50%; object-fit: cover;
+            border: 1px solid rgba(255,182,193,0.5);
+            animation: spin 5s linear infinite; animation-play-state: paused;
         }
+        .music-text { text-align: right; display: flex; flex-direction: column; justify-content: center; white-space: nowrap; }
+        .song-title { font-size: 13px; font-weight: 600; color: white; margin-bottom: 2px; }
+        .song-time { font-size: 10px; color: #ffb6c1; font-family: monospace; }
+        
+        .music-controls { display: flex; align-items: center; gap: 15px; margin-left: 10px; }
         .music-controls button {
-            background: none; border: none; color: white; font-size: 22px; cursor: pointer;
-            margin: 0 8px; transition: transform 0.2s;
+            background: none; border: none; color: white; cursor: pointer;
+            transition: 0.2s; display: flex; align-items: center; justify-content: center;
         }
-        .music-controls button:active { transform: scale(0.8); }
+        .music-controls button:active { transform: scale(0.8); opacity: 0.7; }
+        .btn-prev-next { font-size: 16px; color: #ddd; }
+        .btn-play { font-size: 26px; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.4); }
+        
         @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -225,27 +176,26 @@
 
     <!-- ملفات الصوت -->
     <audio id="clickSound" src="click.mp3" preload="auto"></audio>
-    <audio id="mySong" src="song.mp3" loop preload="auto"></audio>
+    <audio id="mySong" preload="auto"></audio>
 
-    <!-- الخلفية المتحركة -->
     <div class="floating-hearts" id="hearts-container"></div>
 
-    <!-- الشاشة 1: اللوجن -->
+    <!-- الشاشة 1: تسجيل الدخول -->
     <div class="screen active" id="screen1">
-        <div class="glass-panel" style="background: radial-gradient(circle at top, rgba(255,182,193,0.15) 0%, rgba(255,255,255,0.05) 100%);">
-            <img src="https://images.unsplash.com/photo-1518199268815-f5534740960f?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" alt="Profile" class="profile-pic">
-            <h2 style="font-size: 28px; text-shadow: var(--text-glow);">love</h2>
-            <p style="color: #ffb6c1; margin-bottom: 10px;">❤ my everything</p>
+        <div class="glass-panel" style="padding-top: 40px;">
+            <img src="https://pngup.com/LtIh/e11858a9a4d4b4eae59f8bbf2cd5f152.jpg" alt="Profile" class="profile-pic">
+            <h2 style="font-size: 22px; margin-bottom: 5px;">love</h2>
+            <p style="font-size: 13px; color: #ffb6c1; margin-bottom: 15px;">❤ my everything</p>
             <input type="password" id="password" class="login-input" placeholder="Password">
             <button class="btn" onclick="checkPassword()">💕 Unlock 💕</button>
-            <p id="error-msg" style="color: #ff4d4d; opacity: 0; transition: 0.3s; margin-top: 15px; font-size: 14px; font-weight: bold;">الباسورد غلط يا روحي، حاولي تاني 😅</p>
+            <p id="error-msg" style="color: #ff4d4d; opacity: 0; transition: 0.3s; margin-top: 12px; font-size: 12px;">الباسورد غلط يا روحي، حاولي تاني</p>
         </div>
     </div>
 
-    <!-- الشاشة 2: الرسالة بالكتابة -->
+    <!-- الشاشة 2: الرسالة -->
     <div class="screen" id="screen2">
         <div class="glass-panel">
-            <h1 style="font-size: 45px; margin-bottom: 20px; animation: pulse 2s infinite;">😍</h1>
+            <h1 style="font-size: 35px; margin-bottom: 15px;">😍</h1>
             <div class="typing-container">
                 <span id="typing-text"></span><span class="cursor">|</span>
             </div>
@@ -253,82 +203,100 @@
         </div>
     </div>
 
-    <!-- الشاشة 3: المحتوى الأساسي -->
-    <div class="screen" id="screen3" style="justify-content: flex-start; padding-top: 40px;">
+    <!-- الشاشة 3: المحتوى -->
+    <div class="screen" id="screen3" style="justify-content: flex-start; padding-top: 30px;">
         
-        <!-- العداد -->
         <div class="glass-panel animate-up" style="animation-delay: 0.1s;">
-            <h2 style="text-shadow: var(--text-glow);">💞 بدايتنا 💞</h2>
-            <p style="margin-top: 10px; color: #ffb6c1;">✨ سوا من 03-10-2025 ✨</p>
+            <h2 style="font-size: 20px;">💞 بدايتنا 💞</h2>
+            <p style="font-size: 13px; color: #ffb6c1; margin-top: 5px;">✨ سوا من 03-10-2025 ✨</p>
             <div class="counter-container">
                 <div class="counter-box"><h3 id="days">00</h3><p>يوم</p></div>
                 <div class="counter-box"><h3 id="hours">00</h3><p>ساعة</p></div>
                 <div class="counter-box"><h3 id="minutes">00</h3><p>دقيقة</p></div>
                 <div class="counter-box"><h3 id="seconds">00</h3><p>ثانية</p></div>
             </div>
-            <p style="margin-top: 20px; font-size: 15px; font-weight: bold;">كل ثانية بتعدي وانتِ في قلبي ❤</p>
+            <p style="margin-top: 15px; font-size: 13px;">كل ثانية بتعدي وانتِ في قلبي ❤</p>
         </div>
 
-        <div class="glass-panel animate-up" style="animation-delay: 0.3s; padding: 20px;">
-            <p style="font-size: 18px; font-weight: bold;">❤ يوم ما قولتلك بحبك ❤</p>
-            <div style="background: rgba(255,255,255,0.15); padding: 8px 20px; border-radius: 12px; margin-top: 10px; display: inline-block; border: 1px solid rgba(255,255,255,0.2);">
+        <div class="glass-panel animate-up" style="animation-delay: 0.3s; padding: 15px;">
+            <p style="font-size: 15px;">❤ يوم ما قولتلك بحبك ❤</p>
+            <div style="background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 8px; margin-top: 8px; font-size: 13px;">
                 📅 2026-04-23
             </div>
         </div>
 
         <!-- الصور -->
         <div class="photo-card animate-up" style="animation-delay: 0.5s;">
-            <!-- استبدل الرابط بصورتكم -->
             <img src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Memory">
             <p>بحبك 💕</p>
         </div>
 
         <div class="photo-card animate-up" style="animation-delay: 0.7s;">
-            <!-- استبدل الرابط بصورتكم -->
             <img src="https://images.unsplash.com/photo-1628191010210-a59de33e5941?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&q=80" alt="Memory">
             <p>فاكره الهديه دي 😍</p>
         </div>
 
-        <div class="glass-panel animate-up" style="animation-delay: 0.9s; margin-top: 10px;">
-            <h2 style="color: #ffb6c1;">بحبك اوي</h2>
-            <h3 style="margin: 15px 0;">ربنا يخليكي ليا</h3>
-            <h4 style="line-height: 1.6; opacity: 0.9;">وعايزين بقا نملاه صور كتير<br>متنسيش 😂</h4>
-            <button class="btn" style="margin-top: 25px;" onclick="playClick(); nextScreen('screen3', 'screen1')">🔄 رجوع للبداية</button>
-            <h2 style="margin-top: 20px; font-family: 'Cairo', sans-serif; letter-spacing: 2px;">💓 Lovely 💓</h2>
+        <div class="glass-panel animate-up" style="animation-delay: 0.9s; padding: 25px 20px;">
+            <h2 style="font-size: 18px; color: #ffb6c1;">بحبك اوي</h2>
+            <h3 style="font-size: 16px; margin: 10px 0;">ربنا يخليكي ليا</h3>
+            <p style="font-size: 14px; opacity: 0.9;">وعايزين بقا نملاه صور كتير<br>متنسيش 😂</p>
+            <button class="btn" style="margin-top: 20px;" onclick="playClick(); nextScreen('screen3', 'screen1')">🔄 رجوع للبداية</button>
+            <h2 style="margin-top: 15px; font-size: 16px; letter-spacing: 1px;">💓 Lovely 💓</h2>
         </div>
-        
     </div>
 
-    <!-- مشغل الموسيقى -->
+    <!-- مشغل الموسيقى (بيدعم أكتر من أغنية) -->
     <div class="music-player" id="player-ui">
         <div class="music-info">
-            <!-- استبدل الرابط بصورة الأغنية -->
-            <img src="https://images.unsplash.com/photo-1518199268815-f5534740960f?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="Song" id="disk">
-            <div style="text-align: right;">
-                <p style="font-size: 15px; font-weight: bold; text-shadow: 0 0 5px rgba(255,255,255,0.5);">وانتِ معايا 😍</p>
-                <p id="music-time" style="font-size: 11px; color: #ffb6c1;">0:00</p>
+            <img src="" alt="Cover" id="disk">
+            <div class="music-text">
+                <span class="song-title" id="song-title">جاري التحميل...</span>
+                <span class="song-time" id="music-time">0:00 / 0:00</span>
             </div>
         </div>
         <div class="music-controls">
-            <button onclick="playClick()">⏮</button>
-            <button onclick="toggleMusic(); playClick()" id="play-btn" style="font-size: 30px; margin: 0 15px; text-shadow: 0 0 10px rgba(255,255,255,0.5);">▶</button>
-            <button onclick="playClick()">⏭</button>
+            <button class="btn-prev-next" onclick="prevSong(); playClick()">⏮</button>
+            <button class="btn-play" onclick="toggleMusic(); playClick()" id="play-btn">▶</button>
+            <button class="btn-prev-next" onclick="nextSong(); playClick()">⏭</button>
         </div>
     </div>
 
     <script>
-        // 1. نظام الصوت (النقر والموسيقى)
-        const clickAudio = document.getElementById("clickSound");
+        // ==========================================
+        // 1. قائمة الأغاني (Playlist) - ضيف براحتك هنا!
+        // ==========================================
+        const playlist = [
+            { 
+                title: "وانتِ معايا 😍", 
+                src: "song1.mp3", 
+                cover: "https://images.unsplash.com/photo-1518199268815-f5534740960f?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" 
+            },
+            { 
+                title: "أجمل يوم 💖", 
+                src: "song2.mp3", 
+                cover: "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" 
+            },
+            { 
+                title: "بحبك 🌸", 
+                src: "song3.mp3", 
+                cover: "https://images.unsplash.com/photo-1628191010210-a59de33e5941?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" 
+            }
+        ];
+
+        let currentSongIndex = 0;
         const songAudio = document.getElementById("mySong");
         const playBtn = document.getElementById("play-btn");
         const disk = document.getElementById("disk");
-        const playerUI = document.getElementById("player-ui");
+        const songTitleUI = document.getElementById("song-title");
 
-        function playClick() {
-            clickAudio.currentTime = 0; // يخلي الصوت يبدأ من الأول عشان لو داس ورا بعض
-            clickAudio.play().catch(e => console.log("الصوت محتاج تفاعل الأول"));
+        // تحميل بيانات الأغنية
+        function loadSong(index) {
+            songAudio.src = playlist[index].src;
+            songTitleUI.innerText = playlist[index].title;
+            disk.src = playlist[index].cover;
         }
 
+        // تشغيل أو إيقاف
         function toggleMusic() {
             if (songAudio.paused) {
                 songAudio.play();
@@ -341,127 +309,135 @@
             }
         }
 
-        // تحديث وقت الأغنية
+        // الأغنية التالية
+        function nextSong() {
+            currentSongIndex = (currentSongIndex + 1) % playlist.length;
+            loadSong(currentSongIndex);
+            if (!songAudio.paused || playBtn.innerHTML === "⏸") { 
+                songAudio.play(); disk.style.animationPlayState = 'running'; 
+            }
+        }
+
+        // الأغنية السابقة
+        function prevSong() {
+            currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length;
+            loadSong(currentSongIndex);
+            if (!songAudio.paused || playBtn.innerHTML === "⏸") { 
+                songAudio.play(); disk.style.animationPlayState = 'running'; 
+            }
+        }
+
+        // لما الأغنية تخلص، شغل اللي بعدها تلقائي
+        songAudio.addEventListener('ended', nextSong);
+
+        // تنسيق وقت الأغنية (الدقائق والثواني)
+        function formatTime(seconds) {
+            let min = Math.floor(seconds / 60);
+            let sec = Math.floor(seconds % 60);
+            if (sec < 10) sec = "0" + sec;
+            return min + ":" + sec;
+        }
+
         songAudio.addEventListener('timeupdate', () => {
-            let mins = Math.floor(songAudio.currentTime / 60);
-            let secs = Math.floor(songAudio.currentTime % 60);
-            if (secs < 10) secs = "0" + secs;
-            document.getElementById("music-time").innerText = mins + ":" + secs;
+            if (songAudio.duration) {
+                let current = formatTime(songAudio.currentTime);
+                let total = formatTime(songAudio.duration);
+                document.getElementById("music-time").innerText = current + " / " + total;
+            }
         });
 
-        // 2. القلوب العائمة
+        // تحميل أول أغنية في الخلفية بمجرد فتح الصفحة
+        loadSong(currentSongIndex);
+
+        // ==========================================
+        // 2. باقي الأكواد (الصوتيات والانيميشن والعداد)
+        // ==========================================
+        const clickAudio = document.getElementById("clickSound");
+        function playClick() {
+            clickAudio.currentTime = 0; 
+            clickAudio.play().catch(() => {}); // catch عشان لو مفيش ملف صوت ميعملش ايرور
+        }
+
         function createHearts() {
             const container = document.getElementById('hearts-container');
-            const heartChars = ['❤', '💕', '💖', '✨'];
+            const heartChars = ['❤', '💕', '💖'];
             setInterval(() => {
                 const heart = document.createElement('div');
                 heart.classList.add('heart');
                 heart.innerHTML = heartChars[Math.floor(Math.random() * heartChars.length)];
                 heart.style.left = Math.random() * 100 + 'vw';
-                heart.style.fontSize = Math.random() * 15 + 12 + 'px';
-                heart.style.animationDuration = Math.random() * 4 + 4 + 's'; // بين 4 و 8 ثواني
+                heart.style.fontSize = Math.random() * 10 + 10 + 'px';
+                heart.style.animationDuration = Math.random() * 4 + 5 + 's';
                 container.appendChild(heart);
-                setTimeout(() => { heart.remove(); }, 8000);
-            }, 400);
+                setTimeout(() => { heart.remove(); }, 9000);
+            }, 500);
         }
         createHearts();
 
-        // 3. تأثير الآلة الكاتبة (Typing Effect)
         const messageText = "حبيت اعمل هديه جديده وعايزين نملاه صورنا بقا بس قبل اي حاجه عايز تعرفي اني بحبك وربنا يخليكي ليا يقلبي ويلا بقا انبهري 😂❤";
-        // فككنا النص المصفوفة عشان الإيموجي يتحسب صح وميتقسمش نصين
         const textArray = [...messageText]; 
-        let typeIndex = 0;
-        let isTypingStarted = false;
+        let typeIndex = 0; let isTypingStarted = false;
 
         function typeWriter() {
             if (typeIndex < textArray.length) {
                 document.getElementById("typing-text").innerHTML += textArray[typeIndex];
                 typeIndex++;
-                // سرعة عشوائية بسيطة لكتابة واقعية
-                let typeSpeed = Math.random() * 40 + 40; 
-                setTimeout(typeWriter, typeSpeed);
+                setTimeout(typeWriter, Math.random() * 30 + 40);
             } else {
-                // إظهار الزرار بعد ما الكتابة تخلص
                 document.getElementById("btn-screen2").classList.add("show");
             }
         }
 
-        // 4. التحقق من الباسورد
         function checkPassword() {
             playClick();
             const passInput = document.getElementById('password');
             const errorMsg = document.getElementById('error-msg');
             
             if (passInput.value === "1234" || passInput.value === "بحبك") { 
-                passInput.classList.remove('shake-error');
-                errorMsg.style.opacity = '0';
-                
-                // الانتقال للشاشة التانية
+                passInput.classList.remove('shake-error'); errorMsg.style.opacity = '0';
                 nextScreen('screen1', 'screen2');
                 
-                // تشغيل الأغنية وظهور المشغل
                 setTimeout(() => {
-                    playerUI.classList.add('show');
-                    toggleMusic();
+                    document.getElementById("player-ui").classList.add('show');
+                    // تشغيل أول أغنية
+                    songAudio.play().catch(() => { /* لو المتصفح منع التشغيل التلقائي */ });
+                    playBtn.innerHTML = "⏸";
+                    disk.style.animationPlayState = 'running';
                 }, 500);
 
-                // بدأ تأثير الكتابة لو لسه مبدأش
                 if (!isTypingStarted) {
-                    setTimeout(() => {
-                        isTypingStarted = true;
-                        typeWriter();
-                    }, 800); // استنى شوية الشاشة تفتح بعدين ابدأ كتابة
+                    setTimeout(() => { isTypingStarted = true; typeWriter(); }, 800);
                 }
-
             } else {
-                // أنيميشن الخطأ
-                passInput.classList.remove('shake-error');
-                void passInput.offsetWidth; // Trigger Reflow عشان الأنيميشن يتعاد
-                passInput.classList.add('shake-error');
-                errorMsg.style.opacity = '1';
+                passInput.classList.remove('shake-error'); void passInput.offsetWidth; 
+                passInput.classList.add('shake-error'); errorMsg.style.opacity = '1';
             }
         }
 
-        // 5. التنقل بين الشاشات بأنيميشن
         function nextScreen(currentId, nextId) {
-            const current = document.getElementById(currentId);
-            const next = document.getElementById(nextId);
-            
-            current.classList.remove('active');
-            
+            document.getElementById(currentId).classList.remove('active');
             setTimeout(() => {
-                next.classList.add('active');
+                document.getElementById(nextId).classList.add('active');
                 window.scrollTo(0, 0);
-            }, 600); // نفس مدة الـ transition في الـ CSS
+            }, 600);
         }
 
-        // 6. العداد (تاريخ البداية)
         const startDate = new Date("2025-10-03T00:00:00").getTime();
-        function updateCounter() {
-            const now = new Date().getTime();
-            const difference = now - startDate;
-            
+        setInterval(function updateCounter() {
+            const difference = new Date().getTime() - startDate;
             if (difference > 0) {
-                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
-                
-                document.getElementById("days").innerText = days;
-                document.getElementById("hours").innerText = hours < 10 ? "0" + hours : hours;
-                document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
-                document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
+                document.getElementById("days").innerText = Math.floor(difference / (1000 * 60 * 60 * 24));
+                let h = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                document.getElementById("hours").innerText = h < 10 ? "0" + h : h;
+                let m = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById("minutes").innerText = m < 10 ? "0" + m : m;
+                let s = Math.floor((difference % (1000 * 60)) / 1000);
+                document.getElementById("seconds").innerText = s < 10 ? "0" + s : s;
             }
-        }
-        setInterval(updateCounter, 1000);
-        updateCounter();
+        }, 1000);
 
-        // إضافة مستمع لزر الـ Enter في الكيبورد عشان لو حبت تدوس انتر بعد الباسورد
-        document.getElementById("password").addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                checkPassword();
-            }
+        document.getElementById("password").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); checkPassword(); }
         });
     </script>
 </body>
