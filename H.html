@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Everything ❤️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #7a0016;
+            --glass-bg: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.25);
+            --text-color: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #5c000e, #91001f);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Floating Hearts Animation */
+        .floating-hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .heart {
+            position: absolute;
+            bottom: -10%;
+            color: rgba(255, 105, 180, 0.6);
+            font-size: 20px;
+            animation: floatUp 5s linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-120vh) scale(1.5); opacity: 0; }
+        }
+
+        /* Container & Glass Panels */
+        .container {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            padding-bottom: 100px; /* Space for music player */
+            min-height: 100vh;
+            justify-content: center;
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Screens Management */
+        .screen { display: none; width: 100%; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh;}
+        .screen.active { display: flex; }
+
+        /* Login Screen */
+        .profile-pic { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #ffb6c1; margin-bottom: 15px; }
+        .login-input { width: 100%; padding: 12px; margin: 15px 0; border-radius: 10px; border: none; background: rgba(255,255,255,0.2); color: white; text-align: center; outline: none; }
+        .login-input::placeholder { color: #ddd; }
+        .btn { background: rgba(0,0,0,0.4); color: white; border: 1px solid var(--glass-border); padding: 12px 30px; border-radius: 15px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 16px; }
+        .btn:hover { background: rgba(0,0,0,0.6); }
+
+        /* Counter Section */
+        .counter-container { display: flex; justify-content: space-between; margin-top: 15px; gap: 10px; }
+        .counter-box { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; width: 23%; border: 1px solid rgba(255,255,255,0.2); }
+        .counter-box h3 { font-size: 24px; margin-bottom: 5px; }
+        .counter-box p { font-size: 12px; }
+
+        /* Photo Gallery */
+        .photo-card { width: 90%; max-width: 400px; background: var(--glass-bg); border-radius: 20px; padding: 10px; margin-bottom: 20px; border: 1px solid var(--glass-border); }
+        .photo-card img { width: 100%; border-radius: 15px; object-fit: cover; aspect-ratio: 4/3; }
+        .photo-card p { margin-top: 10px; font-size: 18px; font-weight: bold; text-align: center;}
+
+        /* Music Player (Sticky Bottom) */
+        .music-player { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(40, 0, 10, 0.8); backdrop-filter: blur(10px); border-radius: 30px; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; z-index: 100; border: 1px solid var(--glass-border); }
+        .music-info { display: flex; align-items: center; gap: 10px; }
+        .music-info img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; animation: spin 5s linear infinite; animation-play-state: paused; }
+        .music-controls button { background: none; border: none; color: white; font-size: 20px; cursor: pointer; margin: 0 5px; outline: none;}
+        
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <!-- Floating Hearts -->
+    <div class="floating-hearts" id="hearts-container"></div>
+
+    <!-- Screen 1: Login -->
+    <div class="screen active" id="screen1">
+        <div class="glass-panel" style="background: radial-gradient(circle, rgba(200,0,50,0.4) 0%, rgba(255,255,255,0.1) 100%); border-radius: 50% 50% 10px 10px / 30% 30% 10px 10px; padding-top: 50px;">
+            <!-- صورة البروفايل -->
+            <img src="https://images.unsplash.com/photo-1518199268815-f5534740960f?ixlib=rb-1.2.1&auto=format&fit=crop&w=200&q=80" alt="Profile" class="profile-pic">
+            <h2>love</h2>
+            <p>❤ my everything</p>
+            <input type="password" id="password" class="login-input" placeholder="password">
+            <button class="btn" onclick="checkPassword()">💕 Unlock 💕</button>
+            <p id="error-msg" style="color: #ffb6c1; display: none; margin-top: 10px; font-size: 14px;">الباسورد غلط يا روحي جربي تاني</p>
+        </div>
+    </div>
+
+    <!-- Screen 2: Message -->
+    <div class="screen" id="screen2">
+        <div class="glass-panel">
+            <h1 style="font-size: 40px; margin-bottom: 20px;">😍</h1>
+            <h3 style="line-height: 1.8;">حبيت اعمل هديه جديده وعايزين نملاه صورنا بقا بس قبل اي حاجه عايز تعرفي اني بحبك وربنا يخليكي ليا يقلبي ويلا بقا انبهري 😂❤</h3>
+            <button class="btn" style="margin-top: 30px;" onclick="nextScreen('screen2', 'screen3')">✨ next ✨</button>
+        </div>
+    </div>
+
+    <!-- Screen 3: Main Content -->
+    <div class="screen" id="screen3" style="display: none; flex-direction: column; justify-content: flex-start; padding-top: 30px;">
+        
+        <!-- Counter -->
+        <div class="glass-panel">
+            <h2>💞 بدايتنا 💞</h2>
+            <p style="margin-top: 10px;">✨ سوا من 03-10-2025 ✨</p>
+            <div class="counter-container">
+                <div class="counter-box"><h3 id="days">00</h3><p>يوم</p></div>
+                <div class="counter-box"><h3 id="hours">00</h3><p>ساعة</p></div>
+                <div class="counter-box"><h3 id="minutes">00</h3><p>دقيقة</p></div>
+                <div class="counter-box"><h3 id="seconds">00</h3><p>ثانية</p></div>
+            </div>
+            <p style="margin-top: 15px; font-size: 14px;">كل ثانية بتعدي وانت في قلبي ❤</p>
+        </div>
+
+        <div class="glass-panel" style="padding: 15px; width: auto; min-width: 200px;">
+            <p>❤ يوم ما قولتلك بحبك ❤</p>
+            <div style="background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 10px; margin-top: 5px; display: inline-block;">
+                📅 2026-04-23
+            </div>
+        </div>
+
+        <!-- Photos -->
+        <div class="photo-card">
+            <img src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Photo 1">
+            <p>بحبك 💕</p>
+        </div>
+
+        <div class="photo-card">
+            <img src="https://images.unsplash.com/photo-1628191010210-a59de33e5941?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Gift">
+            <p>فاكره الهديه دي 😍</p>
+        </div>
+
+        <div class="glass-panel" style="margin-top: 20px;">
+            <h3>بحبك اوي</h3>
+            <h3 style="margin: 15px 0;">ربنا يخليكي ليا</h3>
+            <h3>وعايزين بقا نملاه صور كتير<br>متنسيش 😂</h3>
+            <button class="btn" style="margin-top: 25px;" onclick="nextScreen('screen3', 'screen1')">memories 🔄</button>
+            <h2 style="margin-top: 15px; color: #ffb6c1;">💓 Lovely 💓</h2>
+        </div>
+        
+        <div style="height: 100px;"></div>
+    </div>
+
+    <!-- 🎵 ملف الأغنية المخفي (استبدل song.mp3 باسم الأغنية بتاعتك) 🎵 -->
+    <audio id="mySong" loop>
+        <source src="song.mp3" type="audio/mpeg">
+        المتصفح بتاعك مش بيدعم تشغيل الصوت.
+    </audio>
+
+    <!-- Sticky Music Player -->
+    <div class="music-player" id="player-ui" style="display: none;">
+        <div class="music-info">
+            <img src="https://images.unsplash.com/photo-1518199268815-f5534740960f?ixlib=rb-1.2.1&auto=format&fit=crop&w=100&q=80" alt="Song" id="disk">
+            <div style="text-align: right;">
+                <p style="font-size: 14px; font-weight: bold;">وانت معايا 😍</p>
+                <p id="music-time" style="font-size: 10px; color: #ccc;">0:00</p>
+            </div>
+        </div>
+        <div class="music-controls">
+            <button onclick="toggleMusic()" id="play-btn" style="font-size: 28px;">▶</button>
+        </div>
+    </div>
+
+    <script>
+        // المتغيرات الخاصة بالأغنية
+        const song = document.getElementById("mySong");
+        const playBtn = document.getElementById("play-btn");
+        const disk = document.getElementById("disk");
+        const playerUI = document.getElementById("player-ui");
+
+        // دالة تشغيل وإيقاف الأغنية
+        function toggleMusic() {
+            if (song.paused) {
+                song.play();
+                playBtn.innerHTML = "⏸"; // زر الإيقاف المؤقت
+                disk.style.animationPlayState = 'running'; // لف الصورة
+            } else {
+                song.pause();
+                playBtn.innerHTML = "▶"; // زر التشغيل
+                disk.style.animationPlayState = 'paused'; // إيقاف لف الصورة
+            }
+        }
+
+        // 1. القلوب
+        function createHearts() {
+            const container = document.getElementById('hearts-container');
+            setInterval(() => {
+                const heart = document.createElement('div');
+                heart.classList.add('heart');
+                heart.innerHTML = '❤';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDuration = Math.random() * 3 + 4 + 's';
+                heart.style.fontSize = Math.random() * 15 + 10 + 'px';
+                container.appendChild(heart);
+                setTimeout(() => { heart.remove(); }, 6000);
+            }, 300);
+        }
+        createHearts();
+
+        // 2. التحقق من الباسورد وتشغيل الأغنية تلقائياً
+        function checkPassword() {
+            const pass = document.getElementById('password').value;
+            if (pass === "1234" || pass === "بحبك") { 
+                nextScreen('screen1', 'screen2');
+                document.getElementById('password').value = "";
+                document.getElementById('error-msg').style.display = 'none';
+                
+                // إظهار مشغل الموسيقى وتشغيل الأغنية
+                playerUI.style.display = 'flex';
+                toggleMusic(); // دي هتشغل الأغنية تلقائي أول ما تفتح
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
+            }
+        }
+
+        // 3. التنقل
+        function nextScreen(currentId, nextId) {
+            document.getElementById(currentId).classList.remove('active');
+            document.getElementById(currentId).style.display = 'none';
+            const nextScreen = document.getElementById(nextId);
+            nextScreen.classList.add('active');
+            if(nextId === 'screen3') { nextScreen.style.display = 'flex'; }
+            window.scrollTo(0,0);
+        }
+
+        // 4. العداد
+        const startDate = new Date("2025-10-03T00:00:00").getTime();
+        function updateCounter() {
+            const now = new Date().getTime();
+            const difference = now - startDate;
+            if (difference > 0) {
+                const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+                document.getElementById("days").innerText = days;
+                document.getElementById("hours").innerText = hours < 10 ? "0" + hours : hours;
+                document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
+                document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
+            }
+        }
+        setInterval(updateCounter, 1000);
+        updateCounter();
+
+        // 5. تحديث وقت الأغنية في المشغل
+        song.addEventListener('timeupdate', () => {
+            let currentMinutes = Math.floor(song.currentTime / 60);
+            let currentSeconds = Math.floor(song.currentTime - currentMinutes * 60);
+            if (currentSeconds < 10) { currentSeconds = "0" + currentSeconds; }
+            document.getElementById("music-time").innerText = currentMinutes + ":" + currentSeconds;
+        });
+    </script>
+</body>
+</html>
