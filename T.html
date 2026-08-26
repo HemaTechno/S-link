@@ -1,111 +1,1543 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hema Repost Cleaner | لوحة التحكم الذكية</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0d1117; color: #ffffff; padding: 20px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 600px; background: #161b22; padding: 25px; border-radius: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 1px solid #30363d; }
-        h1 { color: #fe2c55; text-align: center; margin-bottom: 10px; font-size: 24px; }
-        p.subtitle { text-align: center; color: #8b949e; margin-bottom: 25px; font-size: 14px; }
-        .card { background: #21262d; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #30363d; }
-        .btn { width: 100%; padding: 14px; background: #fe2c55; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn:hover { background: #e02447; }
-        .btn-secondary { background: #30363d; }
-        .btn-secondary:hover { background: #484f58; }
-        .stats { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; color: #8b949e; }
-        .stats span { color: #58a6ff; font-weight: bold; }
-        .repost-list { max-height: 250px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #30363d; border-radius: 8px; padding: 10px; background: #0d1117; }
-        .repost-item { padding: 8px; border-bottom: 1px solid #21262d; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
-        .repost-item:last-child { border-bottom: none; }
-        .badge { background: rgba(254,44,85,0.2); color: #fe2c55; padding: 3px 8px; border-radius: 4px; font-size: 11px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Hema Whiteboard Studio</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: "Segoe UI", Tahoma, Arial, sans-serif;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    background: #0d1117;
+    color: #fff;
+    display: flex;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar {
+    width: 350px;
+    min-width: 350px;
+    height: 100vh;
+
+    background: #161b22;
+    border-left: 1px solid #30363d;
+
+    padding: 18px;
+
+    overflow-y: auto;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.logo h1 {
+    color: #58a6ff;
+    font-size: 21px;
+}
+
+.subtitle {
+    color: #8b949e;
+    font-size: 12px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* =========================
+   SECTION
+========================= */
+
+.section-box {
+    background: #21262d;
+    border: 1px solid #30363d;
+    border-radius: 10px;
+
+    padding: 13px;
+    margin-bottom: 13px;
+}
+
+.section-box h3 {
+    font-size: 14px;
+    color: #58a6ff;
+    margin-bottom: 12px;
+}
+
+label {
+    display: block;
+
+    font-size: 12px;
+    color: #8b949e;
+
+    margin-bottom: 5px;
+}
+
+input,
+select {
+    width: 100%;
+
+    background: #0d1117;
+    color: #fff;
+
+    border: 1px solid #30363d;
+    border-radius: 7px;
+
+    padding: 9px;
+
+    margin-bottom: 10px;
+
+    outline: none;
+}
+
+input:focus,
+select:focus {
+    border-color: #58a6ff;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.btn {
+    width: 100%;
+
+    border: none;
+    border-radius: 7px;
+
+    padding: 10px;
+
+    margin-top: 5px;
+
+    cursor: pointer;
+
+    color: #fff;
+
+    font-size: 13px;
+    font-weight: bold;
+
+    transition: 0.2s;
+}
+
+.btn-blue {
+    background: #2380f7;
+}
+
+.btn-blue:hover {
+    background: #1769d0;
+}
+
+.btn-green {
+    background: #238636;
+}
+
+.btn-green:hover {
+    background: #2ea043;
+}
+
+.btn-red {
+    background: #da3633;
+}
+
+.btn-red:hover {
+    background: #f85149;
+}
+
+.btn-gray {
+    background: #30363d;
+}
+
+.btn-gray:hover {
+    background: #484f58;
+}
+
+/* =========================
+   SPEED
+========================= */
+
+.speed-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.speed-row input {
+    margin: 0;
+}
+
+.speed-value {
+    min-width: 50px;
+    text-align: center;
+    color: #58a6ff;
+    font-size: 12px;
+}
+
+/* =========================
+   TIMELINE
+========================= */
+
+.timeline-list {
+    max-height: 180px;
+
+    overflow-y: auto;
+
+    padding-right: 2px;
+}
+
+.timeline-item {
+    background: #0d1117;
+
+    border: 1px solid #30363d;
+
+    border-radius: 7px;
+
+    padding: 8px;
+
+    margin-bottom: 6px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+}
+
+.timeline-number {
+    min-width: 27px;
+    height: 27px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: #2380f7;
+
+    border-radius: 50%;
+
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.timeline-text {
+    flex: 1;
+
+    font-size: 11px;
+
+    overflow: hidden;
+
+    white-space: nowrap;
+
+    text-overflow: ellipsis;
+}
+
+.delete-btn {
+    background: transparent;
+
+    border: none;
+
+    color: #f85149;
+
+    cursor: pointer;
+
+    font-size: 12px;
+}
+
+/* =========================
+   WORKSPACE
+========================= */
+
+.workspace {
+    flex: 1;
+
+    min-width: 0;
+
+    height: 100vh;
+
+    background:
+        radial-gradient(
+            circle at center,
+            #101722 0%,
+            #090d16 70%
+        );
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    padding: 20px;
+
+    position: relative;
+}
+
+/* =========================
+   CANVAS
+========================= */
+
+.canvas-container {
+    position: relative;
+
+    width: min(900px, 100%);
+
+    aspect-ratio: 16 / 9;
+
+    background: #fff;
+
+    border-radius: 12px;
+
+    overflow: hidden;
+
+    box-shadow:
+        0 15px 50px rgba(0,0,0,.7),
+        0 0 0 1px rgba(255,255,255,.08);
+}
+
+#boardCanvas {
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    background: #fff;
+}
+
+/* =========================
+   HAND
+========================= */
+
+#handCursor {
+    position: absolute;
+
+    width: 45px;
+    height: 45px;
+
+    pointer-events: none;
+
+    z-index: 20;
+
+    display: none;
+
+    font-size: 34px;
+
+    line-height: 1;
+
+    transform-origin: bottom center;
+
+    transition:
+        left .06s linear,
+        top .06s linear;
+}
+
+.hand-right {
+    transform:
+        translate(-8px, -32px)
+        rotate(-8deg);
+}
+
+.hand-left {
+    transform:
+        translate(8px, -32px)
+        scaleX(-1)
+        rotate(-8deg);
+}
+
+/* =========================
+   STATUS
+========================= */
+
+.status {
+    margin-top: 12px;
+
+    font-size: 12px;
+
+    color: #8b949e;
+
+    text-align: center;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 800px) {
+
+    body {
+        flex-direction: column;
+        overflow: auto;
+    }
+
+    .sidebar {
+        width: 100%;
+        min-width: 0;
+
+        height: auto;
+
+        max-height: 55vh;
+
+        border-left: none;
+        border-bottom: 1px solid #30363d;
+    }
+
+    .workspace {
+        width: 100%;
+        height: 45vh;
+
+        min-height: 280px;
+
+        padding: 10px;
+    }
+
+    .canvas-container {
+        width: 100%;
+    }
+}
+</style>
 </head>
+
 <body>
 
-    <div class="container">
-        <h1>🧹 Hema Repost Cleaner</h1>
-        <p class="subtitle">أداة الحذف الذكي للريبوستات بأمان تام (حد أقصى 50 في الدفعة)</p>
+<!-- =========================
+     SIDEBAR
+========================= -->
 
-        <!-- خطوة تسجيل الدخول -->
-        <div id="loginSection" class="card">
-            <h3 style="margin-bottom: 10px;">👤 تسجيل الدخول</h3>
-            <p style="font-size: 13px; color: #8b949e; margin-bottom: 15px;">قم بربط حسابك أو إدخال جلسة العمل لتطهير الريبوستات.</p>
-            <button class="btn" onclick="loginSuccess()">تسجيل الدخول عبر TikTok</button>
-        </div>
+<aside class="sidebar">
 
-        <!-- لوحة التحكم بعد الدخول (مخفية لحين الدخول) -->
-        <div id="dashboardSection" style="display: none;">
-            <div class="card">
-                <div class="stats">
-                    <div>إجمالي الريبوستات المكتشفة: <span id="totalCount">50</span></div>
-                    <div>المحذوف في هذه الدفعة: <span id="deletedCount">0</span> / 50</div>
-                </div>
+    <div class="logo">
+        <h1>✏️ Hema Whiteboard</h1>
 
-                <div class="repost-list" id="repostList">
-                    <!-- سيتم تعبئة الفيديوهات هنا تلقائياً -->
-                </div>
-
-                <button class="btn" id="btnDeleteBatch" onclick="startBatchDelete()">🗑️ ابدأ حذف دفعة (50 ريبوست)</button>
-                <button class="btn btn-secondary" onclick="logout()">تسجيل الخروج</button>
-            </div>
+        <div class="subtitle">
+            صانع أنميشن السبورة البيضاء
         </div>
     </div>
 
-    <script>
-        function loginSuccess() {
-            // محاكاة تسجيل الدخول الناجح وجلب الريبوستات
-            document.getElementById('loginSection').style.display = 'none';
-            document.getElementById('dashboardSection').style.display = 'block';
-            loadMockReposts();
-        }
 
-        function loadMockReposts() {
-            const list = document.getElementById('repostList');
-            list.innerHTML = '';
-            for (let i = 1; i <= 50; i++) {
-                list.innerHTML += `
-                    <div class="repost-item" id="item-${i}">
-                        <span>فيديو رقم #${i} (معاد نشره)</span>
-                        <span class="badge">جاهز للحذف</span>
-                    </div>
-                `;
+    <!-- HAND -->
+
+    <div class="section-box">
+
+        <h3>1. إعدادات اليد</h3>
+
+        <label>
+            اتجاه اليد
+        </label>
+
+        <select id="handDirection">
+
+            <option value="right">
+                👉 يد يمين
+            </option>
+
+            <option value="left">
+                👈 يد شمال
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <!-- TEXT -->
+
+    <div class="section-box">
+
+        <h3>2. إضافة عنصر</h3>
+
+        <label>
+            النص
+        </label>
+
+        <input
+            id="elementText"
+            type="text"
+            placeholder="اكتب النص هنا..."
+            value="تمريض بلس - دقيقة مع هيما"
+        >
+
+
+        <label>
+            ترتيب العنصر
+        </label>
+
+        <input
+            id="elementOrder"
+            type="number"
+            value="1"
+            min="1"
+        >
+
+
+        <label>
+            حجم الخط
+        </label>
+
+        <input
+            id="fontSize"
+            type="number"
+            value="28"
+            min="10"
+            max="100"
+        >
+
+
+        <button
+            class="btn btn-blue"
+            onclick="addElement()"
+        >
+            ➕ إضافة للسبورة
+        </button>
+
+    </div>
+
+
+    <!-- SPEED -->
+
+    <div class="section-box">
+
+        <h3>3. سرعة الكتابة</h3>
+
+        <div class="speed-row">
+
+            <input
+                id="speed"
+                type="range"
+                min="20"
+                max="200"
+                value="70"
+            >
+
+            <span
+                id="speedValue"
+                class="speed-value"
+            >
+                70ms
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- TIMELINE -->
+
+    <div class="section-box">
+
+        <h3>
+            4. Timeline
+        </h3>
+
+        <div
+            id="timelineList"
+            class="timeline-list"
+        >
+            <span
+                style="
+                    font-size:11px;
+                    color:#8b949e;
+                "
+            >
+                لا توجد عناصر بعد...
+            </span>
+        </div>
+
+    </div>
+
+
+    <!-- ACTIONS -->
+
+    <div class="section-box">
+
+        <h3>
+            5. التحكم
+        </h3>
+
+        <button
+            class="btn btn-green"
+            onclick="startAnimation()"
+        >
+            ▶️ تشغيل
+        </button>
+
+        <button
+            class="btn btn-gray"
+            onclick="resetAnimation()"
+        >
+            🔄 إعادة تشغيل
+        </button>
+
+        <button
+            class="btn btn-red"
+            onclick="clearBoard()"
+        >
+            🗑️ مسح الكل
+        </button>
+
+    </div>
+
+</aside>
+
+
+<!-- =========================
+     WORKSPACE
+========================= -->
+
+<main class="workspace">
+
+    <div
+        class="canvas-container"
+        id="canvasContainer"
+    >
+
+        <canvas
+            id="boardCanvas"
+            width="1600"
+            height="900"
+        ></canvas>
+
+        <div
+            id="handCursor"
+            class="hand-right"
+        >
+            ✍️
+        </div>
+
+    </div>
+
+
+    <div
+        id="status"
+        class="status"
+    >
+        جاهز للعمل
+    </div>
+
+</main>
+
+
+<script>
+
+/* =====================================================
+   CANVAS
+===================================================== */
+
+const canvas =
+    document.getElementById("boardCanvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+
+const handCursor =
+    document.getElementById("handCursor");
+
+
+const canvasContainer =
+    document.getElementById("canvasContainer");
+
+
+/* =====================================================
+   STATE
+===================================================== */
+
+let elements = [];
+
+let isPlaying = false;
+
+let animationToken = 0;
+
+
+/* =====================================================
+   SETTINGS
+===================================================== */
+
+const defaultX = 100;
+
+const defaultY = 120;
+
+const lineSpacing = 100;
+
+
+/* =====================================================
+   SPEED
+===================================================== */
+
+const speedInput =
+    document.getElementById("speed");
+
+const speedValue =
+    document.getElementById("speedValue");
+
+
+speedInput.addEventListener(
+    "input",
+    () => {
+
+        speedValue.textContent =
+            speedInput.value + "ms";
+
+    }
+);
+
+
+/* =====================================================
+   HAND DIRECTION
+===================================================== */
+
+document
+    .getElementById("handDirection")
+    .addEventListener(
+        "change",
+        updateHandDirection
+    );
+
+
+function updateHandDirection() {
+
+    const direction =
+        document.getElementById(
+            "handDirection"
+        ).value;
+
+
+    handCursor.classList.remove(
+        "hand-right",
+        "hand-left"
+    );
+
+
+    if (direction === "left") {
+
+        handCursor.classList.add(
+            "hand-left"
+        );
+
+    } else {
+
+        handCursor.classList.add(
+            "hand-right"
+        );
+
+    }
+
+}
+
+
+/* =====================================================
+   ADD ELEMENT
+===================================================== */
+
+function addElement() {
+
+    if (isPlaying) {
+
+        alert(
+            "انتظر حتى انتهاء الأنيميشن."
+        );
+
+        return;
+
+    }
+
+
+    const text =
+        document
+            .getElementById("elementText")
+            .value
+            .trim();
+
+
+    const order =
+        parseInt(
+            document
+                .getElementById("elementOrder")
+                .value
+        ) || elements.length + 1;
+
+
+    const fontSize =
+        parseInt(
+            document
+                .getElementById("fontSize")
+                .value
+        ) || 28;
+
+
+    if (!text) {
+
+        alert(
+            "برجاء كتابة النص أولاً."
+        );
+
+        return;
+
+    }
+
+
+    elements.push({
+
+        id:
+            Date.now() +
+            Math.random(),
+
+        text,
+
+        order,
+
+        fontSize,
+
+        x: defaultX,
+
+        y:
+            defaultY +
+            elements.length *
+            lineSpacing
+
+    });
+
+
+    normalizePositions();
+
+    updateTimelineUI();
+
+    drawStaticBoard();
+
+}
+
+
+/* =====================================================
+   NORMALIZE POSITIONS
+===================================================== */
+
+function normalizePositions() {
+
+    elements
+        .sort(
+            (a,b) =>
+                a.order - b.order
+        );
+
+
+    elements.forEach(
+        (el,index) => {
+
+            el.x = defaultX;
+
+            el.y =
+                defaultY +
+                index *
+                lineSpacing;
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   TIMELINE UI
+===================================================== */
+
+function updateTimelineUI() {
+
+    const list =
+        document.getElementById(
+            "timelineList"
+        );
+
+
+    if (!elements.length) {
+
+        list.innerHTML = `
+            <span
+                style="
+                    font-size:11px;
+                    color:#8b949e;
+                "
+            >
+                لا توجد عناصر بعد...
+            </span>
+        `;
+
+        return;
+
+    }
+
+
+    list.innerHTML = "";
+
+
+    elements.forEach(
+        (el,index) => {
+
+            const item =
+                document.createElement(
+                    "div"
+                );
+
+            item.className =
+                "timeline-item";
+
+
+            item.innerHTML = `
+
+                <div class="timeline-number">
+                    ${index + 1}
+                </div>
+
+                <div class="timeline-text">
+                    ${escapeHTML(el.text)}
+                </div>
+
+                <button
+                    class="delete-btn"
+                    onclick="removeElement(${index})"
+                >
+                    حذف
+                </button>
+
+            `;
+
+
+            list.appendChild(item);
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   REMOVE
+===================================================== */
+
+function removeElement(index) {
+
+    if (isPlaying) {
+
+        alert(
+            "لا يمكن التعديل أثناء التشغيل."
+        );
+
+        return;
+
+    }
+
+
+    elements.splice(
+        index,
+        1
+    );
+
+
+    normalizePositions();
+
+    updateTimelineUI();
+
+    drawStaticBoard();
+
+}
+
+
+/* =====================================================
+   CLEAR
+===================================================== */
+
+function clearBoard() {
+
+    if (isPlaying) {
+
+        alert(
+            "أوقف الأنيميشن أولاً."
+        );
+
+        return;
+
+    }
+
+
+    elements = [];
+
+    animationToken++;
+
+    hideHand();
+
+    updateTimelineUI();
+
+    clearCanvas();
+
+    updateStatus(
+        "تم مسح اللوحة"
+    );
+
+}
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
+function resetAnimation() {
+
+    if (isPlaying) {
+
+        animationToken++;
+
+        isPlaying = false;
+
+    }
+
+
+    hideHand();
+
+    drawStaticBoard();
+
+    updateStatus(
+        "تمت إعادة اللوحة"
+    );
+
+}
+
+
+/* =====================================================
+   DRAW STATIC
+===================================================== */
+
+function drawStaticBoard() {
+
+    clearCanvas();
+
+
+    elements.forEach(
+        el => {
+
+            drawText(
+                el.text,
+                el.x,
+                el.y,
+                el.fontSize
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================================
+   CLEAR CANVAS
+===================================================== */
+
+function clearCanvas() {
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+}
+
+
+/* =====================================================
+   DRAW TEXT
+===================================================== */
+
+function drawText(
+    text,
+    x,
+    y,
+    fontSize
+) {
+
+    ctx.save();
+
+
+    ctx.font =
+        `bold ${fontSize}px "Segoe UI", Arial, sans-serif`;
+
+
+    ctx.fillStyle =
+        "#1f2328";
+
+
+    ctx.textBaseline =
+        "alphabetic";
+
+
+    ctx.direction =
+        "rtl";
+
+
+    ctx.textAlign =
+        "right";
+
+
+    ctx.fillText(
+        text,
+        x,
+        y
+    );
+
+
+    ctx.restore();
+
+}
+
+
+/* =====================================================
+   ANIMATION
+===================================================== */
+
+async function startAnimation() {
+
+    if (isPlaying) {
+
+        return;
+
+    }
+
+
+    if (!elements.length) {
+
+        alert(
+            "أضف عنصرًا واحدًا على الأقل."
+        );
+
+        return;
+
+    }
+
+
+    isPlaying = true;
+
+    const currentToken =
+        ++animationToken;
+
+
+    clearCanvas();
+
+    showHand();
+
+
+    updateStatus(
+        "🎬 جاري تشغيل الأنيميشن..."
+    );
+
+
+    try {
+
+        for (
+            let i = 0;
+            i < elements.length;
+            i++
+        ) {
+
+            if (
+                currentToken !==
+                animationToken
+            ) {
+
+                break;
+
             }
+
+
+            await drawTextAnimated(
+                elements[i],
+                currentToken
+            );
+
         }
 
-        function startBatchDelete() {
-            const btn = document.getElementById('btnDeleteBatch');
-            btn.disabled = true;
-            btn.innerText = "⏳ جاري حذف الدفعة بأمان...";
-            
-            let deleted = 0;
-            const interval = setInterval(() => {
-                deleted++;
-                document.getElementById('deletedCount').innerText = deleted;
-                
-                // تأثير بصري للحذف
-                const item = document.getElementById(`item-${deleted}`);
-                if(item) {
-                    item.style.opacity = '0.3';
-                    item.querySelector('.badge').innerText = 'تم الحذف ✓';
-                    item.querySelector('.badge').style.color = '#3fb950';
-                    item.querySelector('.badge').style.background = 'rgba(63,185,80,0.2)';
-                }
+    } finally {
 
-                if (deleted >= 50) {
-                    clearInterval(interval);
-                    btn.innerText = "✅ تمت الإزالة بنجاح!";
-                    alert("تم بنجاح حذف دفعة الـ 50 فيديو! يمكنك أخذ استراحة وحذف الدفعة التالية.");
-                }
-            }, 300); // سرعة الحذف المحسوبة
+        if (
+            currentToken ===
+            animationToken
+        ) {
+
+            isPlaying = false;
+
+            hideHand();
+
+            drawStaticBoard();
+
+            updateStatus(
+                "✅ انتهى الأنيميشن"
+            );
+
         }
 
-        function logout() {
-            document.getElementById('dashboardSection').style.display = 'none';
-            document.getElementById('loginSection').style.display = 'block';
+    }
+
+}
+
+
+/* =====================================================
+   ANIMATE TEXT
+===================================================== */
+
+function drawTextAnimated(
+    el,
+    token
+) {
+
+    return new Promise(
+        resolve => {
+
+            const text =
+                el.text;
+
+
+            let charIndex = 0;
+
+
+            const intervalTime =
+                parseInt(
+                    speedInput.value
+                ) || 70;
+
+
+            /*
+             * حساب عرض كل جزء
+             */
+
+            const drawFrame =
+                () => {
+
+                    if (
+                        token !==
+                        animationToken
+                    ) {
+
+                        resolve();
+
+                        return;
+
+                    }
+
+
+                    /*
+                     * إعادة رسم الخلفية
+                     */
+
+                    clearCanvas();
+
+
+                    /*
+                     * رسم العناصر السابقة
+                     */
+
+                    for (
+                        let i = 0;
+                        i < elements.length;
+                        i++
+                    ) {
+
+                        const previous =
+                            elements[i];
+
+
+                        if (
+                            previous === el
+                        ) {
+
+                            break;
+
+                        }
+
+
+                        drawText(
+                            previous.text,
+                            previous.x,
+                            previous.y,
+                            previous.fontSize
+                        );
+
+                    }
+
+
+                    /*
+                     * النص الحالي
+                     */
+
+                    const currentText =
+                        text.substring(
+                            0,
+                            charIndex
+                        );
+
+
+                    drawText(
+                        currentText,
+                        el.x,
+                        el.y,
+                        el.fontSize
+                    );
+
+
+                    /*
+                     * قياس النص
+                     */
+
+                    ctx.save();
+
+
+                    ctx.font =
+                        `bold ${el.fontSize}px "Segoe UI", Arial, sans-serif`;
+
+                    ctx.direction =
+                        "rtl";
+
+                    ctx.textAlign =
+                        "right";
+
+
+                    const width =
+                        ctx.measureText(
+                            currentText
+                        ).width;
+
+
+                    ctx.restore();
+
+
+                    /*
+                     * موقع اليد
+                     */
+
+                    positionHand(
+                        el,
+                        width
+                    );
+
+
+                    /*
+                     * انتهى النص
+                     */
+
+                    if (
+                        charIndex >=
+                        text.length
+                    ) {
+
+                        setTimeout(
+                            resolve,
+                            450
+                        );
+
+                        return;
+
+                    }
+
+
+                    charIndex++;
+
+
+                    setTimeout(
+                        drawFrame,
+                        intervalTime
+                    );
+
+                };
+
+
+            drawFrame();
+
         }
-    </script>
+    );
+
+}
+
+
+/* =====================================================
+   HAND POSITION
+===================================================== */
+
+function positionHand(
+    el,
+    textWidth
+) {
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+
+    const scaleX =
+        rect.width /
+        canvas.width;
+
+
+    const scaleY =
+        rect.height /
+        canvas.height;
+
+
+    const direction =
+        document
+            .getElementById(
+                "handDirection"
+            )
+            .value;
+
+
+    let x;
+
+
+    /*
+     * لأن النص RTL ومحاذاته من اليمين
+     */
+
+    if (
+        direction === "right"
+    ) {
+
+        x =
+            el.x -
+            textWidth;
+
+    } else {
+
+        x =
+            el.x +
+            10;
+
+    }
+
+
+    const y =
+        el.y -
+        el.fontSize;
+
+
+    handCursor.style.left =
+        (x * scaleX) +
+        "px";
+
+
+    handCursor.style.top =
+        (y * scaleY) +
+        "px";
+
+}
+
+
+/* =====================================================
+   HAND SHOW/HIDE
+===================================================== */
+
+function showHand() {
+
+    updateHandDirection();
+
+    handCursor.style.display =
+        "block";
+
+}
+
+
+function hideHand() {
+
+    handCursor.style.display =
+        "none";
+
+}
+
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+function updateStatus(text) {
+
+    document
+        .getElementById("status")
+        .textContent = text;
+
+}
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function escapeHTML(str) {
+
+    return str
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+        .replace(
+            /</g,
+            "&lt;"
+        )
+        .replace(
+            />/g,
+            "&gt;"
+        )
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+        .replace(
+            /'/g,
+            "&#039;"
+        );
+
+}
+
+
+/* =====================================================
+   RESIZE
+===================================================== */
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        if (!isPlaying) {
+
+            drawStaticBoard();
+
+        }
+
+    }
+);
+
+
+/* =====================================================
+   INITIAL
+===================================================== */
+
+updateHandDirection();
+
+drawStaticBoard();
+
+</script>
+
 </body>
 </html>
