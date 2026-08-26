@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hema Repost Cleaner | لوحة التحكم الذكية</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0d1117; color: #ffffff; padding: 20px; display: flex; justify-content: center; }
+        .container { width: 100%; max-width: 600px; background: #161b22; padding: 25px; border-radius: 15px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); border: 1px solid #30363d; }
+        h1 { color: #fe2c55; text-align: center; margin-bottom: 10px; font-size: 24px; }
+        p.subtitle { text-align: center; color: #8b949e; margin-bottom: 25px; font-size: 14px; }
+        .card { background: #21262d; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #30363d; }
+        .btn { width: 100%; padding: 14px; background: #fe2c55; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn:hover { background: #e02447; }
+        .btn-secondary { background: #30363d; }
+        .btn-secondary:hover { background: #484f58; }
+        .stats { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; color: #8b949e; }
+        .stats span { color: #58a6ff; font-weight: bold; }
+        .repost-list { max-height: 250px; overflow-y: auto; margin-bottom: 15px; border: 1px solid #30363d; border-radius: 8px; padding: 10px; background: #0d1117; }
+        .repost-item { padding: 8px; border-bottom: 1px solid #21262d; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+        .repost-item:last-child { border-bottom: none; }
+        .badge { background: rgba(254,44,85,0.2); color: #fe2c55; padding: 3px 8px; border-radius: 4px; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🧹 Hema Repost Cleaner</h1>
+        <p class="subtitle">أداة الحذف الذكي للريبوستات بأمان تام (حد أقصى 50 في الدفعة)</p>
+
+        <!-- خطوة تسجيل الدخول -->
+        <div id="loginSection" class="card">
+            <h3 style="margin-bottom: 10px;">👤 تسجيل الدخول</h3>
+            <p style="font-size: 13px; color: #8b949e; margin-bottom: 15px;">قم بربط حسابك أو إدخال جلسة العمل لتطهير الريبوستات.</p>
+            <button class="btn" onclick="loginSuccess()">تسجيل الدخول عبر TikTok</button>
+        </div>
+
+        <!-- لوحة التحكم بعد الدخول (مخفية لحين الدخول) -->
+        <div id="dashboardSection" style="display: none;">
+            <div class="card">
+                <div class="stats">
+                    <div>إجمالي الريبوستات المكتشفة: <span id="totalCount">50</span></div>
+                    <div>المحذوف في هذه الدفعة: <span id="deletedCount">0</span> / 50</div>
+                </div>
+
+                <div class="repost-list" id="repostList">
+                    <!-- سيتم تعبئة الفيديوهات هنا تلقائياً -->
+                </div>
+
+                <button class="btn" id="btnDeleteBatch" onclick="startBatchDelete()">🗑️ ابدأ حذف دفعة (50 ريبوست)</button>
+                <button class="btn btn-secondary" onclick="logout()">تسجيل الخروج</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function loginSuccess() {
+            // محاكاة تسجيل الدخول الناجح وجلب الريبوستات
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('dashboardSection').style.display = 'block';
+            loadMockReposts();
+        }
+
+        function loadMockReposts() {
+            const list = document.getElementById('repostList');
+            list.innerHTML = '';
+            for (let i = 1; i <= 50; i++) {
+                list.innerHTML += `
+                    <div class="repost-item" id="item-${i}">
+                        <span>فيديو رقم #${i} (معاد نشره)</span>
+                        <span class="badge">جاهز للحذف</span>
+                    </div>
+                `;
+            }
+        }
+
+        function startBatchDelete() {
+            const btn = document.getElementById('btnDeleteBatch');
+            btn.disabled = true;
+            btn.innerText = "⏳ جاري حذف الدفعة بأمان...";
+            
+            let deleted = 0;
+            const interval = setInterval(() => {
+                deleted++;
+                document.getElementById('deletedCount').innerText = deleted;
+                
+                // تأثير بصري للحذف
+                const item = document.getElementById(`item-${deleted}`);
+                if(item) {
+                    item.style.opacity = '0.3';
+                    item.querySelector('.badge').innerText = 'تم الحذف ✓';
+                    item.querySelector('.badge').style.color = '#3fb950';
+                    item.querySelector('.badge').style.background = 'rgba(63,185,80,0.2)';
+                }
+
+                if (deleted >= 50) {
+                    clearInterval(interval);
+                    btn.innerText = "✅ تمت الإزالة بنجاح!";
+                    alert("تم بنجاح حذف دفعة الـ 50 فيديو! يمكنك أخذ استراحة وحذف الدفعة التالية.");
+                }
+            }, 300); // سرعة الحذف المحسوبة
+        }
+
+        function logout() {
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('loginSection').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
