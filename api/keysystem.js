@@ -2,7 +2,7 @@ import db from "./firebase.js";
 import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 
-const LINKJUST_API_TOKEN = process.env.LINKJUST_API_TOKEN || "944c5ea148b949eb99be07963d8615e6904f460b";
+const LINKVERTISE_USER_ID = process.env.LINKVERTISE_USER_ID || "1322389"; // ضع معرف حسابك في لينكاتفاير
 const NITRO_LINK_API_KEY = process.env.NITRO_LINK_API_KEY || "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9";
 const LOOTLABS_API_KEY = process.env.LOOTLABS_API_KEY || "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1535938435213295616/6dEu86D4MIYzaYnTnJQ55XtTzGmM2PwxfNPi9g4vpRilGXm3G7by6ZlHTsezEw4IJHsZ";
@@ -287,10 +287,10 @@ const verifyingTaskUI = `
     <div class="container">
         <div class="spinner-icon"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
         <h1>Verifying Task...</h1>
-        <p>Please wait <span id="countdown">5</span> seconds while we confirm your task completion.</p>
+        <p>Please wait <span id="countdown">3</span> seconds while we confirm your task completion.</p>
     </div>
     <script>
-        let count = 5;
+        let count = 3;
         const timer = setInterval(() => {
             count--;
             document.getElementById('countdown').innerText = count;
@@ -348,7 +348,7 @@ const bannedUserUI = (hwid) => `
 </html>
 `;
 
-const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage, requiresClientApi = false, targetUrl = "", activeNetwork = "just") => {
+const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCount, errorMessage) => {
     let actionHtml = '';
     let errorBox = errorMessage ? `<div class="error-box"><i class="fa-solid fa-triangle-exclamation"></i> ${errorMessage}</div>` : '';
 
@@ -365,14 +365,16 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
                 <i class="fa-solid fa-hourglass-half"></i> Time Remaining: <span id="liveTimer" style="color: #fde047; font-weight: bold;">Calculated...</span>
             </div>
         `;
-    } else if (keyStep >= 1) {
+    } else if (keyStep >= 3) {
         let streakBonusText = streakCount === 6 
             ? `<div class="streak-badge" style="color: #fde047; border-color: rgba(253, 224, 71, 0.3); background: rgba(253, 224, 71, 0.08);"><i class="fa-solid fa-fire"></i> This is your 7th Day! You will get a FREE 3-Day Key!</div>` 
             : `<div class="streak-badge"><i class="fa-solid fa-fire" style="color: #f97316;"></i> Current Streak: ${streakCount + 1}/7 Days</div>`;
 
         actionHtml = `
             <div class="steps-container">
-                <div class="step done"><i class="fa-solid fa-circle-check"></i> Task Completed</div>
+                <div class="step done"><i class="fa-solid fa-circle-check"></i> Step 1 Completed</div>
+                <div class="step done"><i class="fa-solid fa-circle-check"></i> Step 2 Completed</div>
+                <div class="step done"><i class="fa-solid fa-circle-check"></i> Step 3 Completed</div>
             </div>
             
             ${streakBonusText}
@@ -386,58 +388,25 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
             </button>
         `;
     } else {
-        let taskButton = '';
-        
-        if (requiresClientApi) {
-            taskButton = `
-            <a href="javascript:void(0)" onclick="generateLinkClientSide()" class="btn continue-btn" id="taskBtn">
-                <span><i class="fa-solid fa-rocket" style="color:#ffedd5; margin-right:8px;"></i> Click to Complete Task (${activeNetwork.toUpperCase()})</span> 
-                <i class="fa-solid fa-arrow-right"></i>
-            </a>
-            <script>
-                async function generateLinkClientSide() {
-                    const btn = document.getElementById('taskBtn');
-                    btn.innerHTML = '<span><i class="fa-solid fa-spinner fa-spin"></i> Loading Secure Link...</span>';
-                    btn.style.pointerEvents = 'none';
-
-                    const target = "${targetUrl}";
-                    const activeNet = "${activeNetwork}";
-                    let apiUrl = "";
-
-                    if (activeNet === "nitrolink") {
-                        apiUrl = "https://nitro-link.com/api?api=${NITRO_LINK_API_KEY}&url=" + encodeURIComponent(target);
-                    } else {
-                        apiUrl = "https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=" + encodeURIComponent(target);
-                    }
-                    
-                    try {
-                        const res = await fetch(apiUrl);
-                        const data = await res.json();
-                        if(data.status === 'success' && data.shortenedUrl) {
-                            window.location.href = data.shortenedUrl;
-                            return;
-                        }
-                    } catch(err) {
-                        console.error("Browser API blocked, routing direct to target", err);
-                    }
-                    window.location.href = target;
-                }
-            </script>
-            `;
-        } else {
-            taskButton = `
-            <a href="${currentTaskUrl}" class="btn continue-btn">
-                <span><i class="fa-solid fa-rocket" style="color:#ffedd5; margin-right:8px;"></i> Click to Complete Task (${activeNetwork.toUpperCase()})</span> 
-                <i class="fa-solid fa-arrow-right"></i>
-            </a>
-            `;
+        let stepsHtml = '';
+        for(let i = 1; i <= 3; i++) {
+            if(i < keyStep + 1) {
+                stepsHtml += `<div class="step done"><i class="fa-solid fa-circle-check"></i> Step ${i} Completed</div>`;
+            } else if(i === keyStep + 1) {
+                stepsHtml += `<div class="step active"><i class="fa-solid fa-spinner fa-spin"></i> Step ${i} (Required)</div>`;
+            } else {
+                stepsHtml += `<div class="step" style="opacity: 0.5;"><i class="fa-solid fa-lock"></i> Step ${i} (Locked)</div>`;
+            }
         }
 
         actionHtml = `
             <div class="steps-container">
-                <div class="step active"><i class="fa-solid fa-spinner fa-spin"></i> Required Task</div>
+                ${stepsHtml}
             </div>
-            ${taskButton}
+            <a href="${currentTaskUrl}" class="btn continue-btn">
+                <span><i class="fa-solid fa-rocket" style="color:#ffedd5; margin-right:8px;"></i> Complete Step ${keyStep + 1} of 3 (Linkvertise)</span> 
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
             <p class="timer-text"><i class="fa-solid fa-fire" style="color:#f97316;"></i> Streak Progress: ${streakCount}/7 Days (Keep it up!)</p>
         `;
     }
@@ -475,12 +444,7 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>
-
-    <script src="https://beansnicerroller.com/1c/8c/07/1c8c07e41dacee6cc4a64a6f22c04a4b.js"></script>
-    <script>(function(s){s.dataset.zone='11383401',s.src='https://al5sm.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SubX Key System 🔑</title>
@@ -507,6 +471,9 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
             gap: 12px;
             font-size: 14px;
             transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
         }
         .step.active {
             background: rgba(99, 102, 241, 0.12);
@@ -688,8 +655,6 @@ const generateKeyUI = (keyStep, currentTaskUrl, activeKey, expiresAt, streakCoun
         }
     </script>
     ${countdownScript}
-
-
 </body>
 </html>
     `;
@@ -885,7 +850,6 @@ export default async function handler(req, res) {
         }
     }
 
-    // 🟢 الفحص الحي للخروج أو فقدان الرتبة
     let isDiscordVerified = false;
     const linkCheck = await db.collection("discord_links").doc(userHwid).get();
     
@@ -968,13 +932,10 @@ export default async function handler(req, res) {
                 res.setHeader('Set-Cookie', cookieArray);
             } else {
                 const keyData = keyDoc.data();
-                
                 if (keyData.expiresAt < Date.now()) {
                     await db.collection("keys").doc(activeKey).delete();
-                    
                     activeKey = null;
                     errorMessage = "Your key has expired and was removed from our system. Please get a new key!";
-                    
                     cookieArray.push(`active_key=; Max-Age=0; Path=/`);
                     cookieArray.push(`key_step=0; Max-Age=0; Path=/`);
                     res.setHeader('Set-Cookie', cookieArray);
@@ -987,12 +948,13 @@ export default async function handler(req, res) {
         }
     }
 
+    // إدارة الانتقال للخطوات الثلاث (3 Steps handling via JWT token return)
     if (req.method === "GET" && req.query.token) {
         try {
             const decoded = jwt.verify(req.query.token, JWT_SECRET);
             
-            if (decoded.hwid === userHwid && decoded.targetStep === 1) {
-                keyStep = 1;
+            if (decoded.hwid === userHwid && decoded.targetStep === keyStep + 1 && decoded.targetStep <= 3) {
+                keyStep = decoded.targetStep;
                 
                 cookieArray.push(`key_step=${keyStep}; Max-Age=86400; Path=/; SameSite=Lax`);
                 res.setHeader('Set-Cookie', cookieArray);
@@ -1010,7 +972,7 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST" && req.body.action === "generate") {
-        if (keyStep < 1) return res.status(403).json({ success: false, message: "You must complete the task first!" });
+        if (keyStep < 3) return res.status(403).json({ success: false, message: "You must complete all 3 steps first!" });
 
         const { recaptchaToken } = req.body;
         if (!recaptchaToken) {
@@ -1115,67 +1077,23 @@ export default async function handler(req, res) {
 
     if (req.method === "GET") {
         let currentTaskUrl = "#";
-        let targetUrl = "";
-        let requiresClientApi = false;
-        let activeNetwork = "just"; // الشبكة الافتراضية
 
-        // 🟢 فحص الكوكيز التفاعلي للتنقل الديناميكي بين الإعلانات
-        const hasJustCooldown = cookieHeader.includes('linkjust_24h_cooldown=1');
-        const hasNitroCooldown = cookieHeader.includes('nitro_24h_cooldown=1');
-
-        if (hasJustCooldown && !hasNitroCooldown) {
-            activeNetwork = "nitrolink";
-        } else if (hasNitroCooldown && !hasJustCooldown) {
-            activeNetwork = "just";
-        } else if (hasJustCooldown && hasNitroCooldown) {
-            activeNetwork = "lootlabs";
-        }
-
-        if (keyStep < 1 && !activeKey) {
+        if (keyStep < 3 && !activeKey) {
+            const nextStep = keyStep + 1;
             const sessionToken = jwt.sign(
-                { hwid: userHwid, targetStep: 1 }, 
+                { hwid: userHwid, targetStep: nextStep }, 
                 JWT_SECRET, 
                 { expiresIn: '15m' } 
             );
 
-            targetUrl = `${redirectUri}?token=${sessionToken}`;
+            const targetUrl = `${redirectUri}?token=${sessionToken}`;
             
-            try {
-                let apiUrl = "";
-                if (activeNetwork === "nitrolink") {
-                    apiUrl = `https://nitro-link.com/api?api=${NITRO_LINK_API_KEY}&url=${encodeURIComponent(targetUrl)}`;
-                } else if (activeNetwork === "lootlabs") {
-                    // تحويل لـ LootLabs عند إنهاء الشبكتين
-                    const lootRes = await fetch("https://creators.lootlabs.gg/api/public/content_locker", {
-                        method: "POST",
-                        headers: { Authorization: `Bearer ${LOOTLABS_API_KEY}`, "Content-Type": "application/json" },
-                        body: JSON.stringify({ title: userHwid, url: targetUrl, tier_id: 1, number_of_tasks: 3, theme: 1 })
-                    });
-                    const lootData = await lootRes.json();
-                    const messageData = Array.isArray(lootData?.message) ? lootData.message[0] : lootData?.message;
-                    currentTaskUrl = messageData?.loot_url || lootData?.loot_url || targetUrl;
-                } else {
-                    apiUrl = `https://linkjust.com/api?api=${LINKJUST_API_TOKEN}&url=${encodeURIComponent(targetUrl)}`;
-                }
-
-                if (apiUrl) {
-                    const response = await fetch(apiUrl);
-                    const data = await response.json();
-                    
-                    if (data && data.status === 'success' && data.shortenedUrl) {
-                        currentTaskUrl = data.shortenedUrl; 
-                    } else {
-                        requiresClientApi = true; 
-                    }
-                }
-            } catch (err) {
-                console.error("Ad Network Server API Blocked:", err);
-                requiresClientApi = true; 
-            }
+            // توليد رابط Linkvertise بالخطوة الحالية
+            currentTaskUrl = `https://linkvertise.com/${LINKVERTISE_USER_ID}/subx-step-${nextStep}?redirect=${encodeURIComponent(targetUrl)}`;
         }
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
-        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage, requiresClientApi, targetUrl, activeNetwork));
+        return res.status(200).send(generateKeyUI(keyStep, currentTaskUrl, activeKey, activeKeyExpiresAt, streakCount, errorMessage));
     }
 
     return res.status(405).send("Method Not Allowed");
