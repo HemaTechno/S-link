@@ -3,8 +3,6 @@ import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 
 const LINKVERTISE_USER_ID = process.env.LINKVERTISE_USER_ID || "1322389"; // ضع معرف حسابك في لينكاتفاير
-const NITRO_LINK_API_KEY = process.env.NITRO_LINK_API_KEY || "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9";
-const LOOTLABS_API_KEY = process.env.LOOTLABS_API_KEY || "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81";
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1535938435213295616/6dEu86D4MIYzaYnTnJQ55XtTzGmM2PwxfNPi9g4vpRilGXm3G7by6ZlHTsezEw4IJHsZ";
 
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
@@ -1088,8 +1086,9 @@ export default async function handler(req, res) {
 
             const targetUrl = `${redirectUri}?token=${sessionToken}`;
             
-            // توليد رابط Linkvertise بالخطوة الحالية
-            currentTaskUrl = `https://linkvertise.com/${LINKVERTISE_USER_ID}/subx-step-${nextStep}?redirect=${encodeURIComponent(targetUrl)}`;
+            // توليد رابط Linkvertise الديناميكي السليم للخطوة الحالية
+            const base64Target = Buffer.from(targetUrl).toString("base64");
+            currentTaskUrl = `https://linkvertise.com/${LINKVERTISE_USER_ID}/subx-step-${nextStep}/dynamic?r=${base64Target}`;
         }
 
         res.setHeader("Content-Type", "text/html; charset=utf-8");
