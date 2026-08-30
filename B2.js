@@ -35,5 +35,5 @@ client.once('ready', async () => {
     console.log('✅ تم إرسال الرسالة الثابتة بنجاح!');
     process.exit();
 });
-
+console.log("Token is:", process.env.DISCORD_BOT_TOKEN);
 client.login(process.env.DISCORD_BOT_TOKEN);
