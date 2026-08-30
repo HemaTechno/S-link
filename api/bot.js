@@ -1,4 +1,4 @@
-import { db } from './firebase.js'; // استيراد قاعدة البيانات من ملفك الجاهز
+import { db } from './api/firebase.js'; // استيراد قاعدة البيانات من ملفك الجاهز
 import { doc, setDoc, getDoc, deleteDoc } from 'firebase/firestore';
 import nacl from 'tweetnacl'; // للتحقق من أمان طلبات ديسكورد
 
