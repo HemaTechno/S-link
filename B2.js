@@ -36,4 +36,4 @@ client.once('ready', async () => {
     process.exit();
 });
 
-client.login("MTUzMjQ4MDkzMDYyNTg4NDI0MA.G5TnPE.zl4EKhLZO1SM5UUi9eyL9ljEazj3z2okboH6IU");
+client.login(process.env.DISCORD_BOT_TOKEN);
