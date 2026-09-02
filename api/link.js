@@ -6,7 +6,7 @@ import axios from "axios";
 
 const config = {
   lootlabsApiKey: process.env.LOOTLABS_API_KEY || "d2cc58f8084e256f9a15e41ab3971855c0289ed29a00dbf681e31b8b237ace81",
-  linkvertiseUserId: process.env.LINKVERTISE_USER_ID || "1322389",
+  linkvertiseUserId: process.env.LINKVERTISE_USER_ID || "1264869",
   nitroLinkApiKey: process.env.NITRO_LINK_API_KEY || "21a96ba57ee7a54bbbfbb7f0b180901f8f8a3ec9",
   linkJustApiToken: process.env.LINKJUST_API_TOKEN || "944c5ea148b949eb99be07963d8615e6904f460b",
   adminKey: process.env.ADMIN_SECRET_KEY || "Hema123i#",
