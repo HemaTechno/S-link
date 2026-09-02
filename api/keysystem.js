@@ -3,7 +3,7 @@ import { nanoid } from "nanoid";
 import jwt from "jsonwebtoken";
 
 const LINKVERTISE_USER_ID = process.env.LINKVERTISE_USER_ID || "1264869"; // ضع معرف حسابك في لينكاتفاير
-const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1535940997488443482/IBaWMh8QKijZHrORhq0iTbC-e5go5ZDKSkRbsOuiAhrhLizX7rRSPVBC--04HZUoAwwU";
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1535938435213295616/6dEu86D4MIYzaYnTnJQ55XtTzGmM2PwxfNPi9g4vpRilGXm3G7by6ZlHTsezEw4IJHsZ";
 
 const JWT_SECRET = process.env.JWT_SECRET || "SubX_Ultra_Secret_Key_2026_!@#"; 
 
